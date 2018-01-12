@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.03.02
+// @version      4.03.03
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1842,21 +1842,14 @@ Template.accountInfo.events({
 /*************************************/
 /**************arenaInfo**************/
 
-var arenaID = "null";
 
 function arenaInfoEvent()
 {
-    const currentUrl = document.location.href;
-    if (currentUrl !== arenaID)
-    {
-        arenaID = currentUrl;
-        checkFighterInfo();
+    checkFighterInfo();
 
-        //don't see, don't use, don't ask
-        myArena();
+    addMyArenaButton();
 
-        addRemoveButtton();
-    }
+    addRemoveButtton();
 }
 
 
@@ -1991,15 +1984,18 @@ function removeNotFighter()
 
 function addRemoveButtton()
 {
-    const buttonRemove = $(`
-        <button class="btn btn-primary btn-sm" type="button" id="removeNotFighter">
-        移除沒資格的參賽者
-        </button>
-        `);
-    buttonRemove.insertAfter($(`h1[class="card-title mb-1"]`)[0]);
-    $('#removeNotFighter')[0].addEventListener("click", function() {
-        removeNotFighter();
-    });
+    if ($(`button[id="removeNotFighter"]`).length < 1)
+    {
+        const buttonRemove = $(`
+            <button class="btn btn-primary btn-sm" type="button" id="removeNotFighter">
+            移除沒資格的參賽者
+            </button>
+            `);
+        buttonRemove.insertAfter($(`h1[class="card-title mb-1"]`)[0]);
+        $('#removeNotFighter')[0].addEventListener("click", function() {
+            removeNotFighter();
+        });
+    }
 }
 
 
@@ -2009,34 +2005,76 @@ function addRemoveButtton()
 //don't see, don't use, don't ask
 var my_virtual_fighters = [];
 var battleTime = 0;
+
+function removeMyArenaButton()
+{
+    $(`[objectGroup="myArena"]`).remove();
+}
+
+function addMyArenaButton()
+{
+    console.log("start addMyArenaButton()");
+
+    removeMyArenaButton();
+
+    if (checkAttackSequence())
+    {
+        if ($('#startMyArena').length < 1)
+        {
+            const buttonMyArena = $(`
+                <button class="btn btn-danger btn-sm" type="button" id="startMyArena" objectGroup="myArena">
+                使用進階功能
+                </button>
+                `);
+            buttonMyArena.insertAfter($(`h1[class="card-title mb-1"]`)[0]);
+            $('#startMyArena')[0].addEventListener("click", function() {
+                $('#startMyArena').remove();
+                myArena();
+            }
+            );
+        }
+    }
+
+    console.log("end addMyArenaButton()");
+}
+
 function myArena()
 {
     console.log("start myArena()");
 
-    if (checkAttackSequence())
-    {
-        console.log("-----ready to start fightSimulatorCreater");
-        addInputID();
+    console.log("-----ready to start fightSimulatorCreater");
+    addInputID();
 
-        fightSimulatorCreater();
-        addFindInfoButton();
+    fightSimulatorCreater();
+    addFindInfoButton();
 
-        addStartFightSimulatorButton();
-        addFindBattleLogButton();
-    }
+    addStartFightSimulatorButton();
+    addFindBattleLogButton();
 
     console.log("end myArena()");
 }
 
+
 function checkAttackSequence()
 {
     console.log("---start checkAttackSequence()");
-
+    let checkReturn = false;
     const dbFighters = Meteor.connection._mongo_livedata_collections.arenaFighters.find().fetch();
+
     if (dbFighters.length > 0)
-        return (dbFighters[0].attackSequence.length > 0);
-    else
-        return false;
+    {
+        checkReturn = true;
+        for (let f of dbFighters)
+        {
+            if (f.attackSequence.length === 0)
+            {
+                checkReturn = false;
+                break;
+            }
+        }
+    }
+
+    return checkReturn;
 }
 
 function VirtualFighter(fID, fName, fManager, fHP, fSP, fATK, fDEF, fAGI, fspCost, fcreatedAt, fattackSequence)
@@ -2158,6 +2196,7 @@ function fightSimulatorCreater()
             style="width: 150px; cursor: pointer;"
             title="預估戰鬥獎勵"
             id="moneyInfoTitle"
+            objectGroup="myArena"
         >
         預估戰鬥獎勵
         </th>
@@ -2338,7 +2377,7 @@ function addBattleLogTable(vLog)
 function addStartFightSimulatorButton()
 {
     const buttonFS = $(`
-        <button class="btn btn-danger btn-sm" type="button" id="startFS">
+        <button class="btn btn-danger btn-sm" type="button" id="startFS" objectGroup="myArena">
         模擬戰鬥
         </button>
         `);
@@ -2371,7 +2410,7 @@ function findBattleLog(fID)
 function addFindBattleLogButton()
 {
     const buttonFindBattleLog = $(`
-        <button class="btn btn-info btn-sm" type="button" id="findBattleLog">
+        <button class="btn btn-info btn-sm" type="button" id="findBattleLog" objectGroup="myArena">
         搜尋模擬戰鬥紀錄
         </button>
         `);
@@ -2478,6 +2517,7 @@ function addInputID()
             type="text"
             name="inputID"
             id="inputID"
+            objectGroup="myArena"
             maxlength="200"
             placeholder="請輸入公司ID，如 初音未來 為 oeQuXvDBoHYTAZ7ei"
         >
@@ -2488,7 +2528,7 @@ function addInputID()
 function addFindInfoButton()
 {
     const buttonAttackList = $(`
-        <button class="btn btn-warning btn-sm" type="button" id="findAttackList">
+        <button class="btn btn-warning btn-sm" type="button" id="findAttackList" objectGroup="myArena">
         搜尋攻擊清單
         </button>
         `);
@@ -2500,7 +2540,7 @@ function addFindInfoButton()
     });
 
     const buttonAttackMe = $(`
-        <button class="btn btn-warning btn-sm" type="button" id="findAttackMe">
+        <button class="btn btn-warning btn-sm" type="button" id="findAttackMe" objectGroup="myArena">
         搜尋敵人清單
         </button>
         `);
@@ -2512,7 +2552,7 @@ function addFindInfoButton()
     });
 
     const buttonRemoveTable = $(`
-        <button class="btn btn-info btn-sm" type="button" id="removeTable">
+        <button class="btn btn-info btn-sm" type="button" id="removeTable" objectGroup="myArena">
         移除table
         </button>
         `);
