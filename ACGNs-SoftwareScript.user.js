@@ -189,7 +189,8 @@ function startEvent()
 
     setTimeout(checkCsDatasUpdateTime, 1000);
     setTimeout(checkScriptVIPUpdateTime, 1500);
-    setTimeout(checkScriptADUpdateTime, 2000);
+    setTimeout(checkVIPstate, 2000);
+    setTimeout(checkScriptADUpdateTime, 2500);
     setTimeout(checkOthersScript, 2500);
     setTimeout(checkUserID, 3900);
     setTimeout(addPluginDropdownMenuEvent, 5000);
@@ -596,42 +597,45 @@ function updateScriptAD(updateTime)
 function addAD()
 {
     console.log("start add script AD");
-
-    const scriptADData = JSON.parse(window.localStorage.getItem ("local_scriptAD")) || "null";
-    var data, adNumber, link, linkNumber = 0, linkType;
-    $('<a class="scriptAD float-left" id="scriptAD-0">&nbsp;&nbsp;</a>').insertAfter($('.text-danger.float-left'));
-
-    if (scriptADData !== "null")
+    const scriptAD_use = window.localStorage.getItem("local_scriptAD_use") || "true";
+    if (scriptAD_use !== "false")
     {
-        console.log("ADnumber:" + scriptADData.adFormat.length);
-        for (let adF = 0 ; adF < scriptADData.adFormat.length ; ++adF)
-        {
-            console.log("adding AD");
-            adNumber = Number($('.scriptAD').length);
-            data = scriptADData.adData[adF];
+        const scriptADData = JSON.parse(window.localStorage.getItem ("local_scriptAD")) || "null";
+        var data, adNumber, link, linkNumber = 0, linkType;
+        $('<a class="scriptAD float-left" id="scriptAD-0">&nbsp;&nbsp;</a>').insertAfter($('.text-danger.float-left'));
 
-            if (scriptADData.adFormat[adF] == "a")
+        if (scriptADData !== "null")
+        {
+            console.log("ADnumber:" + scriptADData.adFormat.length);
+            for (let adF = 0 ; adF < scriptADData.adFormat.length ; ++adF)
             {
-                $('<a class="scriptAD float-left" id="scriptAD-' + adNumber + '">' + data + '</a>')
-                    .insertAfter($('#scriptAD-' + (adNumber - 1)));
-            }
-            else if (scriptADData.adFormat[adF] == "aLink")
-            {
-                link = scriptADData.adLink[linkNumber];
-                linkType = scriptADData.adLinkType[linkNumber];
-                //console.log(linkType);
-                //console.log((linkType != "_blank"));
-                if ((linkType != "_blank") && (linkType != "_parent") && (linkType != "_top"))
-                    linkType = "";
-                //linkType = "";
-                $('<a class="scriptAD float-left" id="scriptAD-' + adNumber + '" href="' + link + '" target="' + linkType + '">' + data + '</a>').insertAfter($('#scriptAD-' + (adNumber - 1)));
-                linkNumber += 1;
+                console.log("adding AD");
+                adNumber = Number($('.scriptAD').length);
+                data = scriptADData.adData[adF];
+
+                if (scriptADData.adFormat[adF] == "a")
+                {
+                    $('<a class="scriptAD float-left" id="scriptAD-' + adNumber + '">' + data + '</a>')
+                        .insertAfter($('#scriptAD-' + (adNumber - 1)));
+                }
+                else if (scriptADData.adFormat[adF] == "aLink")
+                {
+                    link = scriptADData.adLink[linkNumber];
+                    linkType = scriptADData.adLinkType[linkNumber];
+                    //console.log(linkType);
+                    //console.log((linkType != "_blank"));
+                    if ((linkType != "_blank") && (linkType != "_parent") && (linkType != "_top"))
+                        linkType = "";
+                    //linkType = "";
+                    $('<a class="scriptAD float-left" id="scriptAD-' + adNumber + '" href="' + link + '" target="' + linkType + '">' + data + '</a>').insertAfter($('#scriptAD-' + (adNumber - 1)));
+                    linkNumber += 1;
+                }
             }
         }
-    }
-    else
-    {
-        console.log("!!!error: can not get local_scriptAD");
+        else
+        {
+            console.log("!!!error: can not get local_scriptAD");
+        }
     }
 
     console.log("success add script AD");
@@ -2578,6 +2582,179 @@ function addFindInfoButton()
 /*************************************/
 /**************scriptVIP**************/
 
+Template.announcement.onRendered(()=>{
+    console.log("announcement.onRendered()");
+
+    waitUntil(
+        () => $(`h1[class="card-title mb-1"]`).length > 0,
+        () => addShowVIPbutton()
+    );
+});
+
+function checkVIPstate()
+{
+    if (!isVIP())
+    {
+        const useAD = true;
+        window.localStorage.setItem("local_scriptAD_use", useAD);
+    }
+}
+
+function addShowVIPbutton()
+{
+    console.log("start addShowVIPbutton()");
+
+    const showButton = $(`
+        <button class="btn btn-primary" name="showVIP">
+        SoftwareScript─VIP功能
+        </button>
+    `);
+    showButton.insertAfter($(`h1[class="card-title mb-1"]`)[0]);
+
+    $(`button[name="showVIP"]`)[0].addEventListener("click", function() {
+        setTimeout(showVIPpage, 0);
+    });
+    console.log("end addShowVIPbutton()");
+}
+
+function showVIPpage()
+{
+    console.log("start showVIPpage()");
+    //暴力移除目前頁面
+    $(".card-block").remove();
+
+    //改為VIP功能資訊
+    $(".card").append(`
+        <div class="card-block" name="VIP">
+            <div class="col-5">
+                <h1 class="card-title mb-1">SoftwareScript</h1>
+                <h1 class="card-title mb-1">　VIP功能</h1>
+            </div>
+            <div class="col-5">您是我的恩客嗎?</div>
+            <div class="col-12">
+                <hr>
+                <p>要離開本頁面記得點進來的那一頁以外的其他頁面</p>
+                <hr>
+                <h2 name="becomeVIP">成為VIP</h2>
+                <hr>
+                <h2 name="VIPscriptAD">外掛廣告</h2>
+                <hr>
+                <h2 name="VIPtable">資料搜尋</h2>
+                    <p>未完成開發</p>
+                <hr>
+                <p>如VIP功能發生問題，請至Discord股市群聯絡SoftwareSing</p>
+            </div>
+        </div>
+    `);
+
+    vipInfo();
+    vipAD();
+
+    console.log("end showVIPpage()");
+}
+
+function vipInfo()
+{
+    console.log("---start vipInfo()");
+
+    const scriptVIP_UpdateTime = JSON.parse(window.localStorage.getItem ("local_scriptVIP_UpdateTime")) || "null";
+    const userVIP = isVIP();
+    const info = (`
+        <p>VIP條件更新時間: ${scriptVIP_UpdateTime}</p>
+        <p>您目前的VIP狀態: ${userVIP}</p>
+        <p>VIP權限: </P>
+        <ul name="vipCanDo">
+            <li>關閉外掛廣告</li>
+        </ul>
+        <p>為成為VIP需要購買以下商品</p>
+        <ul name="needProduct"></ul>
+    `);
+
+    let productList = "";
+    const products = JSON.parse(window.localStorage.getItem ("local_scriptVIP")) || [];
+    for (let p of products)
+    {
+        productList += (`<li><a href="${p.link}" target="_self">${p.description}</a></li>`);
+    }
+
+    $(info).insertAfter($(`h2[name="becomeVIP"]`));
+    $(`ul[name="needProduct"]`).append($(productList));
+
+    console.log("---end vipInfo()");
+}
+
+function vipAD()
+{
+    console.log("---start vipAD()");
+
+    const scriptADData = JSON.parse(window.localStorage.getItem ("local_scriptAD")) || "null";
+    const scriptAD_UpdateTime = JSON.parse(window.localStorage.getItem ("local_scriptAD_UpdateTime")) || "null";
+    let ADinfo = "";
+    if (scriptADData !== "null")
+    {
+        let linkNumber = 0;
+        let adNumber = 0;
+        console.log("ADnumber:" + scriptADData.adFormat.length);
+        for (let adF = 0 ; adF < scriptADData.adFormat.length ; ++adF)
+        {
+            console.log("adding AD");
+            adNumber += 1;
+            data = scriptADData.adData[adF];
+
+            if (scriptADData.adFormat[adF] == "a")
+            {
+                ADinfo += ('<a class="scriptAD float-left" id="scriptAD-' + adNumber + '">' + data + '</a>');
+            }
+            else if (scriptADData.adFormat[adF] == "aLink")
+            {
+                link = scriptADData.adLink[linkNumber];
+                linkType = scriptADData.adLinkType[linkNumber];
+                //console.log(linkType);
+                //console.log((linkType != "_blank"));
+                if ((linkType != "_blank") && (linkType != "_parent") && (linkType != "_top"))
+                    linkType = "";
+                //linkType = "";
+                ADinfo += ('<a class="scriptAD float-left" id="scriptAD-' + adNumber + '" href="' + link + '" target="' + linkType + '">' + data + '</a>');
+                linkNumber += 1;
+            }
+        }
+    }
+
+    const info = (`
+        <p>目前的廣告更新時間: ${scriptAD_UpdateTime}</p>
+        <p>目前的廣告內容: </p>
+        <p>${ADinfo}　</p>
+        <p>　
+            <button class="btn btn-info btn-sm" name="openAD">開啟外掛廣告</button>
+            <button class="btn btn-danger btn-sm" name="closeAD">關閉外掛廣告</button>
+        </p>
+        <p>設定會於下次開啟時生效</p>
+    `);
+    if ($(`button[name="closeAD"]`).length < 1)
+    {
+        $(info).insertAfter($(`h2[name="VIPscriptAD"]`));
+    }
+
+    if (!isVIP())
+    {
+        debugConsole("-----user is VIP.");
+        $(`button[name="closeAD"]`)[0].disabled = true;
+    }
+    else
+    {
+        $(`button[name="closeAD"]`)[0].addEventListener("click", function() {
+            const useAD = false;
+            window.localStorage.setItem("local_scriptAD_use", useAD);
+        });
+    }
+    $(`button[name="openAD"]`)[0].addEventListener("click", function() {
+        const useAD = true;
+        window.localStorage.setItem("local_scriptAD_use", useAD);
+    });
+
+    console.log("---end vipAD()");
+}
+
 function isVIP()
 {
     console.log("---start isVIP()");
@@ -2623,7 +2800,7 @@ function checkUserOwnedProducts()
     {
         debugConsole("=====scriptP: ");
         debugConsole(scriptP);
-        const p = dbUserOwnedProducts.find(productId: scriptP.productID, userId: userID).fetch();
+        const p = dbUserOwnedProducts.find({productId: scriptP.productID, userId: userID}).fetch();
         debugConsole("=====p: ");
         debugConsole(p);
         if (p.length > 0)
@@ -2693,7 +2870,7 @@ function updateScriptVIP(updateTime)
         }
 
         console.log("end updateScriptVIP()");
-    }
+    });
 }
 
 /**************scriptVIP**************/
