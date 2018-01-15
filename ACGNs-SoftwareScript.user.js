@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.03.03
+// @version      4.04.00
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -182,12 +182,13 @@ function onArenaInfoPageLoaded() {
 function startEvent()
 {
     checkSeriousError();
-    setTimeout(checkScriptEvent, 1);
+    setTimeout(checkScriptEvent, 0);
     //前2項十分重要，需最優先執行
 
     checkServer();
 
     setTimeout(checkCsDatasUpdateTime, 1000);
+    setTimeout(checkScriptVIPUpdateTime, 1500);
     setTimeout(checkScriptADUpdateTime, 2000);
     setTimeout(checkOthersScript, 2500);
     setTimeout(checkUserID, 3900);
@@ -438,6 +439,9 @@ const normal_companies_jsonDB_updatetime = "https://acgnstock-data.firebaseio.co
 const museum_companies_jsonDB = "https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/companys.json";
 const museum_companies_jsonDB_updatetime = "https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/updateTime.json";
 
+const normal_scriptVIP_jsonDB = "https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/VIPproducts.json";
+const normal_scriptVIP_jsonDB_updatetime = "https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/updateTime.json";
+
 
 
 var companies_jsonDB = normal_companies_jsonDB;
@@ -445,6 +449,9 @@ var companies_jsonDB_updatetime = normal_companies_jsonDB_updatetime;
 
 var AD_jsonDB = normal_AD_jsonDB;
 var AD_jsonDB_updatetime = normal_AD_jsonDB_updatetime;
+
+var scriptVIP_jsonDB = normal_scriptVIP_jsonDB;
+var scriptVIP_jsonDB_updatetime = normal_scriptVIP_jsonDB_updatetime;
 
 
 /***********GetDataBaseData***********/
@@ -1017,6 +1024,7 @@ function SSAddSomeInfo(ID, earnPerShare, price, hold, manager, profit)
 function companyEvent()
 {
     setTimeout(company_AddCsDatasLocalStorage, 1);
+    setTimeout(checkUserOwnedProducts, 2);
 }
 
 
@@ -1122,6 +1130,7 @@ function company_AddCsDatasLocalStorage()
 function accountInfoEvent()
 {
     checkUserInfo();
+    setTimeout(checkUserOwnedProducts, 2);
 }
 
 
@@ -2565,6 +2574,129 @@ function addFindInfoButton()
 
 
 /**************arenaInfo**************/
+/*************************************/
+/*************************************/
+/**************scriptVIP**************/
+
+function isVIP()
+{
+    console.log("---start isVIP()");
+
+    let products = JSON.parse(window.localStorage.getItem ("local_scriptVIP")) || [];
+    let VIP = true;
+    //如果list為空，預設開啟VIP功能
+
+    //確認是不是所有VIP產品都有買
+    debugConsole("-----for of products");
+    for (let scriptP of products)
+    {
+        debugConsole("=====scriptP: ");
+        debugConsole(scriptP);
+        if (scriptP.check === false)
+        {
+            VIP = false;
+            debugConsole("=====break");
+            break;
+            //發現沒有買的，VIP資格=false，跳出迴圈
+        }
+    }
+    debugConsole("------end for of products");
+
+    console.log("-----VIP: " + VIP);
+    console.log("---end isVIP()");
+    return VIP;
+    //回傳VIP資格
+}
+
+
+function checkUserOwnedProducts()
+{
+    console.log("start checkUserOwnedProducts()");
+
+    const userID = myID;
+    let products = JSON.parse(window.localStorage.getItem ("local_scriptVIP")) || [];
+    const {dbUserOwnedProducts} = require("./db/dbUserOwnedProducts");
+
+    //檢查每個VIP要求的產品是否已經有買到
+    debugConsole("-----for of products");
+    for (let scriptP of products)
+    {
+        debugConsole("=====scriptP: ");
+        debugConsole(scriptP);
+        const p = dbUserOwnedProducts.find(productId: scriptP.productID, userId: userID).fetch();
+        debugConsole("=====p: ");
+        debugConsole(p);
+        if (p.length > 0)
+        {
+            //已經確定有該產品，確認數量
+            if (p[0].amount >= scriptP.needAmount)
+            {
+                scriptP.check = true;
+            }
+        }
+        debugConsole("");
+    }
+    debugConsole("------end for of products");
+
+    window.localStorage.setItem ("local_scriptVIP", JSON.stringify(products));
+
+    console.log("end checkUserOwnedProducts()");
+}
+
+
+
+
+function checkScriptVIPUpdateTime()
+{
+    console.log("start checkScriptVIPUpdateTime()");
+
+    const scriptVIP_UpdateTime = JSON.parse(window.localStorage.getItem ("local_scriptVIP_UpdateTime")) || "null";
+
+    const get_scriptVIP_jsonDB_updatetime = getWebData(scriptVIP_jsonDB_updatetime);
+    get_scriptVIP_jsonDB_updatetime(json_updateTime =>
+    {
+        console.log("json_updateTime === CsDatas_UpdateTime :  " + (json_updateTime === scriptVIP_UpdateTime));
+        if (json_updateTime === scriptVIP_UpdateTime)
+        {
+            console.log("dont need update    " + scriptVIP_UpdateTime);
+        }
+        else
+        {
+            console.log("server update time:  " + json_updateTime);
+            console.log("local update time:  " + scriptVIP_UpdateTime);
+
+            console.log("start update data");
+            setTimeout(updateScriptVIP, 1, json_updateTime);
+        }
+
+        console.log("complete checkScriptVIPUpdateTime()");
+    });
+}
+
+function updateScriptVIP(updateTime)
+{
+    console.log("start updateScriptVIP()");
+
+
+    const get_scriptVIP_jsonDB = getWebData(scriptVIP_jsonDB);
+    get_scriptVIP_jsonDB(jsonData =>
+    {
+        window.localStorage.setItem ("local_scriptVIP", JSON.stringify(jsonData));
+
+        if (updateTime === null || updateTime === undefined)
+        {
+            window.localStorage.setItem ("local_scriptVIP_UpdateTime", JSON.stringify("no data"));
+        }
+        else
+        {
+            window.localStorage.setItem ("local_scriptVIP_UpdateTime", JSON.stringify(updateTime));
+        }
+
+        console.log("end updateScriptVIP()");
+    }
+}
+
+/**************scriptVIP**************/
 /*************************************/
 /*************************************/
 /**************Language***************/
