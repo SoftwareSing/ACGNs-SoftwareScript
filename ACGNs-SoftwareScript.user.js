@@ -19,7 +19,6 @@
 //本腳本修改自 "ACGN股票系統每股營利外掛 2.200 by papago89"
 
 
-
 //這邊記一下每個storage的格式
 
 //local_scriptAD_UpdateTime       local
@@ -47,17 +46,15 @@
 // "userEmployee": {"companyID": aaa} }
 
 
-
 /*************************************/
 /**************DebugMode**************/
 
 const debugMode = false;
 //debugMode == true 的時候，會console更多資訊供debug
 
-function debugConsole(msg)
-{
-    if (debugMode)
-        console.log(msg);
+function debugConsole(msg) {
+  if (debugMode)
+    console.log(msg);
 }
 
 
@@ -69,13 +66,13 @@ function debugConsole(msg)
 //會跨2區以上使用的全域變數放在這裡
 //如從stockSummary跨到accountInfo用的變數
 
-var serverType = "normal";
+let serverType = "normal";
 
-var myID = null;               //當前登入的使用者ID
-var myHoldStock = [];   //當前登入的使用者持有的股票, 在股市總覽可以直接抓到全部
-var myOrders = [];      //當前登入的使用者未完成交易的買賣單, 在股市總覽可以直接抓到全部
+let myID = null; //當前登入的使用者ID
+let myHoldStock = []; //當前登入的使用者持有的股票, 在股市總覽可以直接抓到全部
+let myOrders = []; //當前登入的使用者未完成交易的買賣單, 在股市總覽可以直接抓到全部
 
-var othersScript = [];
+let othersScript = [];
 
 
 /************GlobalVariable***********/
