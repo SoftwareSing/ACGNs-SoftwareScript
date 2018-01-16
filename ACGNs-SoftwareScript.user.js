@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.04.00
+// @version      4.04.01
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -193,6 +193,8 @@ function startEvent()
     setTimeout(checkScriptADUpdateTime, 2500);
     setTimeout(checkOthersScript, 2500);
     setTimeout(checkUserID, 3900);
+
+    setTimeout(addShowVIPbutton, 3900);
     setTimeout(addPluginDropdownMenuEvent, 5000);
 
     setTimeout(checkOthersScript, 180000);
@@ -2582,14 +2584,6 @@ function addFindInfoButton()
 /*************************************/
 /**************scriptVIP**************/
 
-Template.announcement.onRendered(()=>{
-    console.log("announcement.onRendered()");
-
-    waitUntil(
-        () => $(`h1[class="card-title mb-1"]`).length > 0,
-        () => addShowVIPbutton()
-    );
-});
 
 function checkVIPstate()
 {
@@ -2605,13 +2599,14 @@ function addShowVIPbutton()
     console.log("start addShowVIPbutton()");
 
     const showButton = $(`
-        <button class="btn btn-primary" name="showVIP">
-        SoftwareScript─VIP功能
-        </button>
+        <li class="nav-item" name="scriptVIP">
+          <a class="nav-link" href="#" name="showVIP">外掛VIP</a>
+        </li>
     `);
-    showButton.insertAfter($(`h1[class="card-title mb-1"]`)[0]);
+    $(`<hr name="script" id="0">`).insertAfter($(`li[class="nav-item"]`).find($(`a[href="/fscStock"`)))
+    showButton.insertAfter($(`hr[name="script"][id="0"]`)[0]);
 
-    $(`button[name="showVIP"]`)[0].addEventListener("click", function() {
+    $(`a[name="showVIP"]`)[0].addEventListener("click", function() {
         setTimeout(showVIPpage, 0);
     });
     console.log("end addShowVIPbutton()");
