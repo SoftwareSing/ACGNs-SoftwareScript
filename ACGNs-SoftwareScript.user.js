@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.04.01
+// @version      4.04.02
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1817,13 +1817,13 @@ function add_userHaveStockInfo_Table()
                 $("#userHaveStockInfo_Table").append(`
                     <tr companyID="${companyID}">
                         <td title="companyID" width="390px">&nbsp; <a href="/company/detail/${companyID}">${name}</a> &nbsp;</td>
-                        <td title="price">&nbsp;${price}&nbsp;</td>
-                        <td title="earnPerShare">&nbsp;${earnPerShare.toFixed(2)}&nbsp;</td>
-                        <td title="hold">&nbsp;${hold}&nbsp;</td>
-                        <td title="holdPercentage">&nbsp;${(hold / release * 100).toFixed(2)} %&nbsp;</td>
-                        <td title="stockWorth">&nbsp;${(price * hold)}&nbsp;</td>
-                        <td title="dividend">&nbsp;${(earnPerShare * hold).toFixed(0)}&nbsp;</td>
-                        <td title="PE">&nbsp;${(price / earnPerShare).toFixed(3)}&nbsp;</td>
+                        <td title="price">${price}</td>
+                        <td title="earnPerShare">${earnPerShare.toFixed(2)}</td>
+                        <td title="hold">${hold}</td>
+                        <td title="holdPercentage">${(hold / release * 100).toFixed(2)} %</td>
+                        <td title="stockWorth">${(price * hold)}</td>
+                        <td title="dividend">${(earnPerShare * hold).toFixed(0)}</td>
+                        <td title="PE">${(price / earnPerShare).toFixed(3)}</td>
                     </tr>
                 `);
             }
