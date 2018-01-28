@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.04.02
+// @version      4.04.03
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1918,7 +1918,7 @@ function addFighterMoneyInfo(fighters)
     const moneyInfoTitle = $(`
         <th
             class="text-center text-truncate"
-            style="width: 100px; cursor: pointer;"
+            style="width: 100px; min-width: 100px;cursor: pointer;"
             title="投資額"
             id="moneyInfoTitle"
         >
@@ -1939,7 +1939,7 @@ function addFighterMoneyInfo(fighters)
         debugConsole("-----fID: " + fID);
         debugConsole("-----tr[data-id=fID].length: " + $(`tr[data-id=${fID}]`).length);
         $(`tr[data-id=${fID}]`).append(`
-            <td class="text-center px-1 text-truncate">
+            <td class="text-center px-1 text-truncate" style="width: 100px; min-width: 100px;">
             ${thisFighter.money.total}
             </td>
         `);
@@ -2208,7 +2208,7 @@ function fightSimulatorCreater()
     const moneyInfoTitle = $(`
         <th
             class="text-center text-truncate"
-            style="width: 150px; cursor: pointer;"
+            style="width: 150px; min-width: 150px; cursor: pointer;"
             title="預估戰鬥獎勵"
             id="moneyInfoTitle"
             objectGroup="myArena"
@@ -2228,7 +2228,7 @@ function fightSimulatorCreater()
         debugConsole("-----fID: " + fID);
         debugConsole("-----tr[data-id=fID].length: " + $(`tr[data-id=${fID}]`).length);
         $(`tr[data-id=${fID}]`).append(`
-            <td class="text-center px-1 text-truncate">
+            <td class="text-center px-1 text-truncate" style="width: 150px; min-width: 150px;">
             ${thisFighter.money.killBonus}
             </td>
         `);
