@@ -2948,6 +2948,7 @@ function vipDataSearch()
             <select class="form-control" style="width: 300px;" name="dataSearchList"></select>
             <button class="btn btn-info btn-sm" name="createTable">建立新的搜尋表</button>
             <button class="btn btn-danger btn-sm" name="deleteTable">刪除這個搜尋表</button>
+            <button class="btn btn-danger btn-sm" name="deleteAllTable">刪除所有</button>
         </p>
         <p name="showTableName"> 表格名稱： <span class="text-info" name="tableName"></span></p>
         <p name="showTableFilter">
@@ -2987,6 +2988,24 @@ function vipDataSearch()
     `);
     $(info).insertAfter($(`h2[name="VIPdataSearch"]`));
 
+
+    $(`button[name="deleteAllTable"]`)[0].addEventListener("click", ()=>{
+        alertDialog.confirm({
+            title: '刪除所有搜尋表',
+            message: `您確定要刪除所有的表格嗎? <br />
+                (建議發生嚴重錯誤至無法操作時 再這麼做)`,
+            callback: (result) => {
+                if (result)
+                {
+                    window.localStorage.removeItem("local_dataSearch");
+                    //有些錯誤會造成addEventListener加入失敗，因此直接重載入網頁
+                    setTimeout(showVIPpage, 10);
+                }
+            }
+        });
+    });
+
+
     $(`button[name="createTable"]`)[0].addEventListener("click", ()=>{
         alertDialog.dialog({
             type: 'prompt',
@@ -2999,7 +3018,7 @@ function vipDataSearch()
                 {
                     addTable(result);
                     addDataSearchList();
-                    $(`select[name="dataSearchList"]`)[0].value = result;
+                    $(`select[name="dataSearchList"]`)[0].value = stripscript(result);
                     showTableInfo();
                 }
             }
@@ -3317,8 +3336,9 @@ function outputTable(tableName)
     console.log("end outputTable()");
 }
 
-function addTable(tableName)
+function addTable(newTableName)
 {
+    const tableName = stripscript(newTableName);
     let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
     const newTable = {"tableName": tableName
         , "filter": null
@@ -3384,7 +3404,7 @@ function deleteTableFilter(tableName)
 function addTableColumn(tableName, columnName, rule)
 {
     let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
-    (dataSearch.find(d => d.tableName === tableName)).column.push({"columnName": columnName, "rule": rule});
+    (dataSearch.find(d => d.tableName === tableName)).column.push({"columnName": stripscript(columnName), "rule": rule});
     window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
 }
 
@@ -3393,7 +3413,7 @@ function changeTableColumn(tableName, columnName, rule, newColumnName)
     let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
     let tableColumn = (dataSearch.find(d => d.tableName === tableName)).column;
     (tableColumn.find(col => col.columnName === columnName)).rule = rule;
-    (tableColumn.find(col => col.columnName === columnName)).columnName = newColumnName;
+    (tableColumn.find(col => col.columnName === columnName)).columnName = stripscript(newColumnName);
 
     (dataSearch.find(d => d.tableName === tableName)).column = tableColumn;
     window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
@@ -3424,6 +3444,16 @@ function doInputFunction(company, fun)
     debugConsole("=====do=" + fun);
 
     return eval(fun);
+}
+
+
+function stripscript(s) {
+    const pattern = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]");
+    let rs = "";
+    for (let i = 0; i < s.length; i++) {
+        rs = rs+s.substr(i, 1).replace(pattern, '');
+    }
+    return rs;
 }
 
 /**************scriptVIP**************/
