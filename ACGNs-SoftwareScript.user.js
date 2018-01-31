@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.04.03
+// @version      4.05.00
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -63,6 +63,13 @@ function debugConsole(msg)
 
 
 /**************DebugMode**************/
+/*************************************/
+/*************************************/
+/***************import****************/
+
+const {alertDialog} = require("./client/layout/alertDialog.js");
+
+/***************import****************/
 /*************************************/
 /*************************************/
 /************GlobalVariable***********/
@@ -289,6 +296,12 @@ function checkSeriousError()
         window.localStorage.removeItem("local_CsDatas");
         window.localStorage.removeItem("local_scriptAD_UpdateTime");
         window.localStorage.removeItem("local_scriptAD");
+
+        window.localStorage.removeItem("local_dataSearch");
+        window.localStorage.removeItem("local_scriptAD_use");
+        window.localStorage.removeItem("local_scriptVIP_UpdateTime");
+        window.localStorage.removeItem("local_scriptVIP");
+
         window.localStorage.removeItem("lastErrorVersion");
         lastErrorVersion = seriousErrorVersion;
         window.localStorage.setItem("lastErrorVersion", JSON.stringify(lastErrorVersion));
@@ -2603,7 +2616,7 @@ function addShowVIPbutton()
           <a class="nav-link" href="#" name="showVIP">外掛VIP</a>
         </li>
     `);
-    $(`<hr name="script" id="0">`).insertAfter($(`li[class="nav-item"]`).find($(`a[href="/fscStock"`)))
+    $(`<hr name="script" id="0">`).insertAfter($(`li[class="nav-item"]`).find($(`a[href="/fscStock"`)));
     showButton.insertAfter($(`hr[name="script"][id="0"]`)[0]);
 
     $(`a[name="showVIP"]`)[0].addEventListener("click", function() {
@@ -2634,8 +2647,7 @@ function showVIPpage()
                 <hr>
                 <h2 name="VIPscriptAD">外掛廣告</h2>
                 <hr>
-                <h2 name="VIPtable">資料搜尋</h2>
-                    <p>未完成開發</p>
+                <h2 name="VIPdataSearch">資料搜尋</h2>
                 <hr>
                 <p>如VIP功能發生問題，請至Discord股市群聯絡SoftwareSing</p>
             </div>
@@ -2644,6 +2656,7 @@ function showVIPpage()
 
     vipInfo();
     vipAD();
+    vipDataSearch();
 
     console.log("end showVIPpage()");
 }
@@ -2723,7 +2736,9 @@ function vipAD()
             <button class="btn btn-info btn-sm" name="openAD">開啟外掛廣告</button>
             <button class="btn btn-danger btn-sm" name="closeAD">關閉外掛廣告</button>
         </p>
-        <p>設定會於下次開啟時生效</p>
+        <p>
+            <font color="red">設定會於下次開啟時生效</font>
+        </p>
     `);
     if ($(`button[name="closeAD"]`).length < 1)
     {
@@ -2756,9 +2771,7 @@ function isVIP()
 
     let products = JSON.parse(window.localStorage.getItem ("local_scriptVIP")) || [];
     let VIP = true;
-    //如果list為空，預設開啟VIP功能
 
-    //確認是不是所有VIP產品都有買
     debugConsole("-----for of products");
     for (let scriptP of products)
     {
@@ -2769,7 +2782,6 @@ function isVIP()
             VIP = false;
             debugConsole("=====break");
             break;
-            //發現沒有買的，VIP資格=false，跳出迴圈
         }
     }
     debugConsole("------end for of products");
@@ -2777,7 +2789,6 @@ function isVIP()
     console.log("-----VIP: " + VIP);
     console.log("---end isVIP()");
     return VIP;
-    //回傳VIP資格
 }
 
 
@@ -2866,6 +2877,553 @@ function updateScriptVIP(updateTime)
 
         console.log("end updateScriptVIP()");
     });
+}
+
+
+function vipDataSearch()
+{
+    console.log("start vipDataSearch()");
+
+    const CsDatas_UpdateTime = JSON.parse(window.localStorage.getItem ("local_CsDatas_UpdateTime")) || "null";
+    const info = (`
+        <p>
+            VIP可以用此功能搜尋公司資料<br />
+            公司資料為 從雲端同步 或 於瀏覽股市時自動更新，因此可能與最新資料有所落差<br />
+            目前的雲端資料更新時間: ${CsDatas_UpdateTime}<br />
+            &nbsp;(每次重新載入股市時，會確認雲端是否有更新資料)
+        </p>
+        <p>&nbsp;</p>
+        <p>各項數值名稱對照表(不在表中的數值無法使用)：
+            <table border="1" name="valueNameTable">
+                <tr name="companyID"> <td>公司ID</td> <td>ID</td> </tr>
+                <tr name="companyName"> <td>公司名稱</td> <td>name</td> </tr>
+                <tr name="companyPrice"> <td>股價</td> <td>price</td> </tr>
+                <tr name="companyStock"> <td>總釋股量</td> <td>stock</td> </tr>
+                <tr name="companyProfit"> <td>總營收</td> <td>profit</td> </tr>
+                <tr name="companySalary"> <td>本季員工薪水</td> <td>salary</td> </tr>
+                <tr name="companyNextSeasonSalary"> <td>下季員工薪水</td> <td>nextSeasonSalary</td> </tr>
+                <tr name="companyBonus"> <td>員工分紅%數</td> <td>bonus</td> </tr>
+                <tr name="companyEmployeesNumber"> <td>本季員工人數</td> <td>employeesNumber</td> </tr>
+                <tr name="companyNextSeasonEmployeesNumber"> <td>下季員工人數</td> <td>nextSeasonEmployeesNumber</td> </tr>
+            </table>
+        </p>
+        <p>常用函式：
+            <table border="1" name="valueNameTable">
+                <tr name="等於">
+                    <td bgcolor="yellow">等於 (請用2或3個等號)</td>
+                    <td bgcolor="yellow">==</td>
+                </tr>
+                <tr name="OR">
+                    <td>x OR(或) y</td>
+                    <td>(x || y)</td>
+                </tr>
+                <tr name="AND">
+                    <td>x AND y</td>
+                    <td>(x && y)</td>
+                </tr>
+                <tr name="toFixed()">
+                    <td>把x四捨五入至小數點y位</td>
+                    <td>x.toFixed(y)</td>
+                </tr>
+                <tr name="Math.ceil(price * 1.15)">
+                    <td>計算漲停價格</td>
+                    <td>Math.ceil(price * 1.15)</td>
+                </tr>
+                <tr name="Math.ceil(price * 0.85)">
+                    <td>計算跌停價格</td>
+                    <td>Math.ceil(price * 0.85)</td>
+                </tr>
+                <tr name="本益比">
+                    <td>本益比</td>
+                    <td>(price * stock) / profit</td>
+                </tr>
+                <tr name="益本比">
+                    <td>益本比</td>
+                    <td>profit / (price * stock)</td>
+                </tr>
+            </table>
+        </p>
+        <p>&nbsp;</p>
+        <p>
+            <select class="form-control" style="width: 300px;" name="dataSearchList"></select>
+            <button class="btn btn-info btn-sm" name="createTable">建立新的搜尋表</button>
+            <button class="btn btn-danger btn-sm" name="deleteTable">刪除這個搜尋表</button>
+        </p>
+        <p name="showTableName"> 表格名稱： <span class="text-info" name="tableName"></span></p>
+        <p name="showTableFilter">
+            過濾公式：<input class="form-control"
+                type="text" name="tableFilter"
+                placeholder="請輸入過濾公式，如: (price>1000)">
+            <button class="btn btn-info btn-sm" name="addTableFilter">儲存過濾公式</button>
+            <button class="btn btn-danger btn-sm" name="deleteTableFilter">刪除過濾公式</button>
+        </p>
+        <p name="showTableSort">
+            排序依據：<input class="form-control"
+                type="text" name="tableSort"
+                placeholder="請輸入排序公式，如: (price)，小到大請加負號: -(price)">
+            <button class="btn btn-info btn-sm" name="addTableSort">儲存排序公式</button>
+            <button class="btn btn-danger btn-sm" name="deleteTableSort">刪除排序公式</button>
+        </p>
+        <p>&nbsp;</p>
+        <p name"showTableColumn">表格欄位<br />
+            <button class="btn btn-info btn-sm" name="addTableColumn">新增欄位</button>
+            <table border="1" name"tableColumn">
+                <thead>
+                    <th>名稱</th>
+                    <th>公式</th>
+                    <th>操作</th>
+                </thead>
+                <tbody name="tableColumn">
+                </tbody>
+            </table>
+        </p>
+        <p>&nbsp;</p>
+        <p>
+            <button class="btn btn-info" name="outputTable">輸出結果</button>
+            <button class="btn btn-warning" name="clearOutputTable">清空輸出</button>
+        </p>
+        <p name="outputTable"></p>
+        <p>&nbsp;</p>
+    `);
+    $(info).insertAfter($(`h2[name="VIPdataSearch"]`));
+
+    $(`button[name="createTable"]`)[0].addEventListener("click", ()=>{
+        alertDialog.dialog({
+            type: 'prompt',
+            title: '新建搜尋表',
+            message: `請輸入表格名稱(如有重複將直接覆蓋)`,
+            inputType: 'text',
+            customSetting: ``,
+            callback: function(result) {
+                if (result)
+                {
+                    addTable(result);
+                    addDataSearchList();
+                    $(`select[name="dataSearchList"]`)[0].value = result;
+                    showTableInfo();
+                }
+            }
+        });
+    });
+    $(`button[name="deleteTable"]`)[0].addEventListener("click", ()=>{
+        const tableName = $(`select[name="dataSearchList"]`)[0].value;
+        alertDialog.confirm({
+            title: '刪除搜尋表',
+            message: `您確定要刪除表格 ${tableName} 嗎?`,
+            callback: (result) => {
+                if (result)
+                {
+                    deleteTable(tableName);
+                    addDataSearchList();
+                    showTableInfo();
+                }
+            }
+        });
+    });
+
+
+    addDataSearchList();
+    if ($(`select[name="dataSearchList"]`)[0].value !== "")
+    {
+        showTableInfo();
+    }
+
+
+    $(`button[name="addTableFilter"]`)[0].addEventListener("click", ()=>{
+        const tableName = $(`select[name="dataSearchList"]`)[0].value;
+        const filter = $(`input[name="tableFilter"]`)[0].value;
+        addTableFilter(tableName, filter);
+    });
+    $(`button[name="deleteTableFilter"]`)[0].addEventListener("click", ()=>{
+        const tableName = $(`select[name="dataSearchList"]`)[0].value;
+        deleteTableFilter(tableName);
+        $(`input[name="tableFilter"]`)[0].value = "";
+    });
+
+    $(`button[name="addTableSort"]`)[0].addEventListener("click", ()=>{
+        const tableName = $(`select[name="dataSearchList"]`)[0].value;
+        const sort = $(`input[name="tableSort"]`)[0].value;
+        addTableSort(tableName, sort);
+    });
+    $(`button[name="deleteTableSort"]`)[0].addEventListener("click", ()=>{
+        const tableName = $(`select[name="dataSearchList"]`)[0].value;
+        deleteTableSort(tableName);
+        $(`input[name="tableSort"]`)[0].value = "";
+    });
+
+
+    $(`button[name="addTableColumn"]`)[0].addEventListener("click", ()=>{
+        const tableName = $(`select[name="dataSearchList"]`)[0].value;
+        alertDialog.dialog({
+            type: 'prompt',
+            title: '新增欄位',
+            message: `請輸入新的欄位名稱`,
+            inputType: 'text',
+            customSetting: `placeholder="請輸入欄位名稱，如: 本益比"`,
+            callback: function(newName) {
+                if (newName)
+                {
+                    alertDialog.dialog({
+                        type: 'prompt',
+                        title: '新增欄位',
+                        message: `請輸入新的公式`,
+                        inputType: 'text',
+                        customSetting: `placeholder="請輸入欄位公式，如: (profit / (price * stock))"`,
+                        callback: function(newRule) {
+                            if (newRule)
+                            {
+                                addTableColumn(tableName, newName, newRule);
+                                showTableColumn(tableName);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    });
+
+    $(`button[name="outputTable"]`)[0].addEventListener("click", ()=>{
+        if (isVIP())
+        {
+            const tableName = $(`span[name="tableName"]`)[0].innerText;
+            if (tableName !== "")
+            {
+                const filter = $(`input[name="tableFilter"]`)[0].value;
+                addTableFilter(tableName, filter);
+                const sort = $(`input[name="tableSort"]`)[0].value;
+                addTableSort(tableName, sort);
+
+                outputTable(tableName);
+            }
+        }
+        else
+        {
+            alertDialog.alert("你不是VIP！(怒)");
+        }
+    });
+    $(`button[name="clearOutputTable"]`)[0].addEventListener("click", ()=>{
+        $(`table[name=outputTable]`).remove();
+    });
+
+    console.log("end vipDataSearch()");
+}
+
+function addDataSearchList()
+{
+    console.log("---start addDataSearchList()");
+
+    $(`option[name="dataSearchList"]`).remove();
+    const dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    for (let t of dataSearch)
+    {
+        const item = $(`<option name="dataSearchList" value="${t.tableName}">${t.tableName}</option>`);
+        $(`select[name="dataSearchList"]`).append(item);
+    }
+    $(`select[name="dataSearchList"]`)[0].addEventListener("change", ()=>{
+        $(`table[name=outputTable]`).remove();
+        showTableInfo();
+    });
+
+    console.log("---end addDataSearchList()");
+}
+
+function showTableInfo()
+{
+    console.log("---start showTableInfo");
+
+    const selectValue = $(`select[name="dataSearchList"]`)[0].value;
+    if (selectValue)
+    {
+        const dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+        const thisTable = dataSearch.find(t => t.tableName === selectValue);
+        $(`span[name="tableName"]`)[0].innerText = thisTable.tableName;
+        $(`input[name="tableFilter"]`)[0].value = thisTable.filter;
+        $(`input[name="tableSort"]`)[0].value = thisTable.sort;
+
+        showTableColumn(thisTable.tableName);
+    }
+    else
+    {
+        $(`span[name="tableName"]`)[0].innerText = "";
+        $(`input[name="tableFilter"]`)[0].value = "";
+        $(`input[name="tableSort"]`)[0].value = "";
+        $(`tr[name="tableColumn"]`).remove();
+    }
+
+    console.log("---end showTableInfo");
+}
+
+function showTableColumn(tableName)
+{
+    console.log("---start showTableColumn()");
+
+    $(`tr[name="tableColumn"]`).remove();
+    const dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    const thisTable = dataSearch.find(t => t.tableName === tableName);
+    for (let c of thisTable.column)
+    {
+        const t = (`
+            <tr name="tableColumn">
+                <td>${c.columnName}</td>
+                <td>${String(c.rule)}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm" name="changeTableColumn" id="${c.columnName}">修改</button>
+                    <button class="btn btn-danger btn-sm" name="deleteTableColumn" id="${c.columnName}">刪除</button>
+                </td>
+            </tr>
+        `);
+        $(`tbody[name="tableColumn"]`).append(t);
+        $(`button[name="changeTableColumn"][id="${c.columnName}"]`)[0].addEventListener("click", ()=>{
+            alertDialog.dialog({
+                type: 'prompt',
+                title: '修改欄位',
+                message: `請輸入新的欄位名稱`,
+                inputType: 'text',
+                defaultValue: c.columnName,
+                customSetting: ``,
+                callback: function(newName) {
+                    if (newName)
+                    {
+                        alertDialog.dialog({
+                            type: 'prompt',
+                            title: '修改欄位',
+                            message: `請輸入新的公式`,
+                            inputType: 'text',
+                            defaultValue: String(c.rule),
+                            customSetting: ``,
+                            callback: function(newRule) {
+                                if (newRule)
+                                {
+                                    changeTableColumn(tableName, c.columnName, newRule, newName);
+                                    showTableColumn(tableName);
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        });
+        $(`button[name="deleteTableColumn"][id="${c.columnName}"]`)[0].addEventListener("click", ()=>{
+            alertDialog.confirm({
+                title: `刪除 ${tableName} 的欄位`,
+                message: `您確定要刪除欄位 ${c.columnName} 嗎?`,
+                callback: (result) => {
+                    if (result)
+                    {
+                        deleteTableColumn(tableName, c.columnName);
+                        showTableColumn(tableName);
+                    }
+                }
+            });
+        });
+    }
+
+    console.log("---end showTableColumn()");
+}
+
+function outputTable(tableName)
+{
+    console.log("start outputTable()");
+
+    $(`table[name=outputTable]`).remove();
+
+    const dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    const t = dataSearch.find(x => x.tableName === tableName);
+    const CsDatas = JSON.parse(window.localStorage.getItem ("local_CsDatas")) || [];
+    let outputCompanies = [];
+    try
+    {
+        if (t.filter)
+        {
+            for (let c of CsDatas)
+            {
+                if (doInputFunction(c, t.filter))
+                {
+                    outputCompanies.push(c);
+                }
+            }
+        }
+        else
+        {
+            outputCompanies = CsDatas;
+        }
+    }
+    catch (e)
+    {
+        alertDialog.alert("計算失敗！過濾公式出錯");
+        return;
+    }
+
+    try {
+        if (t.sort)
+        {
+            outputCompanies.sort((a, b) => doInputFunction(b, t.sort) - doInputFunction(a, t.sort));
+        }
+    }
+    catch (e)
+    {
+        alertDialog.alert("計算失敗！排序公式出錯");
+        return;
+    }
+
+    let outputList = [];
+    let debugColumnName = "";
+    try
+    {
+        for (let c of outputCompanies)
+        {
+            let row = {};
+            for (let column of t.column)
+            {
+                debugColumnName = column.columnName;
+                row[column.columnName] = doInputFunction(c, column.rule);
+            }
+            outputList.push(row);
+        }
+    }
+    catch (e)
+    {
+        alertDialog.alert(`計算失敗！欄位 ${debugColumnName} 公式出錯`);
+        return;
+    }
+
+
+    let thead = "";
+    for (let column of t.column)
+    {
+        thead += `<th style="max-width: 390px;">${column.columnName}</th>`;
+    }
+    const output = (`
+        <table border="1" name="outputTable">
+            <thead name="outputTable">
+                ${thead}
+            </thead>
+            <tbody name="outputTable">
+            </tbody>
+        </table>
+    `);
+    ($(`p[name="outputTable"]`)).append(output);
+    for (let row of outputList)
+    {
+        let outputRow = `<tr>`;
+        for (let column of t.column)
+        {
+            outputRow += `<td style="max-width: 390px;">${row[column.columnName]}</td>`;
+        }
+        outputRow += `</tr>`;
+        $(`tbody[name="outputTable"]`).append(outputRow);
+    }
+
+    console.log("end outputTable()");
+}
+
+function addTable(tableName)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    const newTable = {"tableName": tableName
+        , "filter": null
+        , "sort": null
+        , "column": []};
+    if (dataSearch.findIndex(t => t.tableName === tableName) === -1)
+    {
+        dataSearch.push(newTable);
+    }
+    else
+    {
+        dataSearch.find(t => t.tableName === tableName) = newTable;
+    }
+    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+
+    const companyLink = '(`<a name="companyName" id="${ID}" href="/company/detail/${ID}">${name}</a>`)';
+    addTableColumn(tableName, "公司名稱", companyLink);
+}
+
+function deleteTable(tableName)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    const i = dataSearch.findIndex(t => t.tableName === tableName);
+    dataSearch.splice(i, 1);
+    if (dataSearch.length > 0)
+    {
+        window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+    }
+    else
+    {
+        window.localStorage.removeItem("local_dataSearch");
+    }
+}
+
+function addTableSort(tableName, sort)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    (dataSearch.find(d => d.tableName === tableName)).sort = sort;
+    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+}
+
+function deleteTableSort(tableName)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    (dataSearch.find(d => d.tableName === tableName)).sort = null;
+    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+}
+
+function addTableFilter(tableName, filter)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    (dataSearch.find(d => d.tableName === tableName)).filter = filter;
+    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+}
+
+function deleteTableFilter(tableName)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    (dataSearch.find(d => d.tableName === tableName)).filter = null;
+    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+}
+
+function addTableColumn(tableName, columnName, rule)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    (dataSearch.find(d => d.tableName === tableName)).column.push({"columnName": columnName, "rule": rule});
+    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+}
+
+function changeTableColumn(tableName, columnName, rule, newColumnName)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    let tableColumn = (dataSearch.find(d => d.tableName === tableName)).column;
+    (tableColumn.find(col => col.columnName === columnName)).rule = rule;
+    (tableColumn.find(col => col.columnName === columnName)).columnName = newColumnName;
+
+    (dataSearch.find(d => d.tableName === tableName)).column = tableColumn;
+    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+}
+
+function deleteTableColumn(tableName, columnName)
+{
+    let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
+    const tableColumn = (dataSearch.find(d => d.tableName === tableName)).column;
+    (dataSearch.find(d => d.tableName === tableName)).column.splice(tableColumn.findIndex(c => c.columnName === columnName), 1);
+    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+}
+
+function doInputFunction(company, fun)
+{
+    const ID = company.companyID;
+    const id = company.companyID;
+    const name = company.companyName;
+    const price = company.companyPrice;
+    const stock = company.companyStock;
+    const profit = company.companyProfit;
+    const salary = company.companySalary;
+    const nextSeasonSalary = company.companyNextSeasonSalary;
+    const bonus = company.companyBonus;
+    const employeesNumber = company.companyEmployeesNumber;
+    const nextSeasonEmployeesNumber = company.companyNextSeasonEmployeesNumber;
+
+    debugConsole("=====do=" + fun);
+
+    return eval(fun);
 }
 
 /**************scriptVIP**************/
