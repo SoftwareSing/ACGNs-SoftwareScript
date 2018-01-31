@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.05.01
+// @version      4.05.02
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -2942,9 +2942,14 @@ function vipDataSearch()
                     <td>益本比</td>
                     <td>profit / (price * stock)</td>
                 </tr>
+                <tr name="包含">
+                    <td>名字中包含 艦これ 的公司</td>
+                    <td>(name.indexOf("艦これ") > -1)</td>
+                </tr>
             </table>
         </p>
         <p>&nbsp;</p>
+        <p> <a href="https://hackmd.io/s/SycGT5yIG" target="_blank">資料搜尋用法教學</a> </p>
         <p>
             <select class="form-control" style="width: 300px;" name="dataSearchList"></select>
             <button class="btn btn-info btn-sm" name="createTable">建立新的搜尋表</button>
@@ -3405,8 +3410,16 @@ function deleteTableFilter(tableName)
 function addTableColumn(tableName, columnName, rule)
 {
     let dataSearch = JSON.parse(window.localStorage.getItem ("local_dataSearch")) || [];
-    (dataSearch.find(d => d.tableName === tableName)).column.push({"columnName": stripscript(columnName), "rule": rule});
-    window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+    const originColumn = (dataSearch.find(d => d.tableName === tableName)).column;
+    if (originColumn.findIndex(col => col.columnName === columnName) === -1)
+    {
+        (dataSearch.find(d => d.tableName === tableName)).column.push({"columnName": stripscript(columnName), "rule": rule});
+        window.localStorage.setItem ("local_dataSearch", JSON.stringify(dataSearch));
+    }
+    else
+    {
+        changeTableColumn(tableName, columnName, rule, columnName);
+    }
 }
 
 function changeTableColumn(tableName, columnName, rule, newColumnName)
