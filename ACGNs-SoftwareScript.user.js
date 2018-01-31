@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.05.00
+// @version      4.05.01
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -2673,6 +2673,7 @@ function vipInfo()
         <p>VIP權限: </P>
         <ul name="vipCanDo">
             <li>關閉外掛廣告</li>
+            <li>使用資料搜尋功能</li>
         </ul>
         <p>為成為VIP需要購買以下商品</p>
         <ul name="needProduct"></ul>
