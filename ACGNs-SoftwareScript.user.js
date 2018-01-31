@@ -159,7 +159,7 @@ function onStockSummaryPageLoaded() {
 
 // 當「公司資訊」頁面已載入時進行的回呼
 function onCompanyDetailPageLoaded() {
-    setTimeout(companyEvent, 39);
+    setTimeout(companyEvent, 390);
 }
 
 // 當「帳號資訊」頁面已載入時進行的回呼
