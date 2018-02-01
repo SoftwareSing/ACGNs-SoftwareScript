@@ -102,6 +102,11 @@ class DbListener {
     this.url = null;
   }
 
+  resetVariable() {
+    this.url = null;
+    this.doCount = 0;
+  }
+
   addMongodbListener(callback, redo) {
     if ((this.doCount > 0) && (! redo)) {
       //已經有相同的listener在執行，不再重複觸發
@@ -117,8 +122,7 @@ class DbListener {
     }
     else if (this.url !== currentUrl) {
       //使用者換頁了，強制跳出
-      this.url = null;
-      this.doCount = 0;
+      this.resetVariable();
 
       return;
     }
@@ -136,8 +140,7 @@ class DbListener {
       else {
         //空陣列太多次，判斷為真的空陣列
         //執行callback
-        this.url = null;
-        this.doCount = 0;
+        this.resetVariable();
 
         callback();
       }
@@ -158,8 +161,7 @@ class DbListener {
     }
     else {
       //執行callback
-      this.url = null;
-      this.doCount = 0;
+      this.resetVariable();
       callback();
     }
   }
