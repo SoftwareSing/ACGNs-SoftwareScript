@@ -11,8 +11,6 @@
 // @grant        none
 // ==/UserScript==
 
-//I love Hatsune Miku.
-
 //版本號為'主要版本號 + "." + 次要版本號 + 錯誤修正版本號，ex 8.31.39
 //修復導致功能失效的錯誤或更新重大功能提升主要或次要版本號
 //優化UI，優化效能，優化小錯誤更新錯誤版本號
@@ -68,7 +66,7 @@ function debugConsole(msg) {
 
 let serverType = "normal";
 
-let myID = null; //當前登入的使用者ID
+let myId = null; //當前登入的使用者ID
 let myHoldStock = []; //當前登入的使用者持有的股票, 在股市總覽可以直接抓到全部
 let myOrders = []; //當前登入的使用者未完成交易的買賣單, 在股市總覽可以直接抓到全部
 
