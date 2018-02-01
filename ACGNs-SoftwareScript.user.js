@@ -76,4 +76,96 @@ let othersScript = [];
 /************GlobalVariable***********/
 /*************************************/
 /*************************************/
+/**************function***************/
+
+//監聽MongoDB是否載入完成，載入後執行callback
+//範例:
+// Template.companyDetailContentNormal.onRendered(() => {
+//   const DbEmpListener = new DbListener(dbEmployees);
+//   const instance = Template.instance();
+//   instance.autorun(() => {
+//     DbEmpListener.addMongodbListener(() => {
+//       console.log(dbEmployees.find().fetch());
+//     });
+//   });
+// });
+class DbListener {
+  constructor(dbName) {
+    this.lastDb = null;
+    this.lastTime = new Date();
+    this.dbName = dbName;
+
+    this.waitTime = 500; //如果0.5秒後資料沒有變動，才執行
+
+    this.doCount = 0;
+    this.doMax = 200; //當超過200次都獲取到空陣列，判斷為真的空陣列
+    this.url = null;
+  }
+
+  addMongodbListener(callback, redo) {
+    if ((this.doCount > 0) && (! redo)) {
+      //已經有相同的listener在執行，不再重複觸發
+      //強制跳出
+
+      return;
+    }
+    this.doCount += 1;
+
+    const currentUrl = document.location.href;
+    if (this.url === null) {
+      this.url = currentUrl;
+    }
+    else if (this.url !== currentUrl) {
+      //使用者換頁了，強制跳出
+      this.url = null;
+      this.doCount = 0;
+
+      return;
+    }
+
+    const thisDb = (this.dbName).find().fetch();
+    const listenTime = new Date();
+    if (thisDb.length === 0) {
+      //大小為0，理所當然還沒載入
+      if (this.doCount < this.doMax) {
+        this.lastTime = listenTime;
+        setTimeout(() => {
+          this.addMongodbListener(callback, true);
+        }, 10);
+      }
+      else {
+        //空陣列太多次，判斷為真的空陣列
+        //執行callback
+        this.url = null;
+        this.doCount = 0;
+
+        callback();
+      }
+    }
+    else if (JSON.stringify(this.lastDb) !== JSON.stringify(thisDb)) {
+      //資料有變動，代表資料可能還在加載中，重新確認
+      this.lastDb = thisDb;
+      this.lastTime = listenTime;
+      setTimeout(() => {
+        this.addMongodbListener(callback, true);
+      }, 10);
+    }
+    else if ((listenTime.getTime() - this.lastTime.getTime()) < this.waitTime) {
+      //小於等待時間，資料可能還會變動，重新確認
+      setTimeout(() => {
+        this.addMongodbListener(callback, true);
+      }, 10);
+    }
+    else {
+      //執行callback
+      this.url = null;
+      this.doCount = 0;
+      callback();
+    }
+  }
+}
+
+/**************function***************/
+/*************************************/
+/*************************************/
 /*********ACGNListenerScript**********/
