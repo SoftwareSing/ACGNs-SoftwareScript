@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.05.02
+// @version      4.06.00
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1873,123 +1873,10 @@ Template.accountInfo.events({
 
 function arenaInfoEvent()
 {
-    checkFighterInfo();
-
     addMyArenaButton();
 
     addRemoveButtton();
 }
-
-
-function Fighter(fID, fManager, fHP, fSP, fATK, fDEF, fAGI)
-{
-    this.ID = fID;
-    this.manager = fManager;
-    this.money = {
-        "total": Number(fHP + fSP + fATK + fDEF + fAGI),
-        "hp": fHP,
-        "sp": fSP,
-        "atk": fATK,
-        "def": fDEF,
-        "agi": fAGI
-    };
-    this.hp = Number(Math.floor(fHP/200) + 50);
-    this.sp = Number(Math.floor(fSP/1000) + 5);
-    this.atk = Number(Math.floor(fATK/1000) + 1);
-    this.def = Number(Math.floor(fDEF/1000));
-    this.agi = Number(Math.floor(fAGI/1000));
-
-    debugConsole("=====new Fighter ID: " + this.ID);
-    debugConsole("=====new Fighter total money: " + this.money.total);
-}
-
-function checkFighterInfo()
-{
-    console.log("start checkFighterInfo()");
-
-    var fighters = [];
-    const dbFighters = Meteor.connection._mongo_livedata_collections.arenaFighters.find().fetch();
-
-    debugConsole("-----for of dbFighters");
-    for (let f of dbFighters)
-    {
-        debugConsole("-----new Fighter input: " + f.companyId + f.manager + f.hp + f.sp + f.atk + f.def + f.agi);
-        let thisFighter = new Fighter(f.companyId, f.manager, f.hp, f.sp, f.atk, f.def, f.agi);
-        fighters.push(thisFighter);
-    }
-
-    addFighterMoneyInfo(fighters);
-    //consoleMoney(fighters);
-
-    console.log("end checkFighterInfo()");
-}
-
-function addFighterMoneyInfo(fighters)
-{
-    console.log("---start addFighterMoneyInfo()");
-
-    const moneyInfoTitle = $(`
-        <th
-            class="text-center text-truncate"
-            style="width: 100px; min-width: 100px;cursor: pointer;"
-            title="投資額"
-            id="moneyInfoTitle"
-        >
-        投資額
-        </th>
-    `);
-
-    debugConsole("-----th[title=投資額].length: " + $('th[title="投資額"]').length);
-    if ($('th[title="投資額"]').length < 1)
-    {
-        moneyInfoTitle.insertAfter($('th[title="名次"]')[0]);
-    }
-
-    debugConsole("-----for of fighters");
-    for (let thisFighter of fighters)
-    {
-        const fID = thisFighter.ID;
-        debugConsole("-----fID: " + fID);
-        debugConsole("-----tr[data-id=fID].length: " + $(`tr[data-id=${fID}]`).length);
-        $(`tr[data-id=${fID}]`).append(`
-            <td class="text-center px-1 text-truncate" style="width: 100px; min-width: 100px;">
-            ${thisFighter.money.total}
-            </td>
-        `);
-    }
-
-    console.log("---end addFighterMoneyInfo()");
-}
-
-
-function consoleMoney(fighters)
-{
-    fighters.sort(function(a, b) {
-        return b.money.total - a.money.total;
-    });
-    const CsDatas = JSON.parse(window.localStorage.getItem ("local_CsDatas")) || [];
-    //local_CsDatas規格               local
-    //{"companyID": String, "companyName": String,
-    // "companyPrice": Number, "companyStock": Number, "companyProfit": Number,
-    // "companySalary": Number, "companyNextSeasonSalary": Number, "companyBonus": Number,
-    // "companyEmployeesNumber": Number, "companyNextSeasonEmployeesNumber": Number}
-    for (let f = 0; f < 100; f += 1)
-    {
-        const thisFighter = fighters[f];
-        const cIndex = CsDatas.findIndex(c => c.companyID == thisFighter.ID);
-        console.log("rank: " + f);
-        console.log("ID: " + thisFighter.ID);
-        if (cIndex != -1)
-            console.log("name: " + CsDatas[cIndex].companyName);
-        console.log("manager: " + thisFighter.manager);
-        console.log("money: " + thisFighter.money.total);
-        console.log("HP: " + thisFighter.hp);
-
-        console.log("");
-        console.log("");
-    }
-}
-
 
 
 function removeNotFighter()
