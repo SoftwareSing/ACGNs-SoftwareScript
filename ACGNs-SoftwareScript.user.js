@@ -78,8 +78,42 @@ let othersScript = [];
 /*************************************/
 /**************function***************/
 
+//監聽頁面，資料準備完成時執行event
+//不應該直接呼叫，他應該被繼承
+//使用例
+// class CompanyDetailController extends EventController {
+//   constructor() {
+//     super(Template.companyDetail, "companyDetail");
+//   }
+//   startEvent() {
+//     console.log("companyDetail success");
+//     console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
+//     console.log("");
+//   }
+// }
+class EventController {
+  constructor(template, templateName) {
+    const callback = this.startEvent;
+    template.onCreated(function() {
+      const rIsDataReady = new ReactiveVar(false);
+      this.autorun(() => {
+        rIsDataReady.set(this.subscriptionsReady());
+      });
+      this.autorun(() => {
+        if (rIsDataReady.get()) {
+          console.log(`${templateName} loaded`);
+          callback();
+        }
+        else {
+          console.log(`${templateName} is loading`);
+        }
+      });
+    });
   }
 
+  startEvent() {
+    //請繼承的controller直接rewrite這個method
+    console.log("startEvent");
   }
 }
 
