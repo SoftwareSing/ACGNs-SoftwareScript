@@ -80,20 +80,25 @@ let othersScript = [];
 
 //監聽頁面，資料準備完成時執行event
 //不應該直接呼叫，他應該被繼承
-//使用例
-// class CompanyDetailController extends EventController {
-//   constructor() {
-//     super(Template.companyDetail, "companyDetail");
+//使用例:
+// class CompanyDetailContentNormalController extends EventController {
+//   constructor(user) {
+//     super("CompanyDetailContentNormalController", user);
+//     this.templateListener(Template.companyDetailContentNormal, "Template.companyDetailContentNormal", this.startEvent);
 //   }
 //   startEvent() {
-//     console.log("companyDetail success");
-//     console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
+//     console.log("companyDetailContentNormal success");
+//     console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
 //     console.log("");
 //   }
 // }
 class EventController {
-  constructor(template, templateName) {
-    const callback = this.startEvent;
+  constructor(controllerName, user) {
+    console.log(`create controller: ${controllerName}`);
+    this.loginUser = user;
+  }
+
+  templateListener(template, templateName, callback) {
     template.onCreated(function() {
       const rIsDataReady = new ReactiveVar(false);
       this.autorun(() => {
@@ -109,11 +114,6 @@ class EventController {
         }
       });
     });
-  }
-
-  startEvent() {
-    //請繼承的controller直接rewrite這個method
-    console.log("startEvent");
   }
 }
 
