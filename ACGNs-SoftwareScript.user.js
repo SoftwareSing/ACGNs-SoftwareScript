@@ -81,14 +81,20 @@ let othersScript = [];
 //監聽頁面，資料準備完成時執行event
 //不應該直接呼叫，他應該被繼承
 //使用例:
-// class CompanyDetailContentNormalController extends EventController {
+// class CompanyDetailController extends EventController {
 //   constructor(user) {
-//     super("CompanyDetailContentNormalController", user);
+//     super("CompanyDetailController", user);
 //     this.templateListener(Template.companyDetailContentNormal, "Template.companyDetailContentNormal", this.startEvent);
+//     this.templateListener(Template.companyDetail, "Template.companyDetail", this.startEvent2);
 //   }
 //   startEvent() {
 //     console.log("companyDetailContentNormal success");
 //     console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
+//     console.log("");
+//   }
+//   startEvent2() {
+//     console.log("companyDetail success");
+//     console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
 //     console.log("");
 //   }
 // }
