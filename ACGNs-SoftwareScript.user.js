@@ -51,8 +51,9 @@ const debugMode = false;
 //debugMode == true 的時候，會console更多資訊供debug
 
 function debugConsole(msg) {
-  if (debugMode)
+  if (debugMode) {
     console.log(msg);
+  }
 }
 
 

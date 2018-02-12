@@ -23,6 +23,7 @@
   },
   "plugins": [],
   "rules": {
+    "curly": "error", 
     "import/prefer-default-export": "off",
     "no-unused-expressions": "warn",
     "no-unused-vars": "warn",
