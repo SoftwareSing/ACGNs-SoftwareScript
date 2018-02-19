@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      4.06.00
+// @version      4.06.01
 // @description  Banishment this world!
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1833,7 +1833,7 @@ function add_userHaveStockInfo_Table()
                         <td title="price">${price}</td>
                         <td title="earnPerShare">${earnPerShare.toFixed(2)}</td>
                         <td title="hold">${hold}</td>
-                        <td title="holdPercentage">${(hold / release * 100).toFixed(2)} %</td>
+                        <td title="holdPercentage">${(hold / release * 100).toFixed(2)}%</td>
                         <td title="stockWorth">${(price * hold)}</td>
                         <td title="dividend">${(earnPerShare * hold).toFixed(0)}</td>
                         <td title="PE">${(price / earnPerShare).toFixed(3)}</td>
