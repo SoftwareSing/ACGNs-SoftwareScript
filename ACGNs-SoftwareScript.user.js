@@ -23,25 +23,34 @@
 //date
 
 //local_scriptAD                  local
-//{"adLinkType": ["_self", "_blank"],
-// "adLink": ["/company/detail/NJbJuXaJxjJpzAJui", "https://www.google.com.tw/"],
-// "adData": ["&nbsp;message&nbsp;", "miku"],
-// "adFormat": ["a", "aLink"]}
+//{adLinkType: ["_self", "_blank"],
+// adLink: ["/company/detail/NJbJuXaJxjJpzAJui", "https://www.google.com.tw/"],
+// adData: ["&nbsp;message&nbsp;", "miku"],
+// adFormat: ["a", "aLink"]}
 
 //local_CsDatas_UpdateTime        local
 //date
 
-//local_CsDatas規格               local
-//{"companyID": String, "companyName": String,
-// "companyPrice": Number, "companyStock": Number, "companyProfit": Number,
-// "companySalary": Number, "companyNextSeasonSalary": Number, "companyBonus": Number,
-// "companyEmployeesNumber": Number, "companyNextSeasonEmployeesNumber": Number}
+//localCompanies規格               local
+//{companyID: String, name: String,
+// chairman: String, manager: String,
+// grade: String, capital: Number,
+// price: Number, release: Number, profit: Number,
+// vipBonusStocks: Number,
+// managerProfitPercent: 0.05,
+// salary: Number, nextSeasonSalary: Number, bonus: Number,
+// employeesNumber: Number, nextSeasonEmployeesNumber: Number
+// tags: Array,
+// createdAt: String
+//}
 
-//userStcokInfo的格式         session
-//{"userID": "CWgfhqxbrJMxsknrb",
-// "userCompany": [{"companyID": aaa, "userHold": number}, {}]
-// "userManage": [{"companyID": aaa}, {}]
-// "userEmployee": {"companyID": aaa} }
+//userInfo的格式         session
+//{userId: "CWgfhqxbrJMxsknrb",
+// holdStocks: [{companyId: aaa, stocks: Number, vip: Number}, {}],
+// managers: [{companyId: aaa}, {}],
+// employee: "aaa",
+// money: Number,
+// ticket: Number}
 
 
 /*************************************/
