@@ -293,6 +293,263 @@ class View {
   }
 }
 
+
+class user {
+  constructor(id) {
+    console.log(`create user: ${id}`);
+    this.userId = id;
+    this.holdStocks = [];
+    this.managers = [];
+    this.employee = "";
+    this.money = 0;
+    this.ticket = 0;
+  }
+
+  saveToSessionstorage() {
+    console.log(`---start saveToSessionstorage()`);
+
+    const userInfo = JSON.parse(window.sessionStorage.getItem("userInfo"));
+    const i = userInfo.findIndex((x) => {
+      return x.userId === this.userId;
+    });
+    userInfo[i] = {
+      userId: this.userId,
+      holdStocks: this.holdStocks,
+      managers: this.managers,
+      employee: this.employee,
+      money: this.money,
+      ticket: this.ticket
+    };
+    window.sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
+
+    console.log(`---end saveToSessionstorage()`);
+  }
+
+  updateHoldStocks(serverDirectors) {
+    console.log(`---start updateHoldStocks()`);
+
+    let isChange = false;
+    for (const c of serverDirectors) {
+      if (c.userId === this.userId) {
+        const i = this.holdStocks.findIndex((x) => {
+          return x.companyId === c.companyId;
+        });
+        if (i !== -1) {
+          if (this.holdStocks[i].stocks !== c.stocks) {
+            isChange = true;
+            this.holdStocks[i].stocks = c.stocks;
+          }
+        }
+        else {
+          isChange = true;
+          this.holdStocks.push({companyId: c.companyId, stocks: c.stocks, vip: null});
+        }
+      }
+    }
+
+    if (isChange) {
+      this.saveToSessionstorage();
+    }
+
+    console.log(`---end updateHoldStocks()`);
+  }
+
+  updateManagers(serverCompanies) {
+    console.log(`---start updateManagers()`);
+
+    let isChange = false;
+    for (const c of serverCompanies) {
+      if (this.managers.find((x) => {
+        return (x.companyId === c._id);
+      }) === undefined) {
+        isChange = true;
+        this.managers.push({companyId: c._id});
+      }
+    }
+
+    if (isChange) {
+      this.saveToSessionstorage();
+    }
+    console.log(`---end updateManagers()`);
+  }
+
+  updateEmployee(serverEmployees) {
+    console.log(`---start updateEmployee()`);
+
+    let isChange = false;
+    for (const emp of serverEmployees) {
+      if (emp.employed) {
+        if (this.employee !== emp.companyId) {
+          isChange = true;
+          this.employee = emp.companyId;
+        }
+      }
+    }
+
+    if (isChange) {
+      this.saveToSessionstorage();
+    }
+    console.log(`---end updateEmployee()`);
+  }
+
+
+  computeAsset() {
+    console.log(`---start computeAsset()`);
+
+    let asset = 0;
+    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    for (const c of this.holdStocks) {
+      const companyData = localCompanies.find((x) => {
+        return x.companyId === c.companyId;
+      });
+      if (companyData !== undefined) {
+        asset += Number(companyData.price * c.stocks);
+      }
+      else {
+        console.log(`-----computeAsset(): not find companyId: ${c.companyId}`);
+      }
+    }
+
+    console.log(`---end computeAsset(): ${asset}`);
+
+    return asset;
+  }
+
+  computeProfit() {
+    console.log(`---start computeProfit()`);
+
+    let profit = 0;
+    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    for (const c of this.holdStocks) {
+      const companyData = localCompanies.find((x) => {
+        return x.companyId === c.companyId;
+      });
+      if (companyData !== undefined) {
+        profit += Math.ceil(earnPerShare(companyData) * effectiveStocks(c.stocks, c.vip));
+      }
+      else {
+        console.log(`-----computeProfit(): not find companyId: ${c.companyId}`);
+      }
+    }
+
+    console.log(`---end computeProfit(): ${profit}`);
+
+    return profit;
+  }
+
+  computeManagerProfit() {
+    console.log(`---start computeManagerProfit()`);
+
+    let managerProfit = 0;
+    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    for (const c of this.managers) {
+      const companyData = localCompanies.find((x) => {
+        return x.companyId === c.companyId;
+      });
+      if (companyData !== undefined) {
+        managerProfit += Math.ceil(companyData.profit * companyData.managerProfitPercent);
+      }
+      else {
+        console.log(`-----computeManagerProfit(): not find companyId: ${c.companyId}`);
+      }
+    }
+
+    console.log(`---end computeManagerProfit(): ${managerProfit}`);
+
+    return managerProfit;
+  }
+
+  computeEmployeeBonus() {
+    console.log(`---start computeEmployeeBonus()`);
+
+    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    const companyData = localCompanies.find((x) => {
+      return x.companyId === this.employee;
+    });
+    const totalBonus = companyData.profit * companyData.bonus * 0.01;
+    const bonus = Math.floor(totalBonus / companyData.employeesNumber);
+
+    console.log(`---end computeEmployeeBonus(): ${bonus}`);
+
+    return bonus;
+  }
+
+  computeProductVotingRewards() {
+    console.log(`---start computeProductVotingRewards()`);
+
+    let reward = 0;
+
+    //計算系統推薦票回饋
+    const { systemProductVotingReward } = Meteor.settings.public;
+    const totalReward = systemProductVotingReward;
+    const initialVoteTicketCount = getInitialVoteTicketCount(getCurrentSeason());
+    const count = initialVoteTicketCount - this.ticket;
+    reward += (count >= initialVoteTicketCount) ? totalReward : Math.ceil(totalReward * count / 100);
+
+    //計算公司推薦票回饋
+    const { employeeProductVotingRewardFactor } = Meteor.settings.public;
+    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    const companyData = localCompanies.find((x) => {
+      return x.companyId === this.employee;
+    });
+    const baseReward = employeeProductVotingRewardFactor * companyData.profit;
+    //因為沒辦法得知全部員工投票數，以其他所有員工都有投完票來計算
+    const totalEmployeeVoteTickets = initialVoteTicketCount * (companyData.employee - 1) + count;
+    reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets);
+
+    console.log(`---end computeProductVotingRewards(): ${reward}`);
+
+    return reward;
+  }
+
+  computeTotalWealth() {
+    const totalWealth = this.moeny +
+      this.computeAsset() + this.computeProfit() +
+      this.computeManagerProfit() + this.computeEmployeeBonus() +
+      this.computeProductVotingRewards();
+
+    return totalWealth;
+  }
+
+  computeTax() {
+    console.log(`---start computeTax()`);
+
+    const totalWealth = this.computeTotalWealth();
+
+    const taxRateTable = [
+      { asset: 10000, rate: 0.00, adjustment: 0 },
+      { asset: 100000, rate: 0.03, adjustment: 300 },
+      { asset: 500000, rate: 0.06, adjustment: 3300 },
+      { asset: 1000000, rate: 0.09, adjustment: 18300 },
+      { asset: 2000000, rate: 0.12, adjustment: 48300 },
+      { asset: 3000000, rate: 0.15, adjustment: 108300 },
+      { asset: 4000000, rate: 0.18, adjustment: 198300 },
+      { asset: 5000000, rate: 0.21, adjustment: 318300 },
+      { asset: 6000000, rate: 0.24, adjustment: 468300 },
+      { asset: 7000000, rate: 0.27, adjustment: 648300 },
+      { asset: 8000000, rate: 0.30, adjustment: 858300 },
+      { asset: 9000000, rate: 0.33, adjustment: 1098300 },
+      { asset: 10000000, rate: 0.36, adjustment: 1368300 },
+      { asset: 11000000, rate: 0.39, adjustment: 1668300 },
+      { asset: 12000000, rate: 0.42, adjustment: 1998300 },
+      { asset: 13000000, rate: 0.45, adjustment: 2358300 },
+      { asset: 14000000, rate: 0.48, adjustment: 2748300 },
+      { asset: 15000000, rate: 0.51, adjustment: 3168300 },
+      { asset: 16000000, rate: 0.54, adjustment: 3618300 },
+      { asset: 17000000, rate: 0.57, adjustment: 4098300 },
+      { asset: Infinity, rate: 0.60, adjustment: 4608300 }
+    ];
+    const { rate, adjustment } = taxRateTable.find((e) => {
+      return (totalWealth < e.asset);
+    });
+    const tax = Math.ceil(totalWealth * rate - adjustment);
+
+    console.log(`---end computeTax(): ${tax}`);
+
+    return tax;
+  }
+}
+
 /****************class****************/
 /*************************************/
 /*************************************/
