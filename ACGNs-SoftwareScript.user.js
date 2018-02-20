@@ -11,10 +11,10 @@
 // @grant        none
 // ==/UserScript==
 
-//版本號為'主要版本號 + "." + 次要版本號 + 錯誤修正版本號，ex 8.31.39
+//版本號為'主要版本號 + '.' + 次要版本號 + 錯誤修正版本號，ex 8.31.39
 //修復導致功能失效的錯誤或更新重大功能提升主要或次要版本號
 //優化UI，優化效能，優化小錯誤更新錯誤版本號
-//本腳本修改自 "ACGN股票系統每股營利外掛 2.200 by papago89"
+//本腳本修改自 'ACGN股票系統每股營利外掛 2.200 by papago89'
 
 
 //這邊記一下每個storage的格式
@@ -23,10 +23,10 @@
 //date
 
 //local_scriptAD                  local
-//{adLinkType: ["_self", "_blank"],
-// adLink: ["/company/detail/NJbJuXaJxjJpzAJui", "https://www.google.com.tw/"],
-// adData: ["&nbsp;message&nbsp;", "miku"],
-// adFormat: ["a", "aLink"]}
+//{adLinkType: ['_self', '_blank'],
+// adLink: ['/company/detail/NJbJuXaJxjJpzAJui', 'https://www.google.com.tw/'],
+// adData: ['&nbsp;message&nbsp;', 'miku'],
+// adFormat: ['a', 'aLink']}
 
 //local_CsDatas_UpdateTime        local
 //date
@@ -45,10 +45,10 @@
 //}
 
 //userInfo的格式         session
-//{userId: "CWgfhqxbrJMxsknrb",
+//{userId: 'CWgfhqxbrJMxsknrb',
 // holdStocks: [{companyId: aaa, stocks: Number, vip: Number}, {}],
 // managers: [{companyId: aaa}, {}],
-// employee: "aaa",
+// employee: 'aaa',
 // money: Number,
 // ticket: Number}
 
@@ -71,8 +71,8 @@ function debugConsole(msg) {
 /*************************************/
 /***************import****************/
 
-const { getCurrentSeason, getInitialVoteTicketCount } = require("./db/dbSeason");
-const {alertDialog} = require("./client/layout/alertDialog.js");
+const { getCurrentSeason, getInitialVoteTicketCount } = require('./db/dbSeason');
+const {alertDialog} = require('./client/layout/alertDialog.js');
 
 /***************import****************/
 /*************************************/
@@ -82,7 +82,7 @@ const {alertDialog} = require("./client/layout/alertDialog.js");
 //會跨2區以上使用的全域變數放在這裡
 //如從stockSummary跨到accountInfo用的變數
 
-let serverType = "normal";
+let serverType = 'normal';
 
 let myId = null; //當前登入的使用者ID
 let myHoldStock = []; //當前登入的使用者持有的股票, 在股市總覽可以直接抓到全部
@@ -116,19 +116,19 @@ function effectiveStocks(stock, vipLevel) {
 //使用例:
 // class CompanyDetailController extends EventController {
 //   constructor(user) {
-//     super("CompanyDetailController", user);
-//     this.templateListener(Template.companyDetailContentNormal, "Template.companyDetailContentNormal", this.startEvent);
-//     this.templateListener(Template.companyDetail, "Template.companyDetail", this.startEvent2);
+//     super('CompanyDetailController', user);
+//     this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', this.startEvent);
+//     this.templateListener(Template.companyDetail, 'Template.companyDetail', this.startEvent2);
 //   }
 //   startEvent() {
-//     console.log("companyDetailContentNormal success");
+//     console.log('companyDetailContentNormal success');
 //     console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
-//     console.log("");
+//     console.log('');
 //   }
 //   startEvent2() {
-//     console.log("companyDetail success");
+//     console.log('companyDetail success');
 //     console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
-//     console.log("");
+//     console.log('');
 //   }
 // }
 class EventController {
@@ -162,18 +162,18 @@ class View {
   }
 
   createH2Info(options) {
-    const name = options.name || "defaultName";
-    const customSetting = options.customSetting || "";
-    const leftText = options.leftText || "";
-    const rightText = options.rightText || "";
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const leftText = options.leftText || '';
+    const rightText = options.rightText || '';
 
     const r = $(`
-      <div class="media company-summary-item border-grid-body" name="${name}">
-        <div class="col-6 text-right border-grid" name="${name}" id="h2Left">
-          <h2 name="${name}" id="h2Left" ${customSetting}>${leftText}</h2>
+      <div class='media company-summary-item border-grid-body' name='${name}'>
+        <div class='col-6 text-right border-grid' name='${name}' id='h2Left'>
+          <h2 name='${name}' id='h2Left' ${customSetting}>${leftText}</h2>
         </div>
-        <div class="col-6 text-right border-grid" name="${name}" id="h2Right">
-          <h2 name="${name}" id="h2Right" ${customSetting}>${rightText}</h2>
+        <div class='col-6 text-right border-grid' name='${name}' id='h2Right'>
+          <h2 name='${name}' id='h2Right' ${customSetting}>${rightText}</h2>
         </div>
       </div>
     `);
@@ -181,23 +181,23 @@ class View {
     return r;
   }
   createTable(options) {
-    const name = options.name || "defaultName";
+    const name = options.name || 'defaultName';
     const customSetting = {
-      table: options.customSetting.table || "",
-      tHead: options.customSetting.tHead || "",
-      tBody: options.customSetting.tBody || ""
+      table: options.customSetting.table || '',
+      tHead: options.customSetting.tHead || '',
+      tBody: options.customSetting.tBody || ''
     };
     const tHead = options.tHead || [];
     const tBody = options.tBody || [];
 
-    let head = "";
+    let head = '';
     head += `<tr>`;
     for (const h of tHead) {
       head += `<th name=${name} ${customSetting.tHead}>${h}</th>`;
     }
     head += `</tr>`;
 
-    let body = "";
+    let body = '';
     for (const row of tBody) {
       body += `<tr>`;
       for (const column of row) {
@@ -220,53 +220,53 @@ class View {
     return r;
   }
   createButton(options) {
-    const name = options.name || "defaultName";
-    const customSetting = options.customSetting || "";
-    const size = options.size || "btn-sm";
-    const color = options.color || "btn-info";
-    const text = options.text || "default";
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const size = options.size || 'btn-sm';
+    const color = options.color || 'btn-info';
+    const text = options.text || 'default';
 
     const r = $(`
-      <button class="btn ${color} ${size}" name="${name}" ${customSetting}>${text}</button>
+      <button class='btn ${color} ${size}' name='${name}' ${customSetting}>${text}</button>
     `);
 
     return r;
   }
   createSelect(options) {
-    const name = options.name || "defaultName";
-    const customSetting = options.customSetting || "";
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
 
     const r = $(`
-      <select class="form-control" name="${name}" ${customSetting}>
+      <select class='form-control' name='${name}' ${customSetting}>
       </select>
     `);
 
     return r;
   }
   createSelectOption(options) {
-    const name = options.name || "defaultName";
-    const customSetting = options.customSetting || "";
-    const text = options.text || "defaultText";
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const text = options.text || 'defaultText';
 
     const r = $(`
-      <option name="${name}" value="${text}" ${customSetting}>${text}</option>
+      <option name='${name}' value='${text}' ${customSetting}>${text}</option>
     `);
 
     return r;
   }
   createInput(options) {
-    const name = options.name || "defaultName";
-    const customSetting = options.customSetting || "";
-    const defaultValue = options.defaultValue || "";
-    const placeholder = options.placeholder || "";
-    const type = options.type || "text";
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const defaultValue = options.defaultValue || '';
+    const placeholder = options.placeholder || '';
+    const type = options.type || 'text';
 
     const r = $(`
-      <input class="form-control"
-        name="${name}"
-        type="${type}"
-        placeholder="${placeholder}"
-        value="${defaultValue}"
+      <input class='form-control'
+        name='${name}'
+        type='${type}'
+        placeholder='${placeholder}'
+        value='${defaultValue}'
         ${customSetting}
       />
     `);
@@ -274,15 +274,15 @@ class View {
     return r;
   }
   createA(options) {
-    const name = options.name || "defaultName";
-    const customSetting = options.customSetting || "";
-    const href = options.href ? `href="${options.href}"` : "";
-    const target = options.target ? `target="${options.target}"` : "";
-    const text = options.text || "";
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const href = options.href ? `href='${options.href}'` : '';
+    const target = options.target ? `target='${options.target}'` : '';
+    const text = options.text || '';
 
     const r = $(`
-      <a class="float-left"
-        name="${name}"
+      <a class='float-left'
+        name='${name}'
         ${href}
         ${target}
         ${customSetting}
@@ -300,7 +300,7 @@ class user {
     this.userId = id;
     this.holdStocks = [];
     this.managers = [];
-    this.employee = "";
+    this.employee = '';
     this.money = 0;
     this.ticket = 0;
   }
@@ -308,7 +308,7 @@ class user {
   saveToSessionstorage() {
     console.log(`---start saveToSessionstorage()`);
 
-    const userInfo = JSON.parse(window.sessionStorage.getItem("userInfo"));
+    const userInfo = JSON.parse(window.sessionStorage.getItem('userInfo'));
     const i = userInfo.findIndex((x) => {
       return x.userId === this.userId;
     });
@@ -320,7 +320,7 @@ class user {
       money: this.money,
       ticket: this.ticket
     };
-    window.sessionStorage.setItem("userInfo", JSON.stringify(userInfo));
+    window.sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
 
     console.log(`---end saveToSessionstorage()`);
   }
@@ -397,7 +397,7 @@ class user {
     console.log(`---start computeAsset()`);
 
     let asset = 0;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
     for (const c of this.holdStocks) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -419,7 +419,7 @@ class user {
     console.log(`---start computeProfit()`);
 
     let profit = 0;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
     for (const c of this.holdStocks) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -441,7 +441,7 @@ class user {
     console.log(`---start computeManagerProfit()`);
 
     let managerProfit = 0;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
     for (const c of this.managers) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -462,7 +462,7 @@ class user {
   computeEmployeeBonus() {
     console.log(`---start computeEmployeeBonus()`);
 
-    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
     const companyData = localCompanies.find((x) => {
       return x.companyId === this.employee;
     });
@@ -488,7 +488,7 @@ class user {
 
     //計算公司推薦票回饋
     const { employeeProductVotingRewardFactor } = Meteor.settings.public;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem("localCompanies")) || [];
+    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
     const companyData = localCompanies.find((x) => {
       return x.companyId === this.employee;
     });

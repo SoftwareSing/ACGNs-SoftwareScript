@@ -23,7 +23,7 @@
   },
   "plugins": [],
   "rules": {
-    "curly": "error", 
+    "curly": "error",
     "import/prefer-default-export": "off",
     "no-unused-expressions": "warn",
     "no-unused-vars": "warn",
@@ -124,7 +124,7 @@
     "quote-props": ["error", "as-needed", {
       "unnecessary": false
     }],
-    "quotes": ["error", "double", {
+    "quotes": ["error", "single", {
       "avoidEscape": false,
       "allowTemplateLiterals": true
     }],
