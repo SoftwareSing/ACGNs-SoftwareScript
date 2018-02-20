@@ -94,6 +94,21 @@ let othersScript = [];
 /************GlobalVariable***********/
 /*************************************/
 /*************************************/
+/**************function***************/
+
+function earnPerShare(company) {
+  return (company.profit / (company.release + company.vipBonusStocks));
+}
+
+function effectiveStocks(stock, vipLevel) {
+  const { stockBonusFactor: vipBonusFactor } = Meteor.settings.public.vipParameters[vipLevel || 0];
+
+  return (stock * vipBonusFactor);
+}
+
+/**************function***************/
+/*************************************/
+/*************************************/
 /****************class****************/
 
 //監聽頁面，資料準備完成時執行event
