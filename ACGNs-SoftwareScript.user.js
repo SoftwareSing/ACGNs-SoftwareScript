@@ -124,6 +124,143 @@ class EventController {
   }
 }
 
+class View {
+  constructor(name) {
+    console.log(`create View: ${name}`);
+  }
+
+  createH2Info(options) {
+    const name = options.name || "defaultName";
+    const customSetting = options.customSetting || "";
+    const leftText = options.leftText || "";
+    const rightText = options.rightText || "";
+
+    const r = $(`
+      <div class="media company-summary-item border-grid-body" name="${name}">
+        <div class="col-6 text-right border-grid" name="${name}" id="h2Left">
+          <h2 name="${name}" id="h2Left" ${customSetting}>${leftText}</h2>
+        </div>
+        <div class="col-6 text-right border-grid" name="${name}" id="h2Right">
+          <h2 name="${name}" id="h2Right" ${customSetting}>${rightText}</h2>
+        </div>
+      </div>
+    `);
+
+    return r;
+  }
+  createTable(options) {
+    const name = options.name || "defaultName";
+    const customSetting = {
+      table: options.customSetting.table || "",
+      tHead: options.customSetting.tHead || "",
+      tBody: options.customSetting.tBody || ""
+    };
+    const tHead = options.tHead || [];
+    const tBody = options.tBody || [];
+
+    let head = "";
+    head += `<tr>`;
+    for (const h of tHead) {
+      head += `<th name=${name} ${customSetting.tHead}>${h}</th>`;
+    }
+    head += `</tr>`;
+
+    let body = "";
+    for (const row of tBody) {
+      body += `<tr>`;
+      for (const column of row) {
+        body += `<td name=${name} ${customSetting.tBody}>${column}</td>`;
+      }
+      body += `</tr>`;
+    }
+
+    const r = $(`
+      <table name=${name} ${customSetting.table}>
+        <thead name=${name}>
+          ${head}
+        </thead>
+        <tbody name=${name}>
+          ${body}
+        </tbody>
+      </table>
+    `);
+
+    return r;
+  }
+  createButton(options) {
+    const name = options.name || "defaultName";
+    const customSetting = options.customSetting || "";
+    const size = options.size || "btn-sm";
+    const color = options.color || "btn-info";
+    const text = options.text || "default";
+
+    const r = $(`
+      <button class="btn ${color} ${size}" name="${name}" ${customSetting}>${text}</button>
+    `);
+
+    return r;
+  }
+  createSelect(options) {
+    const name = options.name || "defaultName";
+    const customSetting = options.customSetting || "";
+
+    const r = $(`
+      <select class="form-control" name="${name}" ${customSetting}>
+      </select>
+    `);
+
+    return r;
+  }
+  createSelectOption(options) {
+    const name = options.name || "defaultName";
+    const customSetting = options.customSetting || "";
+    const text = options.text || "defaultText";
+
+    const r = $(`
+      <option name="${name}" value="${text}" ${customSetting}>${text}</option>
+    `);
+
+    return r;
+  }
+  createInput(options) {
+    const name = options.name || "defaultName";
+    const customSetting = options.customSetting || "";
+    const defaultValue = options.defaultValue || "";
+    const placeholder = options.placeholder || "";
+    const type = options.type || "text";
+
+    const r = $(`
+      <input class="form-control"
+        name="${name}"
+        type="${type}"
+        placeholder="${placeholder}"
+        value="${defaultValue}"
+        ${customSetting}
+      />
+    `);
+
+    return r;
+  }
+  createA(options) {
+    const name = options.name || "defaultName";
+    const customSetting = options.customSetting || "";
+    const href = options.href ? `href="${options.href}"` : "";
+    const target = options.target ? `target="${options.target}"` : "";
+    const text = options.text || "";
+
+    const r = $(`
+      <a class="float-left"
+        name="${name}"
+        ${href}
+        ${target}
+        ${customSetting}
+      >${text}</a>
+    `);
+
+    return r;
+  }
+}
+
 /****************class****************/
 /*************************************/
 /*************************************/
