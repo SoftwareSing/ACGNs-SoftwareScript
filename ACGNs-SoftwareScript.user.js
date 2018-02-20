@@ -60,6 +60,14 @@ function debugConsole(msg) {
 /**************DebugMode**************/
 /*************************************/
 /*************************************/
+/***************import****************/
+
+const { getCurrentSeason, getInitialVoteTicketCount } = require("./db/dbSeason");
+const {alertDialog} = require("./client/layout/alertDialog.js");
+
+/***************import****************/
+/*************************************/
+/*************************************/
 /************GlobalVariable***********/
 
 //會跨2區以上使用的全域變數放在這裡
