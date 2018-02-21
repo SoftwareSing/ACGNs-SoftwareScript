@@ -294,7 +294,7 @@ class View {
 }
 
 
-class user {
+class User {
   constructor(id) {
     console.log(`create user: ${id}`);
     this.userId = id;
