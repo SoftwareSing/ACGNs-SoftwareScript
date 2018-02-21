@@ -44,7 +44,7 @@
 // createdAt: String
 //}
 
-//userInfo的格式         session
+//sessionUsers的格式         session
 //{userId: 'CWgfhqxbrJMxsknrb',
 // holdStocks: [{companyId: aaa, stocks: Number, vip: Number}, {}],
 // managers: [{companyId: aaa}, {}],
@@ -308,11 +308,11 @@ class user {
   saveToSessionstorage() {
     console.log(`---start saveToSessionstorage()`);
 
-    const userInfo = JSON.parse(window.sessionStorage.getItem('userInfo'));
-    const i = userInfo.findIndex((x) => {
+    const sessionUsers = JSON.parse(window.sessionStorage.getItem('sessionUsers'));
+    const i = sessionUsers.findIndex((x) => {
       return x.userId === this.userId;
     });
-    userInfo[i] = {
+    sessionUsers[i] = {
       userId: this.userId,
       holdStocks: this.holdStocks,
       managers: this.managers,
@@ -320,7 +320,7 @@ class user {
       money: this.money,
       ticket: this.ticket
     };
-    window.sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+    window.sessionStorage.setItem('sessionUsers', JSON.stringify(sessionUsers));
 
     console.log(`---end saveToSessionstorage()`);
   }
