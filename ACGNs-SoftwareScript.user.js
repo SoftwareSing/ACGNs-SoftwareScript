@@ -303,30 +303,79 @@ class user {
     this.employee = '';
     this.money = 0;
     this.ticket = 0;
+
+    const load = this.loadFromSessionstorage();
+    if (! load) {
+      this.saveToSessionstorage();
+    }
+    console.log('');
   }
 
   saveToSessionstorage() {
     console.log(`---start saveToSessionstorage()`);
 
-    const sessionUsers = JSON.parse(window.sessionStorage.getItem('sessionUsers'));
+    const sessionUsers = JSON.parse(window.sessionStorage.getItem('sessionUsers')) || [];
     const i = sessionUsers.findIndex((x) => {
       return x.userId === this.userId;
     });
-    sessionUsers[i] = {
-      userId: this.userId,
-      holdStocks: this.holdStocks,
-      managers: this.managers,
-      employee: this.employee,
-      money: this.money,
-      ticket: this.ticket
-    };
+    if (i !== -1) {
+      //將session裡的資料更新
+      sessionUsers[i] = {
+        userId: this.userId,
+        holdStocks: this.holdStocks,
+        managers: this.managers,
+        employee: this.employee,
+        money: this.money,
+        ticket: this.ticket
+      };
+    }
+    else {
+      //之前session裡沒有user資料，將資料丟入
+      sessionUsers.push({
+        userId: this.userId,
+        holdStocks: this.holdStocks,
+        managers: this.managers,
+        employee: this.employee,
+        money: this.money,
+        ticket: this.ticket
+      });
+    }
+
     window.sessionStorage.setItem('sessionUsers', JSON.stringify(sessionUsers));
 
     console.log(`---end saveToSessionstorage()`);
   }
+  loadFromSessionstorage() {
+    console.log(`---start loadFromSessionstorage()`);
+
+    const sessionUsers = JSON.parse(window.sessionStorage.getItem('sessionUsers')) || [];
+    const sUser = sessionUsers.find((x) => {
+      return x.userId === this.userId;
+    });
+    if (sUser !== undefined) {
+      this.holdStocks = sUser.holdStocks;
+      this.managers = sUser.managers;
+      this.employee = sUser.employee;
+      this.money = sUser.money;
+      this.ticket = sUser.ticket;
+
+      console.log(`---end loadFromSessionstorage(): true`);
+
+      return true;
+    }
+    else {
+      console.log(`-----loadFromSessionstorage(): not found user: ${this.userId}`);
+      console.log(`-----if is not in creating user, it may be a BUG`);
+      console.log(`---end loadFromSessionstorage(): false`);
+
+      return false;
+    }
+  }
 
   updateHoldStocks(serverDirectors) {
     console.log(`---start updateHoldStocks()`);
+
+    this.loadFromSessionstorage();
 
     let isChange = false;
     for (const c of serverDirectors) {
@@ -357,6 +406,8 @@ class user {
   updateManagers(serverCompanies) {
     console.log(`---start updateManagers()`);
 
+    this.loadFromSessionstorage();
+
     let isChange = false;
     for (const c of serverCompanies) {
       if (c.manager === this.userId) {
@@ -378,6 +429,8 @@ class user {
 
   updateEmployee(serverEmployees) {
     console.log(`---start updateEmployee()`);
+
+    this.loadFromSessionstorage();
 
     let isChange = false;
     for (const emp of serverEmployees) {
