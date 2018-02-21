@@ -72,7 +72,12 @@ function debugConsole(msg) {
 /***************import****************/
 
 const { getCurrentSeason, getInitialVoteTicketCount } = require('./db/dbSeason');
-const {alertDialog} = require('./client/layout/alertDialog.js');
+const { alertDialog } = require('./client/layout/alertDialog.js');
+
+const { dbCompanies } = require('./db/dbCompanies.js');
+const { dbEmployees } = require('./db/dbEmployees.js');
+const { dbDirectors } = require('./db/dbDirectors.js');
+const { dbOrders } = require('./db/dbOrders.js');
 
 /***************import****************/
 /*************************************/
@@ -372,27 +377,26 @@ class User {
     }
   }
 
-  updateHoldStocks(serverDirectors) {
+  updateHoldStocks() {
     console.log(`---start updateHoldStocks()`);
 
     this.loadFromSessionstorage();
 
+    const serverDirectors = dbDirectors.find({ userId: this.userId }).fetch();
     let isChange = false;
     for (const c of serverDirectors) {
-      if (c.userId === this.userId) {
-        const i = this.holdStocks.findIndex((x) => {
-          return x.companyId === c.companyId;
-        });
-        if (i !== -1) {
-          if (this.holdStocks[i].stocks !== c.stocks) {
-            isChange = true;
-            this.holdStocks[i].stocks = c.stocks;
-          }
-        }
-        else {
+      const i = this.holdStocks.findIndex((x) => {
+        return x.companyId === c.companyId;
+      });
+      if (i !== -1) {
+        if (this.holdStocks[i].stocks !== c.stocks) {
           isChange = true;
-          this.holdStocks.push({companyId: c.companyId, stocks: c.stocks, vip: null});
+          this.holdStocks[i].stocks = c.stocks;
         }
+      }
+      else {
+        isChange = true;
+        this.holdStocks.push({companyId: c.companyId, stocks: c.stocks, vip: null});
       }
     }
 
@@ -403,20 +407,19 @@ class User {
     console.log(`---end updateHoldStocks()`);
   }
 
-  updateManagers(serverCompanies) {
+  updateManagers() {
     console.log(`---start updateManagers()`);
 
     this.loadFromSessionstorage();
 
+    const serverCompanies = dbCompanies.find({ manager: this.userId }).fetch();
     let isChange = false;
     for (const c of serverCompanies) {
-      if (c.manager === this.userId) {
-        if (this.managers.find((x) => {
-          return (x.companyId === c._id);
-        }) === undefined) {
-          isChange = true;
-          this.managers.push({companyId: c._id});
-        }
+      if (this.managers.find((x) => {
+        return (x.companyId === c._id);
+      }) === undefined) {
+        isChange = true;
+        this.managers.push({companyId: c._id});
       }
     }
 
@@ -427,14 +430,15 @@ class User {
     console.log(`---end updateManagers()`);
   }
 
-  updateEmployee(serverEmployees) {
+  updateEmployee() {
     console.log(`---start updateEmployee()`);
 
     this.loadFromSessionstorage();
 
+    const serverEmployees = dbEmployees.find({ userId: this.userId }).fetch();
     let isChange = false;
     for (const emp of serverEmployees) {
-      if (emp.employed && (emp.userId === this.userId)) {
+      if (emp.employed) {
         if (this.employee !== emp.companyId) {
           isChange = true;
           this.employee = emp.companyId;
