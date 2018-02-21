@@ -359,17 +359,20 @@ class user {
 
     let isChange = false;
     for (const c of serverCompanies) {
-      if (this.managers.find((x) => {
-        return (x.companyId === c._id);
-      }) === undefined) {
-        isChange = true;
-        this.managers.push({companyId: c._id});
+      if (c.manager === this.userId) {
+        if (this.managers.find((x) => {
+          return (x.companyId === c._id);
+        }) === undefined) {
+          isChange = true;
+          this.managers.push({companyId: c._id});
+        }
       }
     }
 
     if (isChange) {
       this.saveToSessionstorage();
     }
+
     console.log(`---end updateManagers()`);
   }
 
@@ -378,7 +381,7 @@ class user {
 
     let isChange = false;
     for (const emp of serverEmployees) {
-      if (emp.employed) {
+      if (emp.employed && (emp.userId === this.userId)) {
         if (this.employee !== emp.companyId) {
           isChange = true;
           this.employee = emp.companyId;
@@ -389,6 +392,7 @@ class user {
     if (isChange) {
       this.saveToSessionstorage();
     }
+
     console.log(`---end updateEmployee()`);
   }
 
