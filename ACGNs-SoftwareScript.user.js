@@ -84,6 +84,7 @@ function debugConsole(msg) {
 /*************************************/
 /***************import****************/
 
+const { FlowRouter } = require('meteor/kadira:flow-router');
 const { getCurrentSeason, getInitialVoteTicketCount } = require('./db/dbSeason');
 const { alertDialog } = require('./client/layout/alertDialog.js');
 
@@ -791,6 +792,198 @@ class LoginUser extends User {
       this.computeBuyOrderMoney() + this.computeSellOrdersAsset();
 
     return totalWealth;
+  }
+}
+
+
+class Compnay {
+  constructor(serverCompany) {
+    this.companyId = serverCompany._id;
+    this.name = serverCompany.companyName;
+
+    this.chairman = serverCompany.chairman;
+    this.manager = serverCompany.manager;
+
+    this.grade = serverCompany.grade;
+    this.capital = serverCompany.capital;
+    this.price = serverCompany.listPrice;
+    this.release = serverCompany.totalRelease;
+    this.profit = serverCompany.profit;
+
+    this.vipBonusStocks = 0; //外掛獨有參數
+    this.managerProfitPercent = 0.05; //未來會有的
+
+    this.salary = serverCompany.salary;
+    this.nextSeasonSalary = serverCompany.nextSeasonSalary;
+    this.bonus = serverCompany.seasonalBonusPercent;
+    this.employeesNumber = 0;
+    this.nextSeasonEmployeesNumber = 0;
+
+    this.tags = serverCompany.tags;
+    this.createdAt = serverCompany.createdAt.getTime();
+  }
+
+  updateWithDbemployees(serverEmployees) {
+    let employeesNumber = 0;
+    let nextSeasonEmployeesNumber = 0;
+
+    for (const emp of serverEmployees) {
+      if ((emp.employed === true) && (emp.resigned === false)) {
+        employeesNumber += 1;
+      }
+      else if ((emp.employed === false) && (emp.resigned === false)) {
+        nextSeasonEmployeesNumber += 1;
+      }
+    }
+
+    this.employeesNumber = employeesNumber;
+    this.nextSeasonEmployeesNumber = nextSeasonEmployeesNumber;
+  }
+
+  updateWithLocalcompanies(companyData) {
+    this.grade = companyData.grade;
+
+    this.vipBonusStocks = companyData.vipBonusStocks; //外掛獨有參數
+
+    this.salary = companyData.salary;
+    this.nextSeasonSalary = companyData.nextSeasonSalary;
+    this.bonus = companyData.bonus;
+    this.employeesNumber = companyData.employeesNumber;
+    this.nextSeasonEmployeesNumber = companyData.nextSeasonEmployeesNumber;
+
+    this.tags = companyData.tags;
+  }
+
+  computePERatio() {
+    return ((this.price * this.release) / (this.profit));
+  }
+
+  computePERatioWithVipSystem() {
+    return ((this.price * (this.release + this.vipBonusStocks)) / (this.profit));
+  }
+
+  outputInfo() {
+    return {
+      companyId: this.companyId,
+      name: this.name,
+      chairman: this.chairman,
+      manager: this.manager,
+
+      grade: this.grade,
+      capital: this.capital,
+      price: this.price,
+      release: this.release,
+      profit: this.profit,
+
+      vipBonusStocks: this.vipBonusStocks, //外掛獨有參數
+      managerProfitPercent: this.managerProfitPercent,
+
+      salary: this.salary,
+      nextSeasonSalary: this.nextSeasonSalary,
+      bonus: this.bonus,
+      employeesNumber: this.employeesNumber,
+      nextSeasonEmployeesNumber: this.nextSeasonEmployeesNumber,
+
+      tags: this.tags,
+      createdAt: this.createdAt
+    };
+  }
+}
+
+class Companies {
+  constructor() {
+    this.list = [];
+    let serverCompanies;
+    const page = FlowRouter.getRouteName();
+    if (page === 'companyDetail') {
+      const detailId = FlowRouter.getParam('companyId');
+      serverCompanies = dbCompanies.find({ companyId: detailId}).fetch();
+    }
+    else {
+      serverCompanies = dbCompanies.find().fetch();
+    }
+    for (const serverCompany of serverCompanies) {
+      const company = new Compnay(serverCompany);
+      this.list.push(company);
+    }
+  }
+
+  companyListPatch() {
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    this.list.forEach((company, i, list) => {
+      const companyData = localCompanies.find((x) => {
+        return (x.companyId === company.companyId);
+      });
+      if (companyData !== undefined) {
+        list[i].updateWithLocalcompanies(companyData);
+      }
+      else {
+        list[i].updateWithLocalcompanies({
+          companyId: company.companyId,
+          name: company.name,
+          chairman: company.chairman,
+          manager: company.manager,
+
+          grade: 'D',
+          capital: company.capital,
+          price: company.price,
+          release: company.release,
+          profit: company.profit,
+
+          vipBonusStocks: 0, //外掛獨有參數
+          managerProfitPercent: 0.05,
+
+          salary: 1000,
+          nextSeasonSalary: 1000,
+          bonus: 5,
+          employeesNumber: 0,
+          nextSeasonEmployeesNumber: 0,
+
+          tags: [],
+          createdAt: company.createdAt
+        });
+      }
+    });
+  }
+
+  updateEmployeesInfo() {
+    this.list.forEach((company, i, list) => {
+      const serverEmployees = dbEmployees.find({ companyId: company.companyId }).fetch();
+      list[i].updateWithDbemployees(serverEmployees);
+    });
+  }
+
+  updateToLocalstorage() {
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    for (const company of this.list) {
+      const i = localCompanies.findIndex((x) => {
+        return (x.companyId === company.companyId);
+      });
+      const inputData = company.outputInfo();
+      if (i !== -1) {
+        localCompanies[i] = inputData;
+      }
+      else {
+        localCompanies.push(inputData);
+      }
+    }
+
+    window.localStorage.setItem('localCompanies', JSON.stringify(localCompanies));
+  }
+
+
+  computeUserProfit(loginUser) {
+    let userProfit = 0;
+    for (const company of this.list) {
+      const userHold = loginUser.holdStocks.find((x) => {
+        return (x.companyId === company.companyId);
+      });
+      if (userHold !== undefined) {
+        userProfit += earnPerShare(company.outputInfo()) * effectiveStocks(userHold.stocks, userHold.vip);
+      }
+    }
+
+    return userProfit;
   }
 }
 
