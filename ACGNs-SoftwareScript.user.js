@@ -1017,3 +1017,57 @@ class CompanyListController extends EventController {
 
 /*************companyList*************/
 /*************************************/
+/*************************************/
+/************companyDetail************/
+
+class CompanyDetailController extends EventController {
+  constructor(loginUser) {
+    super('CompanyDetailController', loginUser);
+
+    this.whoFirst = null;
+    this.loaded = null;
+    this.templateListener(Template.companyDetail, 'Template.companyDetail', () => {
+      this.useCompaniesInfo();
+    });
+    this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', () => {
+      this.useEmployeesInfo();
+    });
+  }
+
+  useCompaniesInfo() {
+    this.companies = new Companies();
+
+    const detailId = FlowRouter.getParam('companyId');
+    if ((this.whoFirst === 'employees') && (this.loaded === detailId)) {
+      //這個比較慢執行，employees資料已經載入完成了
+      this.companies.updateEmployeesInfo();
+      this.companies.updateToLocalstorage();
+      this.whoFirst = null;
+      this.loaded = null;
+    }
+    else {
+      this.whoFirst = 'companies';
+      this.loaded = detailId;
+    }
+  }
+
+  useEmployeesInfo() {
+    const detailId = FlowRouter.getParam('companyId');
+    if ((this.whoFirst === 'companies') && (this.loaded === detailId)) {
+      //這個比較慢執行，companies已經建好了
+      this.companies.updateEmployeesInfo();
+      this.companies.updateToLocalstorage();
+      this.whoFirst = null;
+      this.loaded = null;
+    }
+    else {
+      this.whoFirst = 'companies';
+      this.loaded = detailId;
+    }
+  }
+}
+
+/************companyDetail************/
+/*************************************/
+/*************************************/
+/*************accountInfo*************/
