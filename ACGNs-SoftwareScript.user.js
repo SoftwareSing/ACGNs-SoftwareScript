@@ -52,6 +52,19 @@
 // money: Number,
 // ticket: Number}
 
+//localScriptVipProducts
+// {
+//   userId: 'CWgfhqxbrJMxsknrb',
+//   products: [
+//     {
+//       productId: '5GEdNG5hjs85ahpxN',
+//       point: '100',
+//       amount: 0,
+//       companyId: 'NH2NhXHkpw8rTuQvx',
+//       description: 'ABC'
+//     }
+//   ]
+// }
 
 /*************************************/
 /**************DebugMode**************/
@@ -78,6 +91,7 @@ const { dbCompanies } = require('./db/dbCompanies.js');
 const { dbEmployees } = require('./db/dbEmployees.js');
 const { dbDirectors } = require('./db/dbDirectors.js');
 const { dbOrders } = require('./db/dbOrders.js');
+const { dbUserOwnedProducts } = require('./db/dbUserOwnedProducts.js');
 
 /***************import****************/
 /*************************************/
@@ -108,6 +122,86 @@ function effectiveStocks(stock, vipLevel) {
 /*************************************/
 /*************************************/
 /****************class****************/
+
+class ScriptVip {
+  constructor(user) {
+    this.user = user;
+    this.products = [];
+
+    const load = this.loadFromLocalstorage();
+    if (! load) {
+      this.updateToLocalstorage();
+    }
+  }
+
+  updateToLocalstorage() {
+    const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
+    const i = localScriptVipProducts.findIndex((x) => {
+      return (x.userId === this.user.userId);
+    });
+    if (i !== -1) {
+      localScriptVipProducts[i].products = this.products;
+    }
+    else {
+      localScriptVipProducts.push({
+        userId: this.user.userId,
+        products: this.products
+      });
+    }
+    window.localStorage.setItem('localScriptVipProducts', JSON.stringify(localScriptVipProducts));
+  }
+  loadFromLocalstorage() {
+    const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
+    const data = localScriptVipProducts.find((x) => {
+      return (x.userId === this.user.userId);
+    });
+    if (data !== undefined) {
+      this.products = data.products;
+
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  vipLevel() {
+    let point = 0;
+    for (const product of this.products) {
+      point += product.point * product.amount;
+    }
+
+    const vipLevelTable = [
+      {level: 0, point: 390},
+      {level: 1, point: Infinity}
+    ];
+    const { level } = vipLevelTable.find((v) => {
+      return (point < v.point);
+    });
+
+    return level;
+  }
+
+  updateProducts() {
+    this.loadFromLocalstorage();
+
+    const serverUserOwnedProducts = dbUserOwnedProducts.find({ userId: this.user.userId}).fetch();
+    let isChange = false;
+    for (const p of serverUserOwnedProducts) {
+      const i = this.products.findIndex((x) => {
+        return (x.productId === p.productId);
+      });
+      if (i !== -1) {
+        isChange = true;
+        this.products[i].amount = p.amount;
+      }
+    }
+
+    if (isChange) {
+      this.updateToLocalstorage();
+    }
+  }
+}
 
 //監聽頁面，資料準備完成時執行event
 //不應該直接呼叫，他應該被繼承
@@ -610,7 +704,7 @@ class LoginUser extends User {
     console.log(`create LoginUser: ${id}`);
     super(id);
     this.orders = [];
-    this.scriptVip = null; //vip的class還沒寫
+    this.scriptVip = new ScriptVip(this);
 
     this.directorsCache = [];
 
