@@ -990,4 +990,30 @@ class Companies {
 /****************class****************/
 /*************************************/
 /*************************************/
-/*********ACGNListenerScript**********/
+/*************companyList*************/
+
+class CompanyListController extends EventController {
+  constructor(loginUser) {
+    super('CompanyListController', loginUser);
+
+    this.templateListener(Template.companyList, 'Template.companyList', () => {
+      this.updateUserInfo();
+      this.useCompaniesInfo();
+    });
+  }
+
+  updateUserInfo() {
+    this.loginUser.updateFullHoldStocks();
+    this.loginUser.updateOrders();
+  }
+
+  useCompaniesInfo() {
+    const companies = new Companies();
+    companies.companyListPatch();
+
+    companies.updateToLocalstorage();
+  }
+}
+
+/*************companyList*************/
+/*************************************/
