@@ -28,7 +28,7 @@
 // adData: ['&nbsp;message&nbsp;', 'miku'],
 // adFormat: ['a', 'aLink']}
 
-//local_CsDatas_UpdateTime        local
+//localCompanies_UpdateTime        local
 //date
 
 //localCompanies規格               local
@@ -451,7 +451,7 @@ class User {
     console.log(`---start computeAsset()`);
 
     let asset = 0;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
     for (const c of this.holdStocks) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -473,7 +473,7 @@ class User {
     console.log(`---start computeProfit()`);
 
     let profit = 0;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
     for (const c of this.holdStocks) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -495,7 +495,7 @@ class User {
     console.log(`---start computeManagerProfit()`);
 
     let managerProfit = 0;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
     for (const c of this.managers) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -516,7 +516,7 @@ class User {
   computeEmployeeBonus() {
     console.log(`---start computeEmployeeBonus()`);
 
-    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
     const companyData = localCompanies.find((x) => {
       return x.companyId === this.employee;
     });
@@ -542,7 +542,7 @@ class User {
 
     //計算公司推薦票回饋
     const { employeeProductVotingRewardFactor } = Meteor.settings.public;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
     const companyData = localCompanies.find((x) => {
       return x.companyId === this.employee;
     });
@@ -674,7 +674,7 @@ class LoginUser extends User {
     console.log(`---start computeSellOrdersAsset()`);
 
     let asset = 0;
-    const localCompanies = JSON.parse(window.sessionStorage.getItem('localCompanies')) || [];
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
     for (const order of this.orders) {
       if (order.orderType === '賣出') {
         const companyData = localCompanies.find((x) => {
