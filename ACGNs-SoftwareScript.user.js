@@ -1139,3 +1139,352 @@ class CompanyDetailController extends EventController {
 /*************************************/
 /*************************************/
 /*************accountInfo*************/
+
+class AccountInfoController extends EventController {
+  constructor(loginUser) {
+    super('AccountInfoController', loginUser);
+    this.accountInfoView = new AccountInfoView();
+
+    this.user = null;
+    this.userId = null;
+    this.waitList = [];
+
+    this.templateListener(Template.accountInfo, 'Template.accountInfo', () => {
+      this.usersEvent();
+    });
+    this.templateListener(Template.managerTitleList, 'Template.managerTitleList', () => {
+      this.managersEvent();
+    });
+    this.templateListener(Template.vipTitleList, 'Template.vipTitleList', () => {
+      this.vipsEvent();
+    });
+    this.templateListener(Template.accountInfoOwnStockList, 'Template.accountInfoOwnStockList', () => {
+      this.ownStocksEvent();
+    });
+  }
+
+  usersEvent() {
+    console.log(`start usersEvent()`);
+
+    this.userId = FlowRouter.getParam('userId');
+    if (this.userId === this.loginUser.userId) {
+      this.user = this.loginUser;
+    }
+    else {
+      this.user = new User(this.userId);
+    }
+    this.user.loadFromLocalstorage();
+    this.user.updateUser();
+    this.user.updateEmployee();
+
+
+    //顯示資訊
+    this.accountInfoView.displayHrLine();
+
+    this.accountInfoView.displayCompanyNumber(this.user.computeCompanyNumber());
+    this.accountInfoView.displayStocksAsset(this.user.computeAsset());
+    if (this.user.userId === this.loginUser.userId) {
+      this.accountInfoView.displaySellOrders(this.user.computeSellOrdersAsset());
+      this.accountInfoView.displayBuyOrders(this.user.computeBuyOrdersMoney());
+    }
+
+    this.accountInfoView.displayStocksProfit(this.user.computeProfit());
+    this.accountInfoView.displayManagersProfit(this.user.computeManagersProfit());
+    this.accountInfoView.displayEmployeeBonus(this.user.computeEmployeeBonus());
+    this.accountInfoView.displayVotingReward(this.user.computeProductVotingRewards());
+
+    this.accountInfoView.displayTax(this.user.computeTax());
+
+    //如果有在user資訊載好前就載入的其他資訊，會被丟進等待清單
+    //以for迴圈完成清單內的任務
+    for (const task of this.waitList) {
+      if (task.userId === this.userId) {
+        task.callback();
+      }
+    }
+    this.waitList = [];
+
+    console.log(`end usersEvent()`);
+  }
+
+  managersEvent() {
+    console.log(`start managersEvent()`);
+
+    const pageId = FlowRouter.getParam('userId');
+    if (this.userId === pageId) {
+      this.user.updateManagers();
+
+
+      //顯示資訊
+      this.accountInfoView.displayHrLine();
+      this.accountInfoView.displayManagersProfit(this.user.computeManagersProfit());
+      this.accountInfoView.displayTax(this.user.computeTax());
+    }
+    else {
+      this.waitList.push({
+        userId: pageId,
+        callback: this.managersEvent
+      });
+    }
+
+    console.log(`end managersEvent()`);
+  }
+
+  vipsEvent() {
+    console.log(`start vipsEvent()`);
+
+    const pageId = FlowRouter.getParam('userId');
+    if (this.userId === pageId) {
+      this.user.updateVips();
+
+
+      //顯示資訊
+      this.accountInfoView.displayHrLine();
+      this.accountInfoView.displayStocksProfit(this.user.computeProfit());
+      this.accountInfoView.displayTax(this.user.computeTax());
+    }
+    else {
+      this.waitList.push({
+        userId: pageId,
+        callback: this.vipsEvent
+      });
+    }
+
+    console.log(`end vipsEvent()`);
+  }
+
+  ownStocksEvent() {
+    console.log(`start ownStocksEvent()`);
+
+    const pageId = FlowRouter.getParam('userId');
+    if (this.userId === pageId) {
+      this.user.updateHoldStocks();
+
+
+      //顯示資訊
+      this.accountInfoView.displayHrLine();
+      this.accountInfoView.displayCompanyNumber(this.user.computeCompanyNumber());
+      this.accountInfoView.displayStocksAsset(this.user.computeAsset());
+      this.accountInfoView.displayStocksProfit(this.user.computeProfit());
+      this.accountInfoView.displayTax(this.user.computeTax());
+    }
+    else {
+      this.waitList.push({
+        userId: pageId,
+        callback: this.ownStocksEvent
+      });
+    }
+
+    console.log(`end ownStocksEvent()`);
+  }
+}
+
+class AccountInfoView extends View {
+  constructor() {
+    super('AccountInfoView');
+
+    this.resetDisplayList();
+  }
+
+  resetDisplayList() {
+    this.displayList = {
+      companyNumber: false,
+      stocksAsset: false,
+      sellOrders: false,
+      buyOrders: false,
+      hrStocks: false, //分隔線
+      stocksProfit: false,
+      managersProfit: false,
+      employeeBonus: false,
+      votingReward: false,
+      hrProfit: false, //分隔線
+      tax: false
+    };
+  }
+
+  displayHrLine() {
+    if (($(`hr[name='stocksLine']`).length < 1) && ($(`hr[name='profitLine']`).length < 1)) {
+      $(`div[name='companyNumber']`).remove();
+      $(`div[name='stocksAsset']`).remove();
+      $(`div[name='sellOrders']`).remove();
+      $(`div[name='buyOrders']`).remove();
+
+      $(`div[name='stocksProfit']`).remove();
+      $(`div[name='managersProfit']`).remove();
+      $(`div[name='employeeBonus']`).remove();
+      $(`div[name='votingReward']`).remove();
+
+      $(`div[name='tax']`).remove();
+
+      this.resetDisplayList();
+    }
+
+    if ($(`hr[name='stocksLine']`).length < 1) {
+      const stocksLine = $(`<hr name='stocksLine' />`);
+      const afterObject = ($(`h1[class='card-title']`)[0]);
+      stocksLine.insertAfter(afterObject);
+      this.displayList.hrStocks = stocksLine;
+    }
+
+    if ($(`hr[name='profitLine']`).length < 1) {
+      const profitLine = $(`<hr name='profitLine' />`);
+      const afterObject = this.displayList.hrStocks || ($(`h1[class='card-title']`)[0]);
+      profitLine.insertAfter(afterObject);
+      this.displayList.hrProfit = profitLine;
+    }
+  }
+
+  displayCompanyNumber(companyNumber) {
+    const displayObject = this.createH2Info({
+      name: 'companyNumber',
+      leftText: translation(['accountInfo', 'holdingStockCompaniesNumber']),
+      rightText: `${companyNumber}`
+    });
+
+    $(`div[name='companyNumber']`).remove();
+    const afterObject = $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.companyNumber = displayObject;
+  }
+  displayStocksAsset(stocksAsset) {
+    const displayObject = this.createH2Info({
+      name: 'stocksAsset',
+      leftText: translation(['accountInfo', 'stocksAsset']),
+      rightText: `$ ${stocksAsset}`
+    });
+
+    $(`div[name='stocksAsset']`).remove();
+    const afterObject = this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.stocksAsset = displayObject;
+  }
+  displaySellOrders(sellOrders) {
+    const displayObject = this.createH2Info({
+      name: 'sellOrders',
+      leftText: translation(['accountInfo', 'usedInSellOrdersStocksAsset']),
+      rightText: `$ ${sellOrders}`
+    });
+
+    $(`div[name='sellOrders']`).remove();
+    const afterObject = this.displayList.stocksAsset || this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.sellOrders = displayObject;
+  }
+  displayBuyOrders(buyOrders) {
+    const displayObject = this.createH2Info({
+      name: 'buyOrders',
+      leftText: translation(['accountInfo', 'usedInBuyOrdersMoney']),
+      rightText: `$ ${buyOrders}`
+    });
+
+    $(`div[name='buyOrders']`).remove();
+    const afterObject = this.displayList.sellOrders || this.displayList.stocksAsset ||
+      this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.buyOrders = displayObject;
+  }
+
+  displayStocksProfit(stocksProfit) {
+    const displayObject = this.createH2Info({
+      name: 'stocksProfit',
+      leftText: translation(['accountInfo', 'estimatedStockProfit']),
+      rightText: `$ ${stocksProfit}`
+    });
+
+    $(`div[name='stocksProfit']`).remove();
+    const afterObject = this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.stocksProfit = displayObject;
+  }
+  displayManagersProfit(managersProfit) {
+    const displayObject = this.createH2Info({
+      name: 'managersProfit',
+      leftText: translation(['accountInfo', 'estimatedManagerProfit']),
+      rightText: `$ ${managersProfit}`
+    });
+
+    $(`div[name='managersProfit']`).remove();
+    const afterObject = this.displayList.stocksProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.managersProfit = displayObject;
+  }
+  displayEmployeeBonus(employeeBonus) {
+    const displayObject = this.createH2Info({
+      name: 'employeeBonus',
+      leftText: translation(['accountInfo', 'estimatedEmployeeBonus']),
+      rightText: `$ ${employeeBonus}`
+    });
+
+    $(`div[name='employeeBonus']`).remove();
+    const afterObject = this.displayList.managersProfit || this.displayList.stocksProfit ||
+      this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.employeeBonus = displayObject;
+  }
+  displayVotingReward(votingReward) {
+    const displayObject = this.createH2Info({
+      name: 'votingReward',
+      leftText: translation(['accountInfo', 'estimatedProductVotingRewards']),
+      rightText: `$ ${votingReward}`
+    });
+
+    $(`div[name='votingReward']`).remove();
+    const afterObject = this.displayList.employeeBonus || this.displayList.managersProfit ||
+      this.displayList.stocksProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.votingReward = displayObject;
+  }
+
+  displayTax(tax) {
+    const displayObject = this.createH2Info({
+      name: 'tax',
+      leftText: translation(['accountInfo', 'estimatedTax']),
+      rightText: `$ ${tax}`
+    });
+
+    $(`div[name='tax']`).remove();
+    const afterObject = this.displayList.hrProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.tax = displayObject;
+  }
+}
+
+/*************accountInfo*************/
+/*************************************/
+/*************************************/
+/**************Language***************/
+
+function translation(target) {
+  const language = 'tw';
+
+  return (dict[language][target[0]][target[1]]);
+}
+
+const dict = {
+  tw: {
+    accountInfo: {
+      estimatedTax: '預估稅金：',
+      holdingStockCompaniesNumber: '持股公司總數：',
+      stocksAsset: '股票總值：',
+      usedInSellOrdersStocksAsset: '賣單股票總值：',
+      usedInBuyOrdersMoney: '買單現金總值：',
+      estimatedStockProfit: '預估股票分紅：',
+      estimatedManagerProfit: '預估經理分紅：',
+      estimatedEmployeeBonus: '預估員工分紅：',
+      estimatedProductVotingRewards: '預估推薦票獎勵：'
+    }
+  },
+  en: {
+    accountInfo: {
+      estimatedTax: 'Estimated tax：',
+      holdingStockCompaniesNumber: 'Holding stock companies number：',
+      stocksAsset: 'Stocks asset：',
+      usedInSellOrdersStocksAsset: 'Used in sell orders stocks asset：',
+      usedInBuyOrdersMoney: 'Used in buy orders money：',
+      estimatedStockProfit: 'Estimated stock profit：',
+      estimatedManagerProfit: 'Estimated manager profit：',
+      estimatedEmployeeBonus: 'Estimated employee profit：',
+      estimatedProductVotingRewards: 'Estimated Product Voting Rewards：'
+    }
+  }
+};
