@@ -82,6 +82,92 @@ function debugConsole(msg) {
 /**************DebugMode**************/
 /*************************************/
 /*************************************/
+/*************StartScript*************/
+
+function checkSeriousError() {
+  //這個function將會清空所有由本插件控制的localStorage
+  //用於如果上一版發生嚴重錯誤導致localStorage錯亂，以致插件無法正常啟動時
+  //或是用於當插件更新時，需要重設localStorage
+
+  const seriousErrorVersion = 3.701;
+  //seriousErrorVersion會輸入有問題的版本號，當發生問題時我會增加本數字，或是於更新需要時亦會增加
+  //使用者本地的數字紀錄如果小於這個數字將會清空所有localStorage
+
+  let lastErrorVersion = Number(window.localStorage.getItem('lastErrorVersion')) || 0;
+  //lastErrorVersion = 0;  //你如果覺得現在就有問題 可以把這行的註解取消掉來清空localStorage
+
+  if (Number.isNaN(lastErrorVersion)) {
+    lastErrorVersion = 0;
+    console.log('reset lastErrorVersion as 0');
+  }
+  else {
+    console.log('localStorage of lastErrorVersion is work');
+  }
+
+  if (lastErrorVersion < seriousErrorVersion) {
+    console.log('last version has serious error, start remove all localStorage');
+    window.localStorage.removeItem('localCompanies_UpdateTime');
+    window.localStorage.removeItem('localCompanies');
+
+    window.localStorage.removeItem('local_CsDatas_UpdateTime');
+    window.localStorage.removeItem('local_CsDatas');
+    window.localStorage.removeItem('local_scriptAD_UpdateTime');
+    window.localStorage.removeItem('local_scriptAD');
+
+    window.localStorage.removeItem('local_dataSearch');
+    window.localStorage.removeItem('local_scriptAD_use');
+    window.localStorage.removeItem('local_scriptVIP_UpdateTime');
+    window.localStorage.removeItem('local_scriptVIP');
+
+    window.localStorage.removeItem('lastErrorVersion');
+    lastErrorVersion = seriousErrorVersion;
+    window.localStorage.setItem('lastErrorVersion', JSON.stringify(lastErrorVersion));
+  }
+}
+
+function checkScriptUpdate() {
+  const oReq = new XMLHttpRequest();
+  const checkScriptVersion = (() => {
+    const obj = JSON.parse(oReq.responseText);
+    const myVersion = GM_info.script.version; // eslint-disable-line camelcase
+    console.log(obj.version.substr(0, 4) + ',' + myVersion.substr(0, 4) + ',' + (obj.version.substr(0, 4) > myVersion.substr(0, 4)));
+    if (obj.version.substr(0, 4) > myVersion.substr(0, 4)) {
+      const updateButton = $(`
+        <li class='nav-item'>
+          <a class='nav-link btn btn-primary'
+          href='https://greasyfork.org/zh-TW/scripts/33542'
+          name='updateSoftwareScript'
+          target='Blank'
+          >${translation(['script', 'updateScript'])}</a>
+        </li>
+      `);
+      updateButton.insertAfter($('.nav-item')[$('.nav-item').length - 1]);
+    }
+    else {
+      setTimeout(checkScriptUpdate, 600000);
+    }
+  });
+  oReq.addEventListener('load', checkScriptVersion);
+  oReq.open('GET', 'https://greasyfork.org/scripts/33542.json');
+  oReq.send();
+}
+
+
+(function() {
+  checkSeriousError();
+  checkScriptUpdate();
+
+  setTimeout(startScript, 0);
+})();
+
+function startScript() {
+  const main = new MainController();
+}
+
+
+/*************StartScript*************/
+/*************************************/
+/*************************************/
 /***************import****************/
 
 const { FlowRouter } = require('meteor/kadira:flow-router');
@@ -98,20 +184,15 @@ const { dbUserOwnedProducts } = require('./db/dbUserOwnedProducts.js');
 /***************import****************/
 /*************************************/
 /*************************************/
-/************GlobalVariable***********/
-
-let serverType = 'normal';
-
-let othersScript = [];
-
-
-/************GlobalVariable***********/
-/*************************************/
-/*************************************/
 /**************function***************/
 
 function earnPerShare(company) {
-  return (company.profit / (company.release + company.vipBonusStocks));
+  let stocksProfitPercent = (1 - company.managerProfitPercent - 0.15);
+  if (company.employeesNumber > 0) {
+    stocksProfitPercent -= (company.bonus * 0.01);
+  }
+
+  return ((company.profit * stocksProfitPercent) / (company.release + company.vipBonusStocks));
 }
 
 function effectiveStocks(stock, vipLevel) {
@@ -124,6 +205,28 @@ function effectiveStocks(stock, vipLevel) {
 /*************************************/
 /*************************************/
 /****************class****************/
+
+class MainController {
+  constructor() {
+    this.loginUser = new LoginUser();
+    this.serverType = 'normal';
+    const currentServer = document.location.href;
+    const serverTypeTable = [
+      { type: /museum.acgn-stock.com/, typeName: 'museum' },
+      { type: /test.acgn-stock.com/, typeName: 'test' }
+    ];
+    serverTypeTable.forEach(({ type, typeName }) => {
+      if (currentServer.match(type)) {
+        this.serverType = typeName;
+      }
+    });
+    this.othersScript = [];
+
+    this.companyListController = new CompanyListController(this.loginUser);
+    this.companyDetailController = new CompanyDetailController(this.loginUser);
+    this.accountInfoController = new AccountInfoController(this.loginUser);
+  }
+}
 
 class ScriptVip {
   constructor(user) {
@@ -266,7 +369,7 @@ class View {
     const rightText = options.rightText || '';
 
     const r = $(`
-      <div class='media company-summary-item border-grid-body' name='${name}'>
+      <div class='media border-grid-body' name='${name}'>
         <div class='col-6 text-right border-grid' name='${name}' id='h2Left'>
           <h2 name='${name}' id='h2Left' ${customSetting.left}>${leftText}</h2>
         </div>
@@ -580,7 +683,7 @@ class User {
     this.loadFromSessionstorage();
 
     let isChange = false;
-    const serverUsers = Meteor.users.find({ userId: this.userId }).fetch();
+    const serverUsers = Meteor.users.find({ _id: this.userId }).fetch();
     const serverUser = serverUsers.find((x) => {
       return (x._id === this.userId);
     });
@@ -681,12 +784,19 @@ class User {
   computeEmployeeBonus() {
     console.log(`---start computeEmployeeBonus()`);
 
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
-    const companyData = localCompanies.find((x) => {
-      return x.companyId === this.employee;
-    });
-    const totalBonus = companyData.profit * companyData.bonus * 0.01;
-    const bonus = Math.floor(totalBonus / companyData.employeesNumber);
+    let bonus = 0;
+    if (this.employee !== '') {
+      const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      const companyData = localCompanies.find((x) => {
+        return x.companyId === this.employee;
+      });
+      if (companyData !== undefined) {
+        if (companyData.employeesNumber !== 0) {
+          const totalBonus = companyData.profit * companyData.bonus * 0.01;
+          bonus = Math.floor(totalBonus / companyData.employeesNumber);
+        }
+      }
+    }
 
     console.log(`---end computeEmployeeBonus(): ${bonus}`);
 
@@ -705,15 +815,21 @@ class User {
     reward += (count >= initialVoteTicketCount) ? totalReward : Math.ceil(totalReward * count / 100);
 
     //計算公司推薦票回饋
-    const { employeeProductVotingRewardFactor } = Meteor.settings.public;
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
-    const companyData = localCompanies.find((x) => {
-      return x.companyId === this.employee;
-    });
-    const baseReward = employeeProductVotingRewardFactor * companyData.profit;
-    //因為沒辦法得知全部員工投票數，以其他所有員工都有投完票來計算
-    const totalEmployeeVoteTickets = initialVoteTicketCount * (companyData.employee - 1) + count;
-    reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets);
+    if (this.employee !== '') {
+      const { employeeProductVotingRewardFactor } = Meteor.settings.public;
+      const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      const companyData = localCompanies.find((x) => {
+        return x.companyId === this.employee;
+      });
+      if (companyData !== undefined) {
+        if (companyData.employeesNumber !== 0) {
+          const baseReward = employeeProductVotingRewardFactor * companyData.profit;
+          //因為沒辦法得知全部員工投票數，以其他所有員工都有投完票來計算
+          const totalEmployeeVoteTickets = initialVoteTicketCount * (companyData.employeesNumber - 1) + count;
+          reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets);
+        }
+      }
+    }
 
     console.log(`---end computeProductVotingRewards(): ${reward}`);
 
@@ -721,10 +837,11 @@ class User {
   }
 
   computeTotalWealth() {
-    const totalWealth = this.moeny +
+    const totalWealth = this.money +
       this.computeAsset() + this.computeProfit() +
       this.computeManagersProfit() + this.computeEmployeeBonus() +
       this.computeProductVotingRewards();
+    console.log(`---computeTotalWealth(): ${totalWealth}`);
 
     return totalWealth;
   }
@@ -892,6 +1009,8 @@ class Compnay {
   }
 
   updateWithDbemployees(serverEmployees) {
+    console.log(`---start updateWithDbemployees()`);
+
     let employeesNumber = 0;
     let nextSeasonEmployeesNumber = 0;
 
@@ -906,6 +1025,8 @@ class Compnay {
 
     this.employeesNumber = employeesNumber;
     this.nextSeasonEmployeesNumber = nextSeasonEmployeesNumber;
+
+    console.log(`---end updateWithDbemployees()`);
   }
 
   updateWithLocalcompanies(companyData) {
@@ -965,7 +1086,7 @@ class Companies {
     const page = FlowRouter.getRouteName();
     if (page === 'companyDetail') {
       const detailId = FlowRouter.getParam('companyId');
-      serverCompanies = dbCompanies.find({ companyId: detailId}).fetch();
+      serverCompanies = dbCompanies.find({ _id: detailId}).fetch();
     }
     else {
       serverCompanies = dbCompanies.find().fetch();
@@ -1015,10 +1136,14 @@ class Companies {
   }
 
   updateEmployeesInfo() {
+    console.log(`---start updateEmployeesInfo()`);
+
     this.list.forEach((company, i, list) => {
       const serverEmployees = dbEmployees.find({ companyId: company.companyId }).fetch();
       list[i].updateWithDbemployees(serverEmployees);
     });
+
+    console.log(`---end updateEmployeesInfo()`);
   }
 
   updateToLocalstorage() {
@@ -1103,6 +1228,8 @@ class CompanyDetailController extends EventController {
   }
 
   useCompaniesInfo() {
+    console.log(`start useCompaniesInfo()`);
+
     this.companies = new Companies();
 
     const detailId = FlowRouter.getParam('companyId');
@@ -1117,9 +1244,13 @@ class CompanyDetailController extends EventController {
       this.whoFirst = 'companies';
       this.loaded = detailId;
     }
+
+    console.log(`end useCompaniesInfo()`);
   }
 
   useEmployeesInfo() {
+    console.log(`start useEmployeesInfo`);
+
     const detailId = FlowRouter.getParam('companyId');
     if ((this.whoFirst === 'companies') && (this.loaded === detailId)) {
       //這個比較慢執行，companies已經建好了
@@ -1129,9 +1260,11 @@ class CompanyDetailController extends EventController {
       this.loaded = null;
     }
     else {
-      this.whoFirst = 'companies';
+      this.whoFirst = 'employees';
       this.loaded = detailId;
     }
+
+    console.log(`end useEmployeesInfo()`);
   }
 }
 
@@ -1173,7 +1306,7 @@ class AccountInfoController extends EventController {
     else {
       this.user = new User(this.userId);
     }
-    this.user.loadFromLocalstorage();
+    this.user.loadFromSessionstorage();
     this.user.updateUser();
     this.user.updateEmployee();
 
@@ -1462,6 +1595,9 @@ function translation(target) {
 
 const dict = {
   tw: {
+    script: {
+      updateScript: '更新外掛'
+    },
     accountInfo: {
       estimatedTax: '預估稅金：',
       holdingStockCompaniesNumber: '持股公司總數：',
@@ -1475,6 +1611,9 @@ const dict = {
     }
   },
   en: {
+    script: {
+      updateScript: 'update Script'
+    },
     accountInfo: {
       estimatedTax: 'Estimated tax：',
       holdingStockCompaniesNumber: 'Holding stock companies number：',

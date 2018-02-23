@@ -19,7 +19,8 @@
     "Template": true,
     "Meteor": true,
     "ReactiveVar": true,
-    "require": true
+    "require": true,
+    "GM_info": true
   },
   "plugins": [],
   "rules": {
