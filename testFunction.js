@@ -20,19 +20,20 @@ function templateListener(template, templateName, callback) {
 }
 
 
+function accountInfoTest() {
+  console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
+  console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
+  console.log(Meteor.connection._mongo_livedata_collections.directors.find().fetch());
+}
+templateListener(Template.accountInfo, 'Template.accountInfo', accountInfoTest);
+
+
 function companyDetailTest() {
   console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
   console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
   console.log('');
 }
 templateListener(Template.companyDetail, 'Template.companyDetail', companyDetailTest);
-
-
-function accountInfoTest() {
-  console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
-  console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
-  console.log(Meteor.connection._mongo_livedata_collections.directors.find().fetch());
-}
 
 
 function companyListTest() {

@@ -256,17 +256,21 @@ class View {
 
   createH2Info(options) {
     const name = options.name || 'defaultName';
-    const customSetting = options.customSetting || '';
+    options.customSetting = (options.customSetting) || {};
+    const customSetting = {
+      left: options.customSetting.left || '',
+      right: options.customSetting.right || ''
+    };
     const leftText = options.leftText || '';
     const rightText = options.rightText || '';
 
     const r = $(`
       <div class='media company-summary-item border-grid-body' name='${name}'>
         <div class='col-6 text-right border-grid' name='${name}' id='h2Left'>
-          <h2 name='${name}' id='h2Left' ${customSetting}>${leftText}</h2>
+          <h2 name='${name}' id='h2Left' ${customSetting.left}>${leftText}</h2>
         </div>
         <div class='col-6 text-right border-grid' name='${name}' id='h2Right'>
-          <h2 name='${name}' id='h2Right' ${customSetting}>${rightText}</h2>
+          <h2 name='${name}' id='h2Right' ${customSetting.right}>${rightText}</h2>
         </div>
       </div>
     `);
@@ -275,6 +279,7 @@ class View {
   }
   createTable(options) {
     const name = options.name || 'defaultName';
+    options.customSetting = (options.customSetting) || {};
     const customSetting = {
       table: options.customSetting.table || '',
       tHead: options.customSetting.tHead || '',
@@ -586,8 +591,8 @@ class User {
     return profit;
   }
 
-  computeManagerProfit() {
-    console.log(`---start computeManagerProfit()`);
+  computeManagersProfit() {
+    console.log(`---start computeManagersProfit()`);
 
     let managerProfit = 0;
     const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
@@ -599,11 +604,11 @@ class User {
         managerProfit += Math.ceil(companyData.profit * companyData.managerProfitPercent);
       }
       else {
-        console.log(`-----computeManagerProfit(): not find companyId: ${c.companyId}`);
+        console.log(`-----computeManagersProfit(): not find companyId: ${c.companyId}`);
       }
     }
 
-    console.log(`---end computeManagerProfit(): ${managerProfit}`);
+    console.log(`---end computeManagersProfit(): ${managerProfit}`);
 
     return managerProfit;
   }
@@ -654,7 +659,7 @@ class User {
   computeTotalWealth() {
     const totalWealth = this.moeny +
       this.computeAsset() + this.computeProfit() +
-      this.computeManagerProfit() + this.computeEmployeeBonus() +
+      this.computeManagersProfit() + this.computeEmployeeBonus() +
       this.computeProductVotingRewards();
 
     return totalWealth;
@@ -751,7 +756,7 @@ class LoginUser extends User {
 
 
   computeBuyOrdersMoney() {
-    console.log(`---start computeBuyOrderMoney()`);
+    console.log(`---start computeBuyOrdersMoney()`);
 
     let money = 0;
     for (const order of this.orders) {
@@ -760,7 +765,7 @@ class LoginUser extends User {
       }
     }
 
-    console.log(`---end computeBuyOrderMoney(): ${money}`);
+    console.log(`---end computeBuyOrdersMoney(): ${money}`);
 
     return money;
   }
@@ -789,7 +794,7 @@ class LoginUser extends User {
   //Override
   computeTotalWealth() {
     const totalWealth = super.computeTotalWealth() +
-      this.computeBuyOrderMoney() + this.computeSellOrdersAsset();
+      this.computeBuyOrdersMoney() + this.computeSellOrdersAsset();
 
     return totalWealth;
   }
