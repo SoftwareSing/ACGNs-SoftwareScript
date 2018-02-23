@@ -90,6 +90,7 @@ const { alertDialog } = require('./client/layout/alertDialog.js');
 
 const { dbCompanies } = require('./db/dbCompanies.js');
 const { dbEmployees } = require('./db/dbEmployees.js');
+const { dbVips } = require('./db/dbVips.js');
 const { dbDirectors } = require('./db/dbDirectors.js');
 const { dbOrders } = require('./db/dbOrders.js');
 const { dbUserOwnedProducts } = require('./db/dbUserOwnedProducts.js');
@@ -396,6 +397,7 @@ class User {
   constructor(id) {
     console.log(`create user: ${id}`);
     this.userId = id;
+    this.name = '';
     this.holdStocks = [];
     this.managers = [];
     this.employee = '';
@@ -499,7 +501,35 @@ class User {
 
     console.log(`---end updateHoldStocks()`);
   }
+  updateVips() {
+    console.log(`---start updateVips()`);
 
+    this.loadFromSessionstorage();
+
+    let isChange = false;
+    const serverVips = dbVips.find({ userId: this.userId }).fetch();
+    for (const serverVip of serverVips) {
+      const i = this.holdStocks.findIndex((x) => {
+        return (x.companyId === serverVip.companyId);
+      });
+      if (i !== -1) {
+        if (this.holdStocks[i].vip !== serverVip.level) {
+          isChange = true;
+          this.holdStocks[i].vip = serverVip.level;
+        }
+      }
+      else {
+        isChange = true;
+        this.holdStocks.push({companyId: serverVip.companyId, stocks: 0, vip: serverVip.level});
+      }
+    }
+
+    if (isChange) {
+      this.saveToSessionstorage();
+    }
+
+    console.log(`---end updateVips()`);
+  }
   updateManagers() {
     console.log(`---start updateManagers()`);
 
@@ -522,7 +552,6 @@ class User {
 
     console.log(`---end updateManagers()`);
   }
-
   updateEmployee() {
     console.log(`---start updateEmployee()`);
 
@@ -545,8 +574,47 @@ class User {
 
     console.log(`---end updateEmployee()`);
   }
+  updateUser() {
+    console.log(`---start updateUser()`);
+
+    this.loadFromSessionstorage();
+
+    let isChange = false;
+    const serverUsers = Meteor.users.find({ userId: this.userId }).fetch();
+    const serverUser = serverUsers.find((x) => {
+      return (x._id === this.userId);
+    });
+    if (serverUser !== undefined) {
+      if ((this.name !== serverUser.username) && (this.money !== serverUser.profile.money) && (this.ticket !== serverUser.profile.voteTickets)) {
+        isChange = true;
+        this.name = serverUser.username;
+        this.money = serverUser.profile.money;
+        this.ticket = serverUser.profile.voteTickets;
+      }
+    }
+
+    if (isChange) {
+      this.saveToSessionstorage();
+    }
+
+    console.log(`---end updateUser()`);
+  }
 
 
+  computeCompanyNumber() {
+    console.log(`---start computeCompanyNumber()`);
+
+    let number = 0;
+    for (const c of this.holdStocks) {
+      if (c.stocks > 0) {
+        number += 1;
+      }
+    }
+
+    console.log(`---end computeCompanyNumber(): ${number}`);
+
+    return number;
+  }
   computeAsset() {
     console.log(`---start computeAsset()`);
 
@@ -568,7 +636,6 @@ class User {
 
     return asset;
   }
-
   computeProfit() {
     console.log(`---start computeProfit()`);
 
@@ -590,7 +657,6 @@ class User {
 
     return profit;
   }
-
   computeManagersProfit() {
     console.log(`---start computeManagersProfit()`);
 
@@ -612,7 +678,6 @@ class User {
 
     return managerProfit;
   }
-
   computeEmployeeBonus() {
     console.log(`---start computeEmployeeBonus()`);
 
@@ -627,7 +692,6 @@ class User {
 
     return bonus;
   }
-
   computeProductVotingRewards() {
     console.log(`---start computeProductVotingRewards()`);
 
@@ -664,7 +728,6 @@ class User {
 
     return totalWealth;
   }
-
   computeTax() {
     console.log(`---start computeTax()`);
 
