@@ -991,7 +991,7 @@ class LoginUser extends User {
 }
 
 
-class Compnay {
+class Company {
   constructor(serverCompany) {
     this.companyId = serverCompany._id;
     this.name = serverCompany.companyName;
@@ -1102,7 +1102,7 @@ class Companies {
       serverCompanies = dbCompanies.find().fetch();
     }
     for (const serverCompany of serverCompanies) {
-      const company = new Compnay(serverCompany);
+      const company = new Company(serverCompany);
       this.list.push(company);
     }
   }
