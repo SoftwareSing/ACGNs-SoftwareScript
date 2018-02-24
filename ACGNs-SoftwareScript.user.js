@@ -931,7 +931,17 @@ class LoginUser extends User {
   }
 
   updateOrders() {
-    this.orders = dbOrders.find({ userId: this.userId }).fetch();
+    console.log(`---start updateOrders()`);
+
+    this.loadFromSessionstorage();
+
+    const serverOrders = dbOrders.find({ userId: this.userId }).fetch();
+    if (JSON.stringify(this.orders) !== JSON.stringify(serverOrders)) {
+      this.orders = serverOrders;
+      this.saveToSessionstorage();
+    }
+
+    console.log(`---end updateOrders()`);
   }
 
 
