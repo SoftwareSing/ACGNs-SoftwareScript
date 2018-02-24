@@ -1040,17 +1040,19 @@ class Company {
   }
 
   updateWithLocalcompanies(companyData) {
-    this.grade = companyData.grade;
-
     this.vipBonusStocks = companyData.vipBonusStocks; //外掛獨有參數
+    const page = FlowRouter.getRouteName();
+    if (page !== 'companyDetail') {
+      this.grade = companyData.grade;
 
-    this.salary = companyData.salary;
-    this.nextSeasonSalary = companyData.nextSeasonSalary;
-    this.bonus = companyData.bonus;
-    this.employeesNumber = companyData.employeesNumber;
-    this.nextSeasonEmployeesNumber = companyData.nextSeasonEmployeesNumber;
+      this.salary = companyData.salary;
+      this.nextSeasonSalary = companyData.nextSeasonSalary;
+      this.bonus = companyData.bonus;
+      this.employeesNumber = companyData.employeesNumber;
+      this.nextSeasonEmployeesNumber = companyData.nextSeasonEmployeesNumber;
 
-    this.tags = companyData.tags;
+      this.tags = companyData.tags;
+    }
   }
 
   computePERatio() {
@@ -1107,7 +1109,7 @@ class Companies {
     }
   }
 
-  companyListPatch() {
+  companyPatch() {
     const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
     this.list.forEach((company, i, list) => {
       const companyData = localCompanies.find((x) => {
@@ -1212,7 +1214,7 @@ class CompanyListController extends EventController {
 
   useCompaniesInfo() {
     const companies = new Companies();
-    companies.companyListPatch();
+    companies.companyPatch();
 
     companies.updateToLocalstorage();
   }
@@ -1241,6 +1243,7 @@ class CompanyDetailController extends EventController {
     console.log(`start useCompaniesInfo()`);
 
     this.companies = new Companies();
+    this.companies.companyPatch();
 
     const detailId = FlowRouter.getParam('companyId');
     if ((this.whoFirst === 'employees') && (this.loaded === detailId)) {
