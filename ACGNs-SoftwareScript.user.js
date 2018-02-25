@@ -186,6 +186,11 @@ const { dbUserOwnedProducts } = require('./db/dbUserOwnedProducts.js');
 /*************************************/
 /**************function***************/
 
+/**
+ * 計算每股盈餘(包含VIP排他)
+ * @param {Company} company 公司物件
+ * @return {Number} 每股盈餘
+ */
 function earnPerShare(company) {
   let stocksProfitPercent = (1 - company.managerProfitPercent - 0.15);
   if (company.employeesNumber > 0) {
@@ -195,6 +200,12 @@ function earnPerShare(company) {
   return ((company.profit * stocksProfitPercent) / (company.release + company.vipBonusStocks));
 }
 
+/**
+ * 依照股票與vipLV計算有效分紅股票
+ * @param {Number} stock 股票數
+ * @param {Number} vipLevel vip等級
+ * @return {Number} 有效的股票數
+ */
 function effectiveStocks(stock, vipLevel) {
   const { stockBonusFactor: vipBonusFactor } = Meteor.settings.public.vipParameters[vipLevel || 0];
 
@@ -329,11 +340,23 @@ class ScriptVip {
 //   }
 // }
 class EventController {
-  constructor(controllerName, user) {
+  /**
+   * 建構某個頁面的Controller
+   * @param {String} controllerName 名字
+   * @param {LoginUser} loginUser 登入的使用者
+   */
+  constructor(controllerName, loginUser) {
     console.log(`create controller: ${controllerName}`);
-    this.loginUser = user;
+    this.loginUser = loginUser;
   }
 
+  /**
+   * 監聽是否載入完成，完成後呼叫callback
+   * @param {Template} template 監聽的Template
+   * @param {String} templateName 監聽的Template的名字，用於console
+   * @param {function} callback callbock
+   * @return {void}
+   */
   templateListener(template, templateName, callback) {
     template.onCreated(function() {
       const rIsDataReady = new ReactiveVar(false);
@@ -354,10 +377,19 @@ class EventController {
 }
 
 class View {
+  /**
+   * View
+   * @param {String} name View的name
+   */
   constructor(name) {
     console.log(`create View: ${name}`);
   }
 
+  /**
+   * 創建內部用H2元素的資訊列
+   * @param {{name: String, leftText: String, rightText: String, customSetting: {left, right}}} options 設定
+   * @return {jquery.$div} HTML元素
+   */
   createH2Info(options) {
     const name = options.name || 'defaultName';
     options.customSetting = (options.customSetting) || {};
@@ -381,6 +413,12 @@ class View {
 
     return r;
   }
+
+  /**
+   * 創建table元素
+   * @param {{name: String, tHead: Array, tBody: Array[], customSetting: {table, tHead, tBody}}} options 設定
+   * @return {jquery.$table} table元素
+   */
   createTable(options) {
     const name = options.name || 'defaultName';
     options.customSetting = (options.customSetting) || {};
@@ -421,6 +459,13 @@ class View {
 
     return r;
   }
+
+  /**
+   * 創建button元素.
+   * size預設為'btn-sm', color預設為'btn-info'
+   * @param {{name: String, size: String, color: String, text: String, customSetting: String}} options 設定
+   * @return {jquery.$button} button元素
+   */
   createButton(options) {
     const name = options.name || 'defaultName';
     const customSetting = options.customSetting || '';
@@ -434,6 +479,12 @@ class View {
 
     return r;
   }
+
+  /**
+   * 創建select元素.
+   * @param {{name: String, customSetting: String}} options 設定
+   * @return {jquery.$select} select元素
+   */
   createSelect(options) {
     const name = options.name || 'defaultName';
     const customSetting = options.customSetting || '';
@@ -445,6 +496,13 @@ class View {
 
     return r;
   }
+
+  /**
+   * 創建option元素.
+   * text同時用於 顯示文字 與 指定的value
+   * @param {{name: String, text: String, customSetting: String}} options 設定
+   * @return {jquery.$option} select元素
+   */
   createSelectOption(options) {
     const name = options.name || 'defaultName';
     const customSetting = options.customSetting || '';
@@ -456,6 +514,12 @@ class View {
 
     return r;
   }
+
+  /**
+   * 創建input元素.
+   * @param {{name: String, defaultText: String, placeholder: String, type: String, customSetting: String}} options 設定
+   * @return {jquery.$input} input元素
+   */
   createInput(options) {
     const name = options.name || 'defaultName';
     const customSetting = options.customSetting || '';
@@ -475,6 +539,14 @@ class View {
 
     return r;
   }
+
+  /**
+   * 創建a元素.
+   * 如不需要超連結 僅純顯示文字 請不要設定href,
+   * 如不需要新開頁面 則不用設定target
+   * @param {{name: String, href: String, target: String, text: String, customSetting: String}} options 設定
+   * @return {jquery.$a} a元素
+   */
   createA(options) {
     const name = options.name || 'defaultName';
     const customSetting = options.customSetting || '';
@@ -497,6 +569,10 @@ class View {
 
 
 class User {
+  /**
+   * 用於存放AccountInfo頁面中的user資訊
+   * @param {String} id userId
+   */
   constructor(id) {
     console.log(`create user: ${id}`);
     this.userId = id;
@@ -885,6 +961,9 @@ class User {
 }
 
 class LoginUser extends User {
+  /**
+   * 目前登入中的使用者
+   */
   constructor() {
     const id = Meteor.userId();
     console.log(`create LoginUser: ${id}`);
@@ -992,6 +1071,10 @@ class LoginUser extends User {
 
 
 class Company {
+  /**
+   * CompanyObject
+   * @param {object} serverCompany 從dbCompanies中擷取出來的單一個company
+   */
   constructor(serverCompany) {
     this.companyId = serverCompany._id;
     this.name = serverCompany.companyName;
@@ -1039,6 +1122,11 @@ class Company {
     console.log(`---end updateWithDbemployees()`);
   }
 
+  /**
+   * 會判斷是不是在companyDetail頁面, 是的話就只取vipBonusStocks用, 不放入其他參數
+   * @param {Company} companyData 公司資料
+   * @return {void}
+   */
   updateWithLocalcompanies(companyData) {
     this.vipBonusStocks = companyData.vipBonusStocks; //外掛獨有參數
     const page = FlowRouter.getRouteName();
@@ -1092,6 +1180,9 @@ class Company {
 }
 
 class Companies {
+  /**
+   * Company的集合，會創建多個company放在裡面
+   */
   constructor() {
     this.list = [];
     let serverCompanies;
@@ -1198,6 +1289,9 @@ class Companies {
 /*************companyList*************/
 
 class CompanyListController extends EventController {
+  /**
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
   constructor(loginUser) {
     super('CompanyListController', loginUser);
 
@@ -1226,6 +1320,9 @@ class CompanyListController extends EventController {
 /************companyDetail************/
 
 class CompanyDetailController extends EventController {
+  /**
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
   constructor(loginUser) {
     super('CompanyDetailController', loginUser);
 
@@ -1287,6 +1384,9 @@ class CompanyDetailController extends EventController {
 /*************accountInfo*************/
 
 class AccountInfoController extends EventController {
+  /**
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
   constructor(loginUser) {
     super('AccountInfoController', loginUser);
     this.accountInfoView = new AccountInfoView();
@@ -1448,6 +1548,10 @@ class AccountInfoView extends View {
     };
   }
 
+  /**
+   * 將上方資訊列全部移除, 並顯示上方資訊列間的分隔線
+   * @return {void}
+   */
   displayHrLine() {
     if (($(`hr[name='stocksLine']`).length < 1) && ($(`hr[name='profitLine']`).length < 1)) {
       $(`div[name='companyNumber']`).remove();
@@ -1600,6 +1704,11 @@ class AccountInfoView extends View {
 /*************************************/
 /**************Language***************/
 
+/**
+ * 語言翻譯
+ * @param {Array} target 目標語句
+ * @return {String} 回傳語句
+ */
 function translation(target) {
   const language = 'tw';
 
