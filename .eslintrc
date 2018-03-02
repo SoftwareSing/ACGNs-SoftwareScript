@@ -20,6 +20,10 @@
     "Meteor": true,
     "ReactiveVar": true,
     "require": true,
+    "FlowRouter": true,
+    "DocHead": true,
+    "Blaze": true,
+    "HTML": true,
     "GM_info": true
   },
   "plugins": [],

@@ -170,7 +170,6 @@ function startScript() {
 /*************************************/
 /***************import****************/
 
-const { FlowRouter } = require('meteor/kadira:flow-router');
 const { getCurrentSeason, getInitialVoteTicketCount } = require('./db/dbSeason');
 const { alertDialog } = require('./client/layout/alertDialog.js');
 
@@ -248,9 +247,31 @@ class MainController {
     });
     this.othersScript = [];
 
+    const softwareScriptRoute = FlowRouter.group({
+      prefix: '/SoftwareScript',
+      name: 'softwareScriptRoute'
+    });
+    softwareScriptRoute.route('/', {
+      name: 'softwareScript',
+      action() {
+        DocHead.setTitle(`${Meteor.settings.public.websiteName} - ${translation(['script', 'name'])}`);
+      }
+    });
+    softwareScriptRoute.route('/scriptVIP', {
+      name: 'softwareScriptVip',
+      action() {
+        DocHead.setTitle(`${Meteor.settings.public.websiteName} - ${translation(['script', 'name'])} - ${translation(['script', 'vip'])}`);
+      }
+    });
+
+    this.scriptView = new ScriptView();
+    this.scriptView.dispalyDropDownMenu();
+    this.scriptView.displayScriptMenu();
+
     this.companyListController = new CompanyListController(this.loginUser);
     this.companyDetailController = new CompanyDetailController(this.loginUser);
     this.accountInfoController = new AccountInfoController(this.loginUser);
+    this.scriptVipController = new ScriptVipController(this.loginUser);
   }
 }
 
@@ -579,6 +600,112 @@ class View {
     `);
 
     return r;
+  }
+
+  /**
+   * 創建DropDownMenu
+   * @param {{name: String, text: String, customSetting: String}} options 設定
+   * @return {jquery.$div} DropDownMenu
+   */
+  createDropDownMenu(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const text = options.text || '';
+
+    const r = $(`
+      <div class='note' name='${name}'>
+        <li class='nav-item dropdown text-nowrap' name='${name}'>
+          <a class='nav-link dropdown-toggle' href='#' data-toggle='dropdown' name='${name}' ${customSetting}>${text}</a>
+          <div class='dropdown-menu px-3 nav-dropdown-menu'
+            aria-labelledby='navbarDropdownMenuLink'
+            name='${name}'>
+            <div name='${name}' id='afterThis'>
+            </div>
+          </div>
+        </li>
+      </div>
+    `);
+
+    return r;
+  }
+
+  /**
+   * 創建DropDownMenu的option
+   * @param {{name: String, text: String, href: String, target: String, customSetting: String}} options 設定
+   * @return {jquery.$li} DropDownMenu的option
+   */
+  createDropDownMenuOption(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const text = options.text || '';
+    const href = options.href ? `href='${options.href}'` : '';
+    const target = options.target ? `target='${options.target}'` : '';
+
+    const r = $(`
+      <li class='nav-item' name='${name}'>
+        <a class='nav-link text-truncate'
+          name='${name}'
+          ${href}
+          ${target}
+          ${customSetting}
+        >${text}</a>
+      </li>
+    `);
+
+    return r;
+  }
+}
+
+class ScriptView extends View {
+  /**
+   * 控制所有頁面都看的到的物件的View
+   */
+  constructor() {
+    super('ScriptView');
+  }
+
+  dispalyDropDownMenu() {
+    const displayObject = this.createDropDownMenu({
+      name: 'softwareScriptMenu',
+      text: (translation(['script', 'name']))
+    });
+
+    $(`div[name='softwareScriptMenu']`).remove();
+    const afterObject = $(`div[class='note']`)[2];
+    displayObject.insertAfter(afterObject);
+  }
+  /**
+   * 在外掛的下拉選單顯示輸入的物件
+   * @param {{name: String, text: String, href: String, target: String, customSetting: String}} options 顯示的物件
+   * @param {$jquerySelect} afterObject insertAfter的物件
+   * @return {void}
+   */
+  dispalyDropDownMenuOption(options, afterObject) {
+    const name = options.name;
+    const customSetting = options.customSetting;
+    const text = options.text;
+    const href = options.href;
+    const target = options.target;
+    const displayObject = this.createDropDownMenuOption({
+      name: name,
+      customSetting: customSetting,
+      text: text,
+      href: href,
+      target: target
+    });
+
+    displayObject.insertAfter(afterObject);
+  }
+
+  displayScriptMenu() {
+    this.dispalyDropDownMenuOption(
+      {
+        name: 'scriptVipPage',
+        text: translation(['script', 'vip']),
+        href: '/SoftwareScript/scriptVIP'
+      },
+      $(`div[id='afterThis'][name='softwareScriptMenu']`)[0]
+    );
   }
 }
 
@@ -1726,6 +1853,42 @@ class ScriptVipController {
    */
   constructor(loginUser) {
     this.loginUser = loginUser;
+    this.searchTables = new SearchTables();
+    this.scriptVipView = new ScriptVipView();
+  }
+}
+
+class ScriptVipView extends View {
+  constructor() {
+    super('ScriptVipView');
+
+    const tmpVip = new Blaze.Template('Template.softwareScriptVip', () => {
+      // eslint-disable-next-line new-cap
+      const page = HTML.Raw(`
+        <div class='card' name='vip'>
+          <div class='card-block' name='Vip'>
+            <div class='col-5'>
+              <h1 class='card-title mb-1'>SoftwareScript</h1>
+              <h1 class='card-title mb-1'>  VIP功能</h1>
+            </div>
+            <div class='col-5'>您是我的恩客嗎?</div>
+            <div class='col-12'>
+              <hr>
+              <h2 name='becomeVip'>成為VIP</h2>
+              <hr>
+              <h2 name='scriptAd'>外掛廣告</h2>
+              <hr>
+              <h2 name='searchTable'>資料搜尋</h2>
+              <hr>
+              <p>如VIP功能發生問題，請至Discord股市群聯絡SoftwareSing</p>
+            </div>
+          </div>
+        </div>
+      `);
+
+      return page;
+    });
+    Template.softwareScriptVip = tmpVip;
   }
 }
 
@@ -2022,7 +2185,9 @@ function translation(target) {
 const dict = {
   tw: {
     script: {
-      updateScript: '更新外掛'
+      name: 'SoftwareScript',
+      updateScript: '更新外掛',
+      vip: '外掛VIP'
     },
     accountInfo: {
       estimatedTax: '預估稅金：',
@@ -2038,7 +2203,9 @@ const dict = {
   },
   en: {
     script: {
-      updateScript: 'update Script'
+      name: 'SoftwareScript',
+      updateScript: 'update Script',
+      vip: 'script VIP'
     },
     accountInfo: {
       estimatedTax: 'Estimated tax：',

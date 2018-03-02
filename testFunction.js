@@ -1,6 +1,28 @@
 //這只是寫來放一些我比較常用的測試function
 //方便我自己要用的時候複製
 
+const softwareScriptRoute = FlowRouter.group({
+  prefix: '/SoftwareScript',
+  name: 'softwareScriptRoute'
+});
+softwareScriptRoute.route('/', {
+  name: 'softwareScript',
+  action() {
+    DocHead.setTitle(Meteor.settings.public.websiteName + ' - SoftwareScript外掛');
+  }
+});
+softwareScriptRoute.route('/scriptVIP', {
+  name: 'softwareScriptVip',
+  action() {
+    DocHead.setTitle(Meteor.settings.public.websiteName + ' - SoftwareScript外掛 - VIP');
+  }
+});
+
+function scriptPageTest() {
+  console.log('scriptRoute Success');
+}
+templateListener(Template.softwareScript, 'Template.softwareScript', scriptPageTest);
+
 function templateListener(template, templateName, callback) {
   template.onCreated(function() {
     const rIsDataReady = new ReactiveVar(false);
