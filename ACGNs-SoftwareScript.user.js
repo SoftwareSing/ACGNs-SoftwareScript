@@ -1206,6 +1206,7 @@ class LoginUser extends User {
   computeTotalWealth() {
     const totalWealth = super.computeTotalWealth() +
       this.computeBuyOrdersMoney() + this.computeSellOrdersAsset();
+    console.log(`---LoginUser.computeTotalWealth(): ${totalWealth}`);
 
     return totalWealth;
   }
