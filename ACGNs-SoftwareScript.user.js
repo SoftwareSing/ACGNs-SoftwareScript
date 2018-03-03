@@ -19,16 +19,16 @@
 
 //這邊記一下每個storage的格式
 
-//local_scriptAD_UpdateTime       local
+//localScriptAdUpdateTime       local
 //date
 
-//local_scriptAD                  local
+//localScriptAd                  local
 //{adLinkType: ['_self', '_blank'],
 // adLink: ['/company/detail/NJbJuXaJxjJpzAJui', 'https://www.google.com.tw/'],
 // adData: ['&nbsp;message&nbsp;', 'miku'],
 // adFormat: ['a', 'aLink']}
 
-//localCompanies_UpdateTime        local
+//localCompaniesUpdateTime        local
 //date
 
 //localCompanies規格               local
@@ -52,13 +52,16 @@
 // money: Number,
 // ticket: Number}
 
+//localScriptVipProductsUpdateTime        local
+//date
+
 //localScriptVipProducts
 // {
 //   userId: 'CWgfhqxbrJMxsknrb',
 //   products: [
 //     {
 //       productId: '5GEdNG5hjs85ahpxN',
-//       point: '100',
+//       point: 100,
 //       amount: 0,
 //       companyId: 'NH2NhXHkpw8rTuQvx',
 //       description: 'ABC'
@@ -106,14 +109,20 @@ function checkSeriousError() {
 
   if (lastErrorVersion < seriousErrorVersion) {
     console.log('last version has serious error, start remove all localStorage');
-    window.localStorage.removeItem('localCompanies_UpdateTime');
+    window.localStorage.removeItem('localCompaniesUpdateTime');
     window.localStorage.removeItem('localCompanies');
+    window.localStorage.removeItem('localScriptAdUpdateTime');
+    window.localStorage.removeItem('localScriptAd');
+    window.localStorage.removeItem('localScriptVipProductsUpdateTime');
+    window.localStorage.removeItem('localScriptVipProducts');
+    window.localStorage.removeItem('localSearchTables');
+    window.sessionStorage.removeItem('sessionUsers');
 
+    // 舊資料
     window.localStorage.removeItem('local_CsDatas_UpdateTime');
     window.localStorage.removeItem('local_CsDatas');
     window.localStorage.removeItem('local_scriptAD_UpdateTime');
     window.localStorage.removeItem('local_scriptAD');
-
     window.localStorage.removeItem('local_dataSearch');
     window.localStorage.removeItem('local_scriptAD_use');
     window.localStorage.removeItem('local_scriptVIP_UpdateTime');
