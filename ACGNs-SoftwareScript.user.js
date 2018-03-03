@@ -375,12 +375,13 @@ class ScriptVip {
 //     console.log('');
 //   }
 // }
+
+/**
+ * 建構頁面的Controller
+ * @param {String} controllerName 名字
+ * @param {LoginUser} loginUser 登入的使用者
+ */
 class EventController {
-  /**
-   * 建構某個頁面的Controller
-   * @param {String} controllerName 名字
-   * @param {LoginUser} loginUser 登入的使用者
-   */
   constructor(controllerName, loginUser) {
     console.log(`create controller: ${controllerName}`);
     this.loginUser = loginUser;
@@ -412,11 +413,11 @@ class EventController {
   }
 }
 
+/**
+ * View
+ * @param {String} name View的name
+ */
 class View {
-  /**
-   * View
-   * @param {String} name View的name
-   */
   constructor(name) {
     console.log(`create View: ${name}`);
   }
@@ -656,10 +657,10 @@ class View {
   }
 }
 
+/**
+ * 控制所有頁面都看的到的物件的View
+ */
 class ScriptView extends View {
-  /**
-   * 控制所有頁面都看的到的物件的View
-   */
   constructor() {
     super('ScriptView');
   }
@@ -710,11 +711,11 @@ class ScriptView extends View {
 }
 
 
+/**
+ * 用於存放AccountInfo頁面中的user資訊
+ * @param {String} id userId
+ */
 class User {
-  /**
-   * 用於存放AccountInfo頁面中的user資訊
-   * @param {String} id userId
-   */
   constructor(id) {
     console.log(`create user: ${id}`);
     this.userId = id;
@@ -1102,10 +1103,10 @@ class User {
   }
 }
 
+/**
+ * 目前登入中的使用者
+ */
 class LoginUser extends User {
-  /**
-   * 目前登入中的使用者
-   */
   constructor() {
     const id = Meteor.userId();
     console.log(`create LoginUser: ${id}`);
@@ -1213,11 +1214,11 @@ class LoginUser extends User {
 }
 
 
+/**
+ * CompanyObject
+ * @param {object} serverCompany 從dbCompanies中擷取出來的單一個company
+ */
 class Company {
-  /**
-   * CompanyObject
-   * @param {object} serverCompany 從dbCompanies中擷取出來的單一個company
-   */
   constructor(serverCompany) {
     this.companyId = serverCompany._id;
     this.name = serverCompany.companyName;
@@ -1322,10 +1323,10 @@ class Company {
   }
 }
 
+/**
+ * Company的集合，會創建多個company放在裡面
+ */
 class Companies {
-  /**
-   * Company的集合，會創建多個company放在裡面
-   */
   constructor() {
     this.list = [];
     let serverCompanies;
@@ -1431,10 +1432,11 @@ class Companies {
 /*************************************/
 /*************companyList*************/
 
+/**
+ * CompanyList的Controller
+ * @param {LoginUser} loginUser 登入中的使用者
+ */
 class CompanyListController extends EventController {
-  /**
-   * @param {LoginUser} loginUser 登入中的使用者
-   */
   constructor(loginUser) {
     super('CompanyListController', loginUser);
 
@@ -1462,10 +1464,11 @@ class CompanyListController extends EventController {
 /*************************************/
 /************companyDetail************/
 
+/**
+ * CompanyDetail的Controller
+ * @param {LoginUser} loginUser 登入中的使用者
+ */
 class CompanyDetailController extends EventController {
-  /**
-   * @param {LoginUser} loginUser 登入中的使用者
-   */
   constructor(loginUser) {
     super('CompanyDetailController', loginUser);
 
@@ -1526,10 +1529,11 @@ class CompanyDetailController extends EventController {
 /*************************************/
 /*************accountInfo*************/
 
+/**
+ * AccountInfo的Controller
+ * @param {LoginUser} loginUser 登入中的使用者
+ */
 class AccountInfoController extends EventController {
-  /**
-   * @param {LoginUser} loginUser 登入中的使用者
-   */
   constructor(loginUser) {
     super('AccountInfoController', loginUser);
     this.accountInfoView = new AccountInfoView();
@@ -1668,6 +1672,9 @@ class AccountInfoController extends EventController {
   }
 }
 
+/**
+ * AccountInfo的View
+ */
 class AccountInfoView extends View {
   constructor() {
     super('AccountInfoView');
@@ -1847,13 +1854,13 @@ class AccountInfoView extends View {
 /*************************************/
 /**************scriptVIP**************/
 
-class ScriptVipController {
-  /**
-   * ScriptVip頁面的Controller
-   * @param {LoginUser} loginUser 登入中的使用者
-   */
+/**
+ * ScriptVip頁面的Controller
+ * @param {LoginUser} loginUser 登入中的使用者
+ */
+class ScriptVipController extends EventController {
   constructor(loginUser) {
-    this.loginUser = loginUser;
+    super('ScriptVipController', loginUser);
     this.searchTables = new SearchTables();
     this.scriptVipView = new ScriptVipView();
   }
@@ -1893,10 +1900,10 @@ class ScriptVipView extends View {
   }
 }
 
+/**
+ * 操縱搜尋表的物件
+ */
 class SearchTables {
-  /**
-   * 操縱搜尋表的物件
-   */
   constructor() {
     this.tables = [];
     this.loadFromLocalstorage();
