@@ -95,7 +95,7 @@ function checkSeriousError() {
   //用於如果上一版發生嚴重錯誤導致localStorage錯亂，以致插件無法正常啟動時
   //或是用於當插件更新時，需要重設localStorage
 
-  const seriousErrorVersion = 3.701;
+  const seriousErrorVersion = 4.999999;
   //seriousErrorVersion會輸入有問題的版本號，當發生問題時我會增加本數字，或是於更新需要時亦會增加
   //使用者本地的數字紀錄如果小於這個數字將會清空所有localStorage
 
@@ -1348,14 +1348,28 @@ class LoginUser extends User {
 
     this.directorsCache = [];
 
+    Template.accountDialog.onRendered(() => {
+      setTimeout(() => {
+        this.changeLoginUser();
+      }, 1000);
+    });
+
     console.log('');
   }
 
   //可能是原本沒登入後來登入了，所以要寫入id，或是分身......
   changeLoginUser() {
+    console.log(`try to changeLoginUser......`);
     const id = Meteor.userId();
-    console.log(`LoginUser: new ID: ${id}`);
-    this.userId = id;
+    if (id) {
+      console.log(`LoginUser: new ID: ${id}`);
+      this.userId = id;
+    }
+    else {
+      setTimeout(() => {
+        this.changeLoginUser();
+      }, 1000);
+    }
   }
 
   updateFullHoldStocks() {
@@ -1810,6 +1824,10 @@ class AccountInfoController extends EventController {
     console.log(`start usersEvent()`);
 
     this.userId = FlowRouter.getParam('userId');
+    if (this.userId === undefined) {
+      return;
+    }
+
     if (this.userId === this.loginUser.userId) {
       this.user = this.loginUser;
     }
@@ -1854,6 +1872,9 @@ class AccountInfoController extends EventController {
     console.log(`start managersEvent()`);
 
     const pageId = FlowRouter.getParam('userId');
+    if (this.userId === undefined) {
+      return;
+    }
     if (this.userId === pageId) {
       this.user.updateManagers();
 
@@ -1877,6 +1898,9 @@ class AccountInfoController extends EventController {
     console.log(`start vipsEvent()`);
 
     const pageId = FlowRouter.getParam('userId');
+    if (this.userId === undefined) {
+      return;
+    }
     if (this.userId === pageId) {
       this.user.updateVips();
 
@@ -1900,6 +1924,9 @@ class AccountInfoController extends EventController {
     console.log(`start ownStocksEvent()`);
 
     const pageId = FlowRouter.getParam('userId');
+    if (this.userId === undefined) {
+      return;
+    }
     if (this.userId === pageId) {
       this.user.updateHoldStocks();
 
@@ -1922,6 +1949,9 @@ class AccountInfoController extends EventController {
   }
 
   ownProductsEvent() {
+    if (this.userId === undefined) {
+      return;
+    }
     this.loginUser.updateProducts();
   }
 }
@@ -2357,7 +2387,7 @@ class ScriptVipView extends View {
           <tr name='grade'> <td>資本額</td> <td>grade</td> </tr>
           <tr name='capital'> <td>公司評級</td> <td>capital</td> </tr>
           <tr name='price'> <td>股價</td> <td>price</td> </tr>
-          <tr name='release'> <td>總釋股量</td> <td>stock</td> </tr>
+          <tr name='release'> <td>總釋股量</td> <td>release</td> </tr>
           <tr name='profit'> <td>總營收</td> <td>profit</td> </tr>
 
           <tr name='vipBonusStocks'> <td>VIP加成股數</td> <td>vipBonusStocks</td> </tr>
@@ -2686,8 +2716,12 @@ class ScriptVipView extends View {
         </tr>
       `);
       $(`tbody[name='tableColumn']`).append(t);
-      $(`button[name='changeTableColumn'][id='${c.columnName}']`)[0].addEventListener('click', changeColumn, c);
-      $(`button[name='deleteTableColumn'][id='${c.columnName}']`)[0].addEventListener('click', deleteColumn, c);
+      $(`button[name='changeTableColumn'][id='${c.columnName}']`)[0].addEventListener('click', () => {
+        changeColumn(c);
+      });
+      $(`button[name='deleteTableColumn'][id='${c.columnName}']`)[0].addEventListener('click', () => {
+        deleteColumn(c);
+      });
     }
 
     console.log('---end dispalySearchTableColumns()');
