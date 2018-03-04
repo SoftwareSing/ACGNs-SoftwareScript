@@ -175,6 +175,8 @@ function checkScriptUpdate() {
 
 function startScript() {
   const main = new MainController();
+  main.checkCloudUpdate();
+  main.showScriptAd();
 }
 
 
@@ -291,6 +293,165 @@ class MainController {
     this.companyDetailController = new CompanyDetailController(this.loginUser);
     this.accountInfoController = new AccountInfoController(this.loginUser);
     this.scriptVipController = new ScriptVipController(this.loginUser);
+  }
+
+  checkCloudUpdate() {
+    const cloudUpdater = new CloudUpdater(this.serverType);
+    cloudUpdater.checkCompaniesUpdate();
+    cloudUpdater.checkScriptAdUpdate();
+    cloudUpdater.checkScriptVipProductsUpdate();
+  }
+
+  showScriptAd() {
+    const scriptAd = new ScriptAd();
+    scriptAd.removeScriptAd();
+    scriptAd.displayScriptAd();
+  }
+}
+
+/**
+ * 用來連線雲端以更新資料
+ * @param {String} serverType 現在連的股市伺服器
+ */
+class CloudUpdater {
+  constructor(serverType) {
+    this.serverType = serverType;
+  }
+
+  /**
+   * 以非同步方式取得另外整理過的公司資料 json
+   * @param {String} url 資料的網址
+   * @return {function} 可以用來更新資料的function
+   */
+  getWebData(url) {
+    let webObjCache = null;
+
+    const webUrl = String(url);
+    const request = new XMLHttpRequest();
+    request.open('GET', webUrl); // 非同步 GET
+    request.addEventListener('load', () => {
+      debugConsole('got webData');
+      try {
+        webObjCache = JSON.parse(request.responseText);
+      }
+      catch (err) {
+        webObjCache = request.responseText;
+      }
+    });
+    request.send();
+
+    return (callback) => {
+      // 若快取資料存在，則直接回傳快取
+      if (webObjCache !== null) {
+        callback(webObjCache);
+
+        return;
+      }
+
+      // 若無快取資料，則加入事件監聽，等載入後再回傳資料
+      request.addEventListener('load', function() {
+        callback(webObjCache);
+      });
+    };
+  }
+
+  checkUpdateTime(url, localUpdateTime, updater) {
+    const cloud = this.getWebData(url);
+    cloud((cloudTime) => {
+      console.log(`cloud url: ${url}`);
+      console.log(`${localUpdateTime} === ${cloudTime}: ${localUpdateTime === cloudTime}`);
+      if (cloudTime === localUpdateTime) {
+        console.log(`cloud don't have new data`);
+        console.log('');
+      }
+      else {
+        console.log(`cloud have new data`);
+        console.log('');
+        updater(cloudTime);
+      }
+    });
+  }
+
+  checkCompaniesUpdate() {
+    let timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/updateTime.json';
+    let dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/companies.json';
+    if (this.serverType === 'museum') {
+      dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/companys.json';
+      timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/updateTime.json';
+    }
+
+    const updater = (cloudTime) => {
+      const cloud = this.getWebData(dataUrl);
+      cloud((cloudData) => {
+        const inputData = cloudData || [];
+        window.localStorage.setItem('localCompanies', JSON.stringify(inputData));
+        const inputTime = cloudTime || 'null';
+        window.localStorage.setItem('localCompaniesUpdateTime', JSON.stringify(inputTime));
+
+        console.log(`localCompanies update complete`);
+      });
+    };
+    const localCompaniesUpdateTime = JSON.parse(window.localStorage.getItem('localCompaniesUpdateTime')) || 'null';
+    this.checkUpdateTime(timeUrl, localCompaniesUpdateTime, updater);
+  }
+
+  checkScriptAdUpdate() {
+    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/updateTime.json';
+    const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/AD.json';
+
+    const updater = (cloudTime) => {
+      const cloud = this.getWebData(dataUrl);
+      cloud((cloudData) => {
+        const inputData = cloudData || [];
+        window.localStorage.setItem('localScriptAd', JSON.stringify(inputData));
+        const inputTime = cloudTime || 'null';
+        window.localStorage.setItem('localScriptAdUpdateTime', JSON.stringify(inputTime));
+
+        const scriptAd = new ScriptAd();
+        scriptAd.removeScriptAd();
+        scriptAd.displayScriptAd();
+
+        console.log(`scriptAd update complete`);
+      });
+    };
+    const localScriptAdUpdateTime = JSON.parse(window.localStorage.getItem('localScriptAdUpdateTime')) || 'null';
+    this.checkUpdateTime(timeUrl, localScriptAdUpdateTime, updater);
+  }
+
+  checkScriptVipProductsUpdate() {
+    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/updateTime.json';
+    const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/scriptVipProducts.json';
+
+    const updater = (cloudTime) => {
+      const cloud = this.getWebData(dataUrl);
+      cloud((cloudData) => {
+        const inputData = cloudData || [];
+        const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
+        const defaultUser = {
+          userId: 'default',
+          products: inputData
+        };
+        const j = localScriptVipProducts.findIndex((x) => {
+          return (x.userId === defaultUser.userId);
+        });
+        if (j === -1) {
+          localScriptVipProducts.push(defaultUser);
+        }
+        localScriptVipProducts.forEach((user, i, array) => {
+          array[i].products = inputData;
+        });
+
+        window.localStorage.setItem('localScriptVipProducts', JSON.stringify(localScriptVipProducts));
+
+
+        const inputTime = cloudTime || 'null';
+        window.localStorage.setItem('localScriptVipProductsUpdateTime', JSON.stringify(inputTime));
+
+        console.log(`scriptVipProducts update complete`);
+      });
+    };
+    const localScriptVipProductsUpdateTime = JSON.parse(window.localStorage.getItem('localScriptVipProductsUpdateTime')) || 'null';
+    this.checkUpdateTime(timeUrl, localScriptVipProductsUpdateTime, updater);
   }
 }
 
@@ -503,7 +664,7 @@ class View {
     }
 
     const r = $(`
-      <table name=${name} ${customSetting.table}>
+      <table border='1' name=${name} ${customSetting.table}>
         <thead name=${name}>
           ${head}
         </thead>
@@ -744,23 +905,26 @@ class ScriptAd {
    */
   createAdMsg(demo) {
     const demoType = demo ? `demo='true'` : `demo='false'`;
-    const localScriptAd = JSON.parse(window.localStorage.getItem('localScriptAd')) || [];
+    const localScriptAd = JSON.parse(window.localStorage.getItem('localScriptAd')) || {};
     let msg = `<a class='float-left' name='scriptAd' id='0'>&nbsp;&nbsp;</a>`;
     let linkNumber = 0;
-    for (let i = 0; i < localScriptAd.adFormat.length; i += 1) {
-      if (localScriptAd.adFormat[i] === 'a') {
-        msg += `<a class='float-left' name='scriptAd' id='${i + 1}' ${demoType}>${localScriptAd.adData[i]}</a>`;
-      }
-      else if (localScriptAd.adFormat[i] === 'aLink') {
-        const linkType = localScriptAd.adLinkType[linkNumber];
-        let type = '';
-        if ((linkType === '_blank') || (linkType === '_parent') || (linkType === '_top')) {
-          type = `target='${linkType}'`;
-        }
-        const href = `href='${localScriptAd.adLink[linkNumber]}'`;
-        msg += `<a class='float-left' name='scriptAd' id='${i + 1}' ${demoType} ${type} ${href}>${localScriptAd.adData[i]}</a>`;
 
-        linkNumber += 1;
+    if (localScriptAd.adFormat) {
+      for (let i = 0; i < localScriptAd.adFormat.length; i += 1) {
+        if (localScriptAd.adFormat[i] === 'a') {
+          msg += `<a class='float-left' name='scriptAd' id='${i + 1}' ${demoType}>${localScriptAd.adData[i]}</a>`;
+        }
+        else if (localScriptAd.adFormat[i] === 'aLink') {
+          const linkType = localScriptAd.adLinkType[linkNumber];
+          let type = '';
+          if ((linkType === '_blank') || (linkType === '_parent') || (linkType === '_top')) {
+            type = `target='${linkType}'`;
+          }
+          const href = `href='${localScriptAd.adLink[linkNumber]}'`;
+          msg += `<a class='float-left' name='scriptAd' id='${i + 1}' ${demoType} ${type} ${href}>${localScriptAd.adData[i]}</a>`;
+
+          linkNumber += 1;
+        }
       }
     }
 
@@ -768,7 +932,7 @@ class ScriptAd {
   }
 
   displayScriptAd() {
-    const msg = this.createAdMsg(true);
+    const msg = this.createAdMsg(false);
     const afterObject = $(`a[class='text-danger float-left'][href='https://github.com/mrbigmouth/acgn-stock/issues']`)[0];
     $(msg).insertAfter(afterObject);
   }
@@ -1283,6 +1447,10 @@ class LoginUser extends User {
   vipLevel() {
     return this.scriptVip.vipLevel();
   }
+
+  updateProducts() {
+    this.scriptVip.updateProducts();
+  }
 }
 
 
@@ -1552,6 +1720,9 @@ class CompanyDetailController extends EventController {
     this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', () => {
       this.useEmployeesInfo();
     });
+    this.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', () => {
+      this.useUserOwnedProductsInfo();
+    });
   }
 
   useCompaniesInfo() {
@@ -1594,6 +1765,10 @@ class CompanyDetailController extends EventController {
 
     console.log(`end useEmployeesInfo()`);
   }
+
+  useUserOwnedProductsInfo() {
+    this.loginUser.updateProducts();
+  }
 }
 
 /************companyDetail************/
@@ -1625,6 +1800,9 @@ class AccountInfoController extends EventController {
     });
     this.templateListener(Template.accountInfoOwnStockList, 'Template.accountInfoOwnStockList', () => {
       this.ownStocksEvent();
+    });
+    this.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', () => {
+      this.ownProductsEvent();
     });
   }
 
@@ -1741,6 +1919,10 @@ class AccountInfoController extends EventController {
     }
 
     console.log(`end ownStocksEvent()`);
+  }
+
+  ownProductsEvent() {
+    this.loginUser.updateProducts();
   }
 }
 
@@ -1958,17 +2140,19 @@ class ScriptVipController extends EventController {
   createNewSearchTable(newTableName) {
     this.searchTables.loadFromLocalstorage();
     this.searchTables.addTable(newTableName);
-    this.scriptVipView.displaySearchTablesList();
     this.searchTables.updateToLocalstorage();
+
+    this.scriptVipView.displaySearchTablesList();
     $(`select[name='dataSearchList']`)[0].value = stripscript(newTableName);
     this.scriptVipView.displaySearchTableInfo();
   }
   deleteSearchTable(tableName) {
     this.searchTables.loadFromLocalstorage();
     this.searchTables.deleteTable(tableName);
+    this.searchTables.updateToLocalstorage();
+
     this.scriptVipView.displaySearchTablesList();
     this.scriptVipView.displaySearchTableInfo();
-    this.searchTables.updateToLocalstorage();
   }
 
   addSearchTableFilter(tableName, filter) {
@@ -2098,7 +2282,7 @@ class ScriptVipView extends View {
       tHead: ['產品', '點數/個', '持有量'],
       tBody: productList
     });
-    $(`div[name='scriptVipProducts'][id='productList']`)[0].append(tableObject);
+    tableObject.insertAfter($(`div[name='scriptVipProducts'][id='productList']`)[0]);
 
     console.log(`end displayScriptVipProducts()`);
   }
@@ -2401,8 +2585,8 @@ class ScriptVipView extends View {
     console.log('---start displaySearchTablesList()');
 
     $(`option[name='dataSearchList']`).remove();
-    const localCompaniesUpdateTime = JSON.parse(window.localStorage.getItem('localCompaniesUpdateTime')) || 'null';
-    for (const t of localCompaniesUpdateTime) {
+    const localSearchTables = JSON.parse(window.localStorage.getItem('localSearchTables')) || 'null';
+    for (const t of localSearchTables) {
       const item = $(`<option name='dataSearchList' value='${t.tableName}'>${t.tableName}</option>`);
       $(`select[name='dataSearchList']`).append(item);
     }
@@ -2420,8 +2604,8 @@ class ScriptVipView extends View {
 
     const selectValue = $(`select[name='dataSearchList']`)[0].value;
     if (selectValue) {
-      const localCompaniesUpdateTime = JSON.parse(window.localStorage.getItem('localCompaniesUpdateTime')) || 'null';
-      const thisTable = localCompaniesUpdateTime.find((t) => {
+      const localSearchTables = JSON.parse(window.localStorage.getItem('localSearchTables')) || 'null';
+      const thisTable = localSearchTables.find((t) => {
         return t.tableName === selectValue;
       });
       $(`span[name='tableName']`)[0].innerText = thisTable.tableName;
@@ -2444,8 +2628,8 @@ class ScriptVipView extends View {
     console.log('---start dispalySearchTableColumns()');
 
     $(`tr[name='tableColumn']`).remove();
-    const localCompaniesUpdateTime = JSON.parse(window.localStorage.getItem('localCompaniesUpdateTime')) || 'null';
-    const thisTable = localCompaniesUpdateTime.find((t) => {
+    const localSearchTables = JSON.parse(window.localStorage.getItem('localSearchTables')) || 'null';
+    const thisTable = localSearchTables.find((t) => {
       return t.tableName === tableName;
     });
 
@@ -2532,6 +2716,9 @@ class SearchTables {
   }
   loadFromLocalstorage() {
     this.tables = JSON.parse(window.localStorage.getItem('localSearchTables')) || [];
+    if (this.tables.length < 1) {
+      this.updateToLocalstorage();
+    }
   }
 
   /**
@@ -2822,7 +3009,7 @@ class SearchTables {
     try {
       if (t.sort) {
         outputCompanies.sort((a, b) => {
-          return this.doInputFunction()(b, t.sort) - this.doInputFunction(a, t.sort);
+          return this.doInputFunction(b, t.sort) - this.doInputFunction(a, t.sort);
         });
       }
     }
