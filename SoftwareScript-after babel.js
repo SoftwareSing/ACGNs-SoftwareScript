@@ -15,7 +15,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.00.00
+// @version      5.01.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -727,7 +727,7 @@ var View = function () {
 
   /**
    * 創建內部用H2元素的資訊列
-   * @param {{name: String, leftText: String, rightText: String, customSetting: {left, right}}} options 設定
+   * @param {{name: String, leftText: String, rightText: String, customSetting: {left, right}, textOnly: Boolean}} options 設定
    * @return {jquery.$div} HTML元素
    */
 
@@ -743,15 +743,19 @@ var View = function () {
       };
       var leftText = options.leftText || '';
       var rightText = options.rightText || '';
+      var textOnly = options.textOnly || false;
 
-      var r = $('\n      <div class=\'media border-grid-body\' name=\'' + name + '\'>\n        <div class=\'col-6 text-right border-grid\' name=\'' + name + '\' id=\'h2Left\'>\n          <h2 name=\'' + name + '\' id=\'h2Left\' ' + customSetting.left + '>' + leftText + '</h2>\n        </div>\n        <div class=\'col-6 text-right border-grid\' name=\'' + name + '\' id=\'h2Right\'>\n          <h2 name=\'' + name + '\' id=\'h2Right\' ' + customSetting.right + '>' + rightText + '</h2>\n        </div>\n      </div>\n    ');
+      var r = '\n      <div class=\'media border-grid-body\' name=\'' + name + '\'>\n        <div class=\'col-6 text-right border-grid\' name=\'' + name + '\' id=\'h2Left\'>\n          <h2 name=\'' + name + '\' id=\'h2Left\' ' + customSetting.left + '>' + leftText + '</h2>\n        </div>\n        <div class=\'col-6 text-right border-grid\' name=\'' + name + '\' id=\'h2Right\'>\n          <h2 name=\'' + name + '\' id=\'h2Right\' ' + customSetting.right + '>' + rightText + '</h2>\n        </div>\n      </div>\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
 
     /**
      * 創建table元素
-     * @param {{name: String, tHead: Array, tBody: Array, customSetting: {table: String, tHead: String, tBody: String}}} options 設定
+     * @param {{name: String, tHead: Array, tBody: Array, customSetting: {table: String, tHead: String, tBody: String}, textOnly: Boolean}} options 設定
      * @return {jquery.$table} table元素
      */
 
@@ -767,6 +771,7 @@ var View = function () {
       };
       var tHead = options.tHead || [];
       var tBody = options.tBody || [];
+      var textOnly = options.textOnly || false;
 
       var head = '';
       head += '<tr>';
@@ -849,7 +854,10 @@ var View = function () {
         }
       }
 
-      var r = $('\n      <table border=\'1\' name=' + name + ' ' + customSetting.table + '>\n        <thead name=' + name + '>\n          ' + head + '\n        </thead>\n        <tbody name=' + name + '>\n          ' + body + '\n        </tbody>\n      </table>\n    ');
+      var r = '\n      <table border=\'1\' name=' + name + ' ' + customSetting.table + '>\n        <thead name=' + name + '>\n          ' + head + '\n        </thead>\n        <tbody name=' + name + '>\n          ' + body + '\n        </tbody>\n      </table>\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
@@ -857,7 +865,7 @@ var View = function () {
     /**
      * 創建button元素.
      * size預設為'btn-sm', color預設為'btn-info'
-     * @param {{name: String, size: String, color: String, text: String, customSetting: String}} options 設定
+     * @param {{name: String, size: String, color: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
      * @return {jquery.$button} button元素
      */
 
@@ -869,15 +877,19 @@ var View = function () {
       var size = options.size || 'btn-sm';
       var color = options.color || 'btn-info';
       var text = options.text || 'default';
+      var textOnly = options.textOnly || false;
 
-      var r = $('\n      <button class=\'btn ' + color + ' ' + size + '\' name=\'' + name + '\' ' + customSetting + '>' + text + '</button>\n    ');
+      var r = '\n      <button class=\'btn ' + color + ' ' + size + '\' name=\'' + name + '\' ' + customSetting + '>' + text + '</button>\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
 
     /**
      * 創建select元素.
-     * @param {{name: String, customSetting: String}} options 設定
+     * @param {{name: String, customSetting: String, textOnly: Boolean}} options 設定
      * @return {jquery.$select} select元素
      */
 
@@ -886,8 +898,12 @@ var View = function () {
     value: function createSelect(options) {
       var name = options.name || 'defaultName';
       var customSetting = options.customSetting || '';
+      var textOnly = options.textOnly || false;
 
-      var r = $('\n      <select class=\'form-control\' name=\'' + name + '\' ' + customSetting + '>\n      </select>\n    ');
+      var r = '\n      <select class=\'form-control\' name=\'' + name + '\' ' + customSetting + '>\n      </select>\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
@@ -895,7 +911,7 @@ var View = function () {
     /**
      * 創建option元素.
      * text同時用於 顯示文字 與 指定的value
-     * @param {{name: String, text: String, customSetting: String}} options 設定
+     * @param {{name: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
      * @return {jquery.$option} select元素
      */
 
@@ -905,15 +921,19 @@ var View = function () {
       var name = options.name || 'defaultName';
       var customSetting = options.customSetting || '';
       var text = options.text || 'defaultText';
+      var textOnly = options.textOnly || false;
 
-      var r = $('\n      <option name=\'' + name + '\' value=\'' + text + '\' ' + customSetting + '>' + text + '</option>\n    ');
+      var r = '\n      <option name=\'' + name + '\' value=\'' + text + '\' ' + customSetting + '>' + text + '</option>\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
 
     /**
      * 創建input元素.
-     * @param {{name: String, defaultText: String, placeholder: String, type: String, customSetting: String}} options 設定
+     * @param {{name: String, defaultText: String, placeholder: String, type: String, customSetting: String, textOnly: Boolean}} options 設定
      * @return {jquery.$input} input元素
      */
 
@@ -925,8 +945,12 @@ var View = function () {
       var defaultValue = options.defaultValue || '';
       var placeholder = options.placeholder || '';
       var type = options.type || 'text';
+      var textOnly = options.textOnly || false;
 
-      var r = $('\n      <input class=\'form-control\'\n        name=\'' + name + '\'\n        type=\'' + type + '\'\n        placeholder=\'' + placeholder + '\'\n        value=\'' + defaultValue + '\'\n        ' + customSetting + '\n      />\n    ');
+      var r = '\n      <input class=\'form-control\'\n        name=\'' + name + '\'\n        type=\'' + type + '\'\n        placeholder=\'' + placeholder + '\'\n        value=\'' + defaultValue + '\'\n        ' + customSetting + '\n      />\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
@@ -935,7 +959,7 @@ var View = function () {
      * 創建a元素.
      * 如不需要超連結 僅純顯示文字 請不要設定href,
      * 如不需要新開頁面 則不用設定target
-     * @param {{name: String, href: String, target: String, text: String, customSetting: String}} options 設定
+     * @param {{name: String, href: String, target: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
      * @return {jquery.$a} a元素
      */
 
@@ -947,15 +971,19 @@ var View = function () {
       var href = options.href ? 'href=\'' + options.href + '\'' : '';
       var target = options.target ? 'target=\'' + options.target + '\'' : '';
       var text = options.text || '';
+      var textOnly = options.textOnly || false;
 
-      var r = $('\n      <a class=\'float-left\'\n        name=\'' + name + '\'\n        ' + href + '\n        ' + target + '\n        ' + customSetting + '\n      >' + text + '</a>\n    ');
+      var r = '\n      <a class=\'float-left\'\n        name=\'' + name + '\'\n        ' + href + '\n        ' + target + '\n        ' + customSetting + '\n      >' + text + '</a>\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
 
     /**
      * 創建DropDownMenu
-     * @param {{name: String, text: String, customSetting: String}} options 設定
+     * @param {{name: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
      * @return {jquery.$div} DropDownMenu
      */
 
@@ -965,15 +993,19 @@ var View = function () {
       var name = options.name || 'defaultName';
       var customSetting = options.customSetting || '';
       var text = options.text || '';
+      var textOnly = options.textOnly || false;
 
-      var r = $('\n      <div class=\'note\' name=\'' + name + '\'>\n        <li class=\'nav-item dropdown text-nowrap\' name=\'' + name + '\'>\n          <a class=\'nav-link dropdown-toggle\' href=\'#\' data-toggle=\'dropdown\' name=\'' + name + '\' ' + customSetting + '>' + text + '</a>\n          <div class=\'dropdown-menu px-3 nav-dropdown-menu\'\n            aria-labelledby=\'navbarDropdownMenuLink\'\n            name=\'' + name + '\'>\n            <div name=\'' + name + '\' id=\'afterThis\'>\n            </div>\n          </div>\n        </li>\n      </div>\n    ');
+      var r = '\n      <div class=\'note\' name=\'' + name + '\'>\n        <li class=\'nav-item dropdown text-nowrap\' name=\'' + name + '\'>\n          <a class=\'nav-link dropdown-toggle\' href=\'#\' data-toggle=\'dropdown\' name=\'' + name + '\' ' + customSetting + '>' + text + '</a>\n          <div class=\'dropdown-menu px-3 nav-dropdown-menu\'\n            aria-labelledby=\'navbarDropdownMenuLink\'\n            name=\'' + name + '\'>\n            <div name=\'' + name + '\' id=\'afterThis\'>\n            </div>\n          </div>\n        </li>\n      </div>\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
 
     /**
      * 創建DropDownMenu的option
-     * @param {{name: String, text: String, href: String, target: String, customSetting: String}} options 設定
+     * @param {{name: String, text: String, href: String, target: String, customSetting: String, textOnly: Boolean}} options 設定
      * @return {jquery.$li} DropDownMenu的option
      */
 
@@ -985,8 +1017,12 @@ var View = function () {
       var text = options.text || '';
       var href = options.href ? 'href=\'' + options.href + '\'' : '';
       var target = options.target ? 'target=\'' + options.target + '\'' : '';
+      var textOnly = options.textOnly || false;
 
-      var r = $('\n      <li class=\'nav-item\' name=\'' + name + '\'>\n        <a class=\'nav-link text-truncate\'\n          name=\'' + name + '\'\n          ' + href + '\n          ' + target + '\n          ' + customSetting + '\n        >' + text + '</a>\n      </li>\n    ');
+      var r = '\n      <li class=\'nav-item\' name=\'' + name + '\'>\n        <a class=\'nav-link text-truncate\'\n          name=\'' + name + '\'\n          ' + href + '\n          ' + target + '\n          ' + customSetting + '\n        >' + text + '</a>\n      </li>\n    ';
+      if (!textOnly) {
+        r = $(r);
+      }
 
       return r;
     }
@@ -2456,6 +2492,18 @@ var AccountInfoController = function (_EventController3) {
     _this23.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', function () {
       _this23.ownProductsEvent();
     });
+
+    Template.accountInfoBasic.onRendered(function () {
+      //理論上監聽 accountInfoBasic 不太對，應該監聽 accountInfo
+      //不過在切到別的帳號時不會觸發 accountInfo ，倒是一定會觸發 accountInfoBasic
+      _this23.showHoldStocksTableFolder();
+    });
+    _this23.panelFolderListener('holdStocksTable', function () {
+      var state = $('a[data-toggle-panel-folder=\'holdStocksTable\']').find('i[class=\'fa fa-folder-open\']');
+      if (state.length > 0) {
+        _this23.accountInfoView.displayHoldStocksTable(_this23.holdStocksTableInfo());
+      }
+    });
     return _this23;
   }
 
@@ -2534,7 +2582,7 @@ var AccountInfoController = function (_EventController3) {
       console.log('start managersEvent()');
 
       var pageId = FlowRouter.getParam('userId');
-      if (this.userId === undefined) {
+      if (pageId === undefined) {
         return;
       }
       if (this.userId === pageId) {
@@ -2559,7 +2607,7 @@ var AccountInfoController = function (_EventController3) {
       console.log('start vipsEvent()');
 
       var pageId = FlowRouter.getParam('userId');
-      if (this.userId === undefined) {
+      if (pageId === undefined) {
         return;
       }
       if (this.userId === pageId) {
@@ -2584,7 +2632,7 @@ var AccountInfoController = function (_EventController3) {
       console.log('start ownStocksEvent()');
 
       var pageId = FlowRouter.getParam('userId');
-      if (this.userId === undefined) {
+      if (pageId === undefined) {
         return;
       }
       if (this.userId === pageId) {
@@ -2608,10 +2656,155 @@ var AccountInfoController = function (_EventController3) {
   }, {
     key: 'ownProductsEvent',
     value: function ownProductsEvent() {
-      if (this.userId === undefined) {
+      var pageId = FlowRouter.getParam('userId');
+      if (pageId === undefined) {
         return;
       }
-      this.loginUser.updateProducts();
+      if (this.userId === pageId) {
+        if (this.user.userId === this.loginUser.userId) {
+          this.loginUser.updateProducts();
+        }
+      } else {
+        this.waitList.push({
+          userId: pageId,
+          callback: this.ownProductsEvent
+        });
+      }
+    }
+  }, {
+    key: 'showHoldStocksTableFolder',
+    value: function showHoldStocksTableFolder() {
+      var _this24 = this;
+
+      var intoObject = $('div[class=\'row border-grid-body\']');
+      if (intoObject.length > 0) {
+        var tmpInto = $('div[class=\'col-12 border-grid\'][name=\'holdStocksTable\']');
+        if (tmpInto.length < 1) {
+          this.accountInfoView.displayHoldStocksTableFolder();
+        }
+      } else {
+        //不知為何，都用 onRendered 了，結果觸發時還是沒有創建...
+        setTimeout(function () {
+          _this24.showHoldStocksTableFolder();
+        }, 10);
+      }
+    }
+    /**
+     * 資料夾監聽器，監聽到點擊後呼叫callback
+     * @param {String} panelFolderName 資料夾的名稱
+     * @param {Function} callback callback
+     * @return {void}
+     */
+
+  }, {
+    key: 'panelFolderListener',
+    value: function panelFolderListener(panelFolderName, callback) {
+      Template.panelFolder.events({
+        'click [data-toggle-panel-folder]': function clickDataTogglePanelFolder(event, templateInstance) {
+          var name = templateInstance.data.name;
+
+          if (name === panelFolderName) {
+            setTimeout(function () {
+              callback();
+            }, 0);
+          }
+        }
+      });
+    }
+  }, {
+    key: 'holdStocksTableInfo',
+    value: function holdStocksTableInfo() {
+      var tHead = [translation(['company', 'name']), translation(['company', 'price']), translation(['company', 'profit']), translation(['accountInfo', 'holdStocks']), translation(['accountInfo', 'holdPercentage']), translation(['accountInfo', 'stockAsset']), translation(['accountInfo', 'estimatedProfit']), translation(['accountInfo', 'vipLevel'])];
+      var tBody = [];
+
+      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var notFoundList = [];
+      var _iteratorNormalCompletion22 = true;
+      var _didIteratorError22 = false;
+      var _iteratorError22 = undefined;
+
+      try {
+        var _loop12 = function _loop12() {
+          var holdC = _step22.value;
+
+          var companyData = localCompanies.find(function (x) {
+            return x.companyId === holdC.companyId;
+          });
+          if (companyData !== undefined) {
+            var row = [];
+            row.push('<a href=\'/company/detail/' + companyData.companyId + '\'>' + companyData.name + '</a>');
+            row.push(companyData.price);
+            row.push(Math.ceil(companyData.profit));
+            row.push(holdC.stocks);
+            row.push((holdC.stocks / companyData.release * 100).toFixed(2) + '%');
+            row.push(companyData.price * holdC.stocks);
+            row.push(Math.ceil(earnPerShare(companyData) * effectiveStocks(holdC.stocks, holdC.vip)));
+            var vipLevel = holdC.vip !== null ? holdC.vip : 'x';
+            row.push(vipLevel);
+
+            tBody.push(row);
+          } else {
+            notFoundList.push(holdC);
+          }
+        };
+
+        for (var _iterator22 = this.user.holdStocks[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
+          _loop12();
+        }
+
+        //未被找到的公司統一放在最後
+      } catch (err) {
+        _didIteratorError22 = true;
+        _iteratorError22 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion22 && _iterator22.return) {
+            _iterator22.return();
+          }
+        } finally {
+          if (_didIteratorError22) {
+            throw _iteratorError22;
+          }
+        }
+      }
+
+      var _iteratorNormalCompletion23 = true;
+      var _didIteratorError23 = false;
+      var _iteratorError23 = undefined;
+
+      try {
+        for (var _iterator23 = notFoundList[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
+          var _holdC = _step23.value;
+
+          var row = [];
+          row.push('<a href=\'/company/detail/' + _holdC.companyId + '\'>' + translation(['accountInfo', 'notFoundCompany']) + '</a>');
+          row.push('???');
+          row.push('???');
+          row.push(_holdC.stocks);
+          row.push('???');
+          row.push('???');
+          row.push('???');
+          var vipLevel = _holdC.vip !== null ? _holdC.vip : 'x';
+          row.push(vipLevel);
+
+          tBody.push(row);
+        }
+      } catch (err) {
+        _didIteratorError23 = true;
+        _iteratorError23 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion23 && _iterator23.return) {
+            _iterator23.return();
+          }
+        } finally {
+          if (_didIteratorError23) {
+            throw _iteratorError23;
+          }
+        }
+      }
+
+      return { tHead: tHead, tBody: tBody };
     }
   }]);
 
@@ -2629,10 +2822,10 @@ var AccountInfoView = function (_View2) {
   function AccountInfoView() {
     _classCallCheck(this, AccountInfoView);
 
-    var _this24 = _possibleConstructorReturn(this, (AccountInfoView.__proto__ || Object.getPrototypeOf(AccountInfoView)).call(this, 'AccountInfoView'));
+    var _this25 = _possibleConstructorReturn(this, (AccountInfoView.__proto__ || Object.getPrototypeOf(AccountInfoView)).call(this, 'AccountInfoView'));
 
-    _this24.resetDisplayList();
-    return _this24;
+    _this25.resetDisplayList();
+    return _this25;
   }
 
   _createClass(AccountInfoView, [{
@@ -2817,6 +3010,35 @@ var AccountInfoView = function (_View2) {
       displayObject.insertAfter(afterObject);
       this.displayList.tax = displayObject;
     }
+  }, {
+    key: 'displayHoldStocksTableFolder',
+    value: function displayHoldStocksTableFolder() {
+      var intoObject = $('div[class=\'row border-grid-body\']').first();
+      var appendDiv = '<div class=\'col-12 border-grid\' name=\'holdStocksTable\'></div>';
+      intoObject.append(appendDiv);
+      var tmpInto = $('div[class=\'col-12 border-grid\'][name=\'holdStocksTable\']')[0];
+      Blaze.renderWithData(Template.panelFolder, { name: 'holdStocksTable', title: '' + translation(['accountInfo', 'holdStocksTable']) }, tmpInto);
+    }
+  }, {
+    key: 'displayHoldStocksTable',
+    value: function displayHoldStocksTable(tableInfo) {
+      var oldTable = $('table[name=\'holdStocksTable\']');
+      oldTable.remove();
+      //雖然通常來說 oldTable 應該不存在，不過...
+
+      var tHead = tableInfo.tHead || [];
+      var tBody = tableInfo.tBody || [];
+
+      var intoObject = $('a[data-toggle-panel-folder=\'holdStocksTable\']').closest('div[class=\'col-12\']').next('div[class=\'col-12\']').first();
+      var displayObject = this.createTable({
+        name: 'holdStocksTable',
+        tHead: tHead,
+        tBody: tBody,
+        customSetting: { tBody: 'style=\'min-width: 75px; max-width: 390px;\'' },
+        textOnly: true
+      });
+      intoObject.append(displayObject);
+    }
   }]);
 
   return AccountInfoView;
@@ -2839,17 +3061,17 @@ var ScriptVipController = function (_EventController4) {
   function ScriptVipController(loginUser) {
     _classCallCheck(this, ScriptVipController);
 
-    var _this25 = _possibleConstructorReturn(this, (ScriptVipController.__proto__ || Object.getPrototypeOf(ScriptVipController)).call(this, 'ScriptVipController', loginUser));
+    var _this26 = _possibleConstructorReturn(this, (ScriptVipController.__proto__ || Object.getPrototypeOf(ScriptVipController)).call(this, 'ScriptVipController', loginUser));
 
-    _this25.searchTables = new SearchTables();
-    _this25.scriptVipView = new ScriptVipView(_this25);
+    _this26.searchTables = new SearchTables();
+    _this26.scriptVipView = new ScriptVipView(_this26);
 
     Template.softwareScriptVip.onRendered(function () {
-      _this25.scriptVipView.displayScriptVipProducts(_this25.loginUser);
-      _this25.scriptVipView.displayScriptAdInfo(_this25.loginUser);
-      _this25.scriptVipView.displaySearchTables(_this25.loginUser);
+      _this26.scriptVipView.displayScriptVipProducts(_this26.loginUser);
+      _this26.scriptVipView.displayScriptAdInfo(_this26.loginUser);
+      _this26.scriptVipView.displaySearchTables(_this26.loginUser);
     });
-    return _this25;
+    return _this26;
   }
 
   _createClass(ScriptVipController, [{
@@ -2952,10 +3174,10 @@ var ScriptVipView = function (_View3) {
   function ScriptVipView(controller) {
     _classCallCheck(this, ScriptVipView);
 
-    var _this26 = _possibleConstructorReturn(this, (ScriptVipView.__proto__ || Object.getPrototypeOf(ScriptVipView)).call(this, 'ScriptVipView'));
+    var _this27 = _possibleConstructorReturn(this, (ScriptVipView.__proto__ || Object.getPrototypeOf(ScriptVipView)).call(this, 'ScriptVipView'));
 
-    _this26.controller = controller;
-    _this26.scriptAd = new ScriptAd();
+    _this27.controller = controller;
+    _this27.scriptAd = new ScriptAd();
 
     var tmpVip = new Blaze.Template('Template.softwareScriptVip', function () {
       // eslint-disable-next-line new-cap
@@ -2964,7 +3186,7 @@ var ScriptVipView = function (_View3) {
       return page;
     });
     Template.softwareScriptVip = tmpVip;
-    return _this26;
+    return _this27;
   }
 
   /**
@@ -2994,29 +3216,29 @@ var ScriptVipView = function (_View3) {
           return x.userId === 'default';
         });
       }
-      var _iteratorNormalCompletion22 = true;
-      var _didIteratorError22 = false;
-      var _iteratorError22 = undefined;
+      var _iteratorNormalCompletion24 = true;
+      var _didIteratorError24 = false;
+      var _iteratorError24 = undefined;
 
       try {
-        for (var _iterator22 = userProducts.products[Symbol.iterator](), _step22; !(_iteratorNormalCompletion22 = (_step22 = _iterator22.next()).done); _iteratorNormalCompletion22 = true) {
-          var _p = _step22.value;
+        for (var _iterator24 = userProducts.products[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
+          var _p = _step24.value;
 
           var description = '<a companyId=\'' + _p.companyId + '\' href=\'/company/detail/' + _p.companyId + '\'>' + _p.description + '</a>';
           var out = [description, _p.point, _p.amount];
           productList.push(out);
         }
       } catch (err) {
-        _didIteratorError22 = true;
-        _iteratorError22 = err;
+        _didIteratorError24 = true;
+        _iteratorError24 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion22 && _iterator22.return) {
-            _iterator22.return();
+          if (!_iteratorNormalCompletion24 && _iterator24.return) {
+            _iterator24.return();
           }
         } finally {
-          if (_didIteratorError22) {
-            throw _iteratorError22;
+          if (_didIteratorError24) {
+            throw _iteratorError24;
           }
         }
       }
@@ -3040,7 +3262,7 @@ var ScriptVipView = function (_View3) {
   }, {
     key: 'displayScriptAdInfo',
     value: function displayScriptAdInfo(loginUser) {
-      var _this27 = this;
+      var _this28 = this;
 
       console.log('start displayScriptAdInfo()');
 
@@ -3054,14 +3276,14 @@ var ScriptVipView = function (_View3) {
       } else {
         $('button[name=\'closeAd\']')[0].addEventListener('click', function () {
           window.localStorage.setItem('localDisplayScriptAd', JSON.stringify(false));
-          _this27.scriptAd.removeScriptAd();
+          _this28.scriptAd.removeScriptAd();
         });
       }
 
       $('button[name=\'openAd\']')[0].addEventListener('click', function () {
         window.localStorage.setItem('localDisplayScriptAd', JSON.stringify(true));
         if ($('a[name=\'scriptAd\'][demo=\'false\']').length < 1) {
-          _this27.scriptAd.displayScriptAd();
+          _this28.scriptAd.displayScriptAd();
         }
       });
 
@@ -3077,7 +3299,7 @@ var ScriptVipView = function (_View3) {
   }, {
     key: 'displaySearchTables',
     value: function displaySearchTables(loginUser) {
-      var _this28 = this;
+      var _this29 = this;
 
       console.log('start displaySearchTables()');
 
@@ -3091,7 +3313,7 @@ var ScriptVipView = function (_View3) {
           message: '\u60A8\u78BA\u5B9A\u8981\u522A\u9664\u6240\u6709\u7684\u8868\u683C\u55CE? <br />\n                (\u5EFA\u8B70\u767C\u751F\u56B4\u91CD\u932F\u8AA4\u81F3\u7121\u6CD5\u64CD\u4F5C\u6642 \u518D\u9019\u9EBC\u505A)',
           callback: function callback(result) {
             if (result) {
-              _this28.controller.deleteLocalSearchTables();
+              _this29.controller.deleteLocalSearchTables();
             }
           }
         });
@@ -3106,7 +3328,7 @@ var ScriptVipView = function (_View3) {
           customSetting: '',
           callback: function callback(result) {
             if (result) {
-              _this28.controller.createNewSearchTable(result);
+              _this29.controller.createNewSearchTable(result);
             }
           }
         });
@@ -3118,7 +3340,7 @@ var ScriptVipView = function (_View3) {
           message: '\u60A8\u78BA\u5B9A\u8981\u522A\u9664\u8868\u683C ' + tableName + ' \u55CE?',
           callback: function callback(result) {
             if (result) {
-              _this28.controller.deleteSearchTable(tableName);
+              _this29.controller.deleteSearchTable(tableName);
             }
           }
         });
@@ -3132,22 +3354,22 @@ var ScriptVipView = function (_View3) {
       $('button[name=\'addTableFilter\']')[0].addEventListener('click', function () {
         var tableName = $('select[name=\'dataSearchList\']')[0].value;
         var filter = $('input[name=\'tableFilter\']')[0].value;
-        _this28.controller.addSearchTableFilter(tableName, filter);
+        _this29.controller.addSearchTableFilter(tableName, filter);
       });
       $('button[name=\'deleteTableFilter\']')[0].addEventListener('click', function () {
         var tableName = $('select[name=\'dataSearchList\']')[0].value;
-        _this28.controller.deleteSearchTableFilter(tableName);
+        _this29.controller.deleteSearchTableFilter(tableName);
         $('input[name=\'tableFilter\']')[0].value = '';
       });
 
       $('button[name=\'addTableSort\']')[0].addEventListener('click', function () {
         var tableName = $('select[name=\'dataSearchList\']')[0].value;
         var sort = $('input[name=\'tableSort\']')[0].value;
-        _this28.controller.addSearchTableSort(tableName, sort);
+        _this29.controller.addSearchTableSort(tableName, sort);
       });
       $('button[name=\'deleteTableSort\']')[0].addEventListener('click', function () {
         var tableName = $('select[name=\'dataSearchList\']')[0].value;
-        _this28.controller.deleteSearchTableSort(tableName);
+        _this29.controller.deleteSearchTableSort(tableName);
         $('input[name=\'tableSort\']')[0].value = '';
       });
 
@@ -3169,8 +3391,8 @@ var ScriptVipView = function (_View3) {
                 customSetting: 'placeholder=\'\u8ACB\u8F38\u5165\u6B04\u4F4D\u516C\u5F0F\uFF0C\u5982: (profit / (price * stock))\'',
                 callback: function callback(newRule) {
                   if (newRule) {
-                    _this28.controller.addSearchTableColumn(tableName, newName, newRule);
-                    _this28.dispalySearchTableColumns(tableName);
+                    _this29.controller.addSearchTableColumn(tableName, newName, newRule);
+                    _this29.dispalySearchTableColumns(tableName);
                   }
                 }
               });
@@ -3184,11 +3406,11 @@ var ScriptVipView = function (_View3) {
           var tableName = $('span[name=\'tableName\']')[0].innerText;
           if (tableName !== '') {
             var filter = $('input[name=\'tableFilter\']')[0].value;
-            _this28.controller.addSearchTableFilter(tableName, filter);
+            _this29.controller.addSearchTableFilter(tableName, filter);
             var sort = $('input[name=\'tableSort\']')[0].value;
-            _this28.controller.addSearchTableSort(tableName, sort);
+            _this29.controller.addSearchTableSort(tableName, sort);
 
-            _this28.displayOutputTable(tableName);
+            _this29.displayOutputTable(tableName);
           }
         } else {
           alertDialog.alert('你不是VIP！(怒)');
@@ -3203,41 +3425,41 @@ var ScriptVipView = function (_View3) {
   }, {
     key: 'displaySearchTablesList',
     value: function displaySearchTablesList() {
-      var _this29 = this;
+      var _this30 = this;
 
       console.log('---start displaySearchTablesList()');
 
       $('option[name=\'dataSearchList\']').remove();
       var localSearchTables = JSON.parse(window.localStorage.getItem('localSearchTables')) || 'null';
-      var _iteratorNormalCompletion23 = true;
-      var _didIteratorError23 = false;
-      var _iteratorError23 = undefined;
+      var _iteratorNormalCompletion25 = true;
+      var _didIteratorError25 = false;
+      var _iteratorError25 = undefined;
 
       try {
-        for (var _iterator23 = localSearchTables[Symbol.iterator](), _step23; !(_iteratorNormalCompletion23 = (_step23 = _iterator23.next()).done); _iteratorNormalCompletion23 = true) {
-          var t = _step23.value;
+        for (var _iterator25 = localSearchTables[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+          var t = _step25.value;
 
           var item = $('<option name=\'dataSearchList\' value=\'' + t.tableName + '\'>' + t.tableName + '</option>');
           $('select[name=\'dataSearchList\']').append(item);
         }
       } catch (err) {
-        _didIteratorError23 = true;
-        _iteratorError23 = err;
+        _didIteratorError25 = true;
+        _iteratorError25 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion23 && _iterator23.return) {
-            _iterator23.return();
+          if (!_iteratorNormalCompletion25 && _iterator25.return) {
+            _iterator25.return();
           }
         } finally {
-          if (_didIteratorError23) {
-            throw _iteratorError23;
+          if (_didIteratorError25) {
+            throw _iteratorError25;
           }
         }
       }
 
       $('select[name=\'dataSearchList\']')[0].addEventListener('change', function () {
         $('table[name=outputTable]').remove();
-        _this29.displaySearchTableInfo();
+        _this30.displaySearchTableInfo();
       });
 
       console.log('---end displaySearchTablesList()');
@@ -3270,7 +3492,7 @@ var ScriptVipView = function (_View3) {
   }, {
     key: 'dispalySearchTableColumns',
     value: function dispalySearchTableColumns(tableName) {
-      var _this30 = this;
+      var _this31 = this;
 
       console.log('---start dispalySearchTableColumns()');
 
@@ -3299,8 +3521,8 @@ var ScriptVipView = function (_View3) {
                 customSetting: '',
                 callback: function callback(newRule) {
                   if (newRule) {
-                    _this30.controller.changeSearchTableColumn(tableName, { name: c.columnName, newName: newName }, newRule);
-                    _this30.dispalySearchTableColumns(tableName);
+                    _this31.controller.changeSearchTableColumn(tableName, { name: c.columnName, newName: newName }, newRule);
+                    _this31.dispalySearchTableColumns(tableName);
                   }
                 }
               });
@@ -3314,20 +3536,20 @@ var ScriptVipView = function (_View3) {
           message: '\u60A8\u78BA\u5B9A\u8981\u522A\u9664\u6B04\u4F4D ' + c.columnName + ' \u55CE?',
           callback: function callback(result) {
             if (result) {
-              _this30.controller.deleteSearchTableColumn(tableName, c.columnName);
-              _this30.dispalySearchTableColumns(tableName);
+              _this31.controller.deleteSearchTableColumn(tableName, c.columnName);
+              _this31.dispalySearchTableColumns(tableName);
             }
           }
         });
       };
 
-      var _iteratorNormalCompletion24 = true;
-      var _didIteratorError24 = false;
-      var _iteratorError24 = undefined;
+      var _iteratorNormalCompletion26 = true;
+      var _didIteratorError26 = false;
+      var _iteratorError26 = undefined;
 
       try {
-        var _loop12 = function _loop12() {
-          var c = _step24.value;
+        var _loop13 = function _loop13() {
+          var c = _step26.value;
 
           var t = '\n        <tr name=\'tableColumn\'>\n          <td>' + c.columnName + '</td>\n          <td>' + String(c.rule) + '</td>\n          <td>\n            <button class=\'btn btn-warning btn-sm\' name=\'changeTableColumn\' id=\'' + c.columnName + '\'>\u4FEE\u6539</button>\n            <button class=\'btn btn-danger btn-sm\' name=\'deleteTableColumn\' id=\'' + c.columnName + '\'>\u522A\u9664</button>\n          </td>\n        </tr>\n      ';
           $('tbody[name=\'tableColumn\']').append(t);
@@ -3339,20 +3561,20 @@ var ScriptVipView = function (_View3) {
           });
         };
 
-        for (var _iterator24 = thisTable.column[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-          _loop12();
+        for (var _iterator26 = thisTable.column[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+          _loop13();
         }
       } catch (err) {
-        _didIteratorError24 = true;
-        _iteratorError24 = err;
+        _didIteratorError26 = true;
+        _iteratorError26 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion24 && _iterator24.return) {
-            _iterator24.return();
+          if (!_iteratorNormalCompletion26 && _iterator26.return) {
+            _iterator26.return();
           }
         } finally {
-          if (_didIteratorError24) {
-            throw _iteratorError24;
+          if (_didIteratorError26) {
+            throw _iteratorError26;
           }
         }
       }
@@ -3424,27 +3646,27 @@ var SearchTables = function () {
         return t.tableName === tableName;
       });
       var outputArray = [];
-      var _iteratorNormalCompletion25 = true;
-      var _didIteratorError25 = false;
-      var _iteratorError25 = undefined;
+      var _iteratorNormalCompletion27 = true;
+      var _didIteratorError27 = false;
+      var _iteratorError27 = undefined;
 
       try {
-        for (var _iterator25 = table.column[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-          var column = _step25.value;
+        for (var _iterator27 = table.column[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+          var column = _step27.value;
 
           outputArray.push(column.columnName);
         }
       } catch (err) {
-        _didIteratorError25 = true;
-        _iteratorError25 = err;
+        _didIteratorError27 = true;
+        _iteratorError27 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion25 && _iterator25.return) {
-            _iterator25.return();
+          if (!_iteratorNormalCompletion27 && _iterator27.return) {
+            _iterator27.return();
           }
         } finally {
-          if (_didIteratorError25) {
-            throw _iteratorError25;
+          if (_didIteratorError27) {
+            throw _iteratorError27;
           }
         }
       }
@@ -3460,7 +3682,7 @@ var SearchTables = function () {
   }, {
     key: 'outputSearchResults',
     value: function outputSearchResults(tableName) {
-      var _this31 = this;
+      var _this32 = this;
 
       console.log('start outputSearchResults()');
 
@@ -3471,29 +3693,29 @@ var SearchTables = function () {
       var outputCompanies = [];
       try {
         if (table.filter) {
-          var _iteratorNormalCompletion26 = true;
-          var _didIteratorError26 = false;
-          var _iteratorError26 = undefined;
+          var _iteratorNormalCompletion28 = true;
+          var _didIteratorError28 = false;
+          var _iteratorError28 = undefined;
 
           try {
-            for (var _iterator26 = localCompanies[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-              var _company = _step26.value;
+            for (var _iterator28 = localCompanies[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
+              var _company = _step28.value;
 
               if (this.doInputFunction(_company, table.filter)) {
                 outputCompanies.push(_company);
               }
             }
           } catch (err) {
-            _didIteratorError26 = true;
-            _iteratorError26 = err;
+            _didIteratorError28 = true;
+            _iteratorError28 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion26 && _iterator26.return) {
-                _iterator26.return();
+              if (!_iteratorNormalCompletion28 && _iterator28.return) {
+                _iterator28.return();
               }
             } finally {
-              if (_didIteratorError26) {
-                throw _iteratorError26;
+              if (_didIteratorError28) {
+                throw _iteratorError28;
               }
             }
           }
@@ -3509,7 +3731,7 @@ var SearchTables = function () {
       try {
         if (table.sort) {
           outputCompanies.sort(function (a, b) {
-            return _this31.doInputFunction(b, table.sort) - _this31.doInputFunction(a, table.sort);
+            return _this32.doInputFunction(b, table.sort) - _this32.doInputFunction(a, table.sort);
           });
         }
       } catch (e) {
@@ -3521,38 +3743,38 @@ var SearchTables = function () {
       var outputList = [];
       var debugColumnName = '';
       try {
-        var _iteratorNormalCompletion27 = true;
-        var _didIteratorError27 = false;
-        var _iteratorError27 = undefined;
+        var _iteratorNormalCompletion29 = true;
+        var _didIteratorError29 = false;
+        var _iteratorError29 = undefined;
 
         try {
-          for (var _iterator27 = outputCompanies[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-            var _company2 = _step27.value;
+          for (var _iterator29 = outputCompanies[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
+            var _company2 = _step29.value;
 
             var row = [];
-            var _iteratorNormalCompletion28 = true;
-            var _didIteratorError28 = false;
-            var _iteratorError28 = undefined;
+            var _iteratorNormalCompletion30 = true;
+            var _didIteratorError30 = false;
+            var _iteratorError30 = undefined;
 
             try {
-              for (var _iterator28 = table.column[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
-                var column = _step28.value;
+              for (var _iterator30 = table.column[Symbol.iterator](), _step30; !(_iteratorNormalCompletion30 = (_step30 = _iterator30.next()).done); _iteratorNormalCompletion30 = true) {
+                var column = _step30.value;
 
                 debugColumnName = column.columnName;
                 var pushValue = this.doInputFunction(_company2, column.rule);
                 row.push(pushValue);
               }
             } catch (err) {
-              _didIteratorError28 = true;
-              _iteratorError28 = err;
+              _didIteratorError30 = true;
+              _iteratorError30 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion28 && _iterator28.return) {
-                  _iterator28.return();
+                if (!_iteratorNormalCompletion30 && _iterator30.return) {
+                  _iterator30.return();
                 }
               } finally {
-                if (_didIteratorError28) {
-                  throw _iteratorError28;
+                if (_didIteratorError30) {
+                  throw _iteratorError30;
                 }
               }
             }
@@ -3560,16 +3782,16 @@ var SearchTables = function () {
             outputList.push(row);
           }
         } catch (err) {
-          _didIteratorError27 = true;
-          _iteratorError27 = err;
+          _didIteratorError29 = true;
+          _iteratorError29 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion27 && _iterator27.return) {
-              _iterator27.return();
+            if (!_iteratorNormalCompletion29 && _iterator29.return) {
+              _iterator29.return();
             }
           } finally {
-            if (_didIteratorError27) {
-              throw _iteratorError27;
+            if (_didIteratorError29) {
+              throw _iteratorError29;
             }
           }
         }
@@ -3767,7 +3989,7 @@ var SearchTables = function () {
   }, {
     key: 'outputTable',
     value: function outputTable(tableName) {
-      var _this32 = this;
+      var _this33 = this;
 
       console.log('start outputTable()');
 
@@ -3780,29 +4002,29 @@ var SearchTables = function () {
       var outputCompanies = [];
       try {
         if (t.filter) {
-          var _iteratorNormalCompletion29 = true;
-          var _didIteratorError29 = false;
-          var _iteratorError29 = undefined;
+          var _iteratorNormalCompletion31 = true;
+          var _didIteratorError31 = false;
+          var _iteratorError31 = undefined;
 
           try {
-            for (var _iterator29 = localCompanies[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
-              var _c2 = _step29.value;
+            for (var _iterator31 = localCompanies[Symbol.iterator](), _step31; !(_iteratorNormalCompletion31 = (_step31 = _iterator31.next()).done); _iteratorNormalCompletion31 = true) {
+              var _c2 = _step31.value;
 
               if (this.doInputFunction(_c2, t.filter)) {
                 outputCompanies.push(_c2);
               }
             }
           } catch (err) {
-            _didIteratorError29 = true;
-            _iteratorError29 = err;
+            _didIteratorError31 = true;
+            _iteratorError31 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion29 && _iterator29.return) {
-                _iterator29.return();
+              if (!_iteratorNormalCompletion31 && _iterator31.return) {
+                _iterator31.return();
               }
             } finally {
-              if (_didIteratorError29) {
-                throw _iteratorError29;
+              if (_didIteratorError31) {
+                throw _iteratorError31;
               }
             }
           }
@@ -3818,7 +4040,7 @@ var SearchTables = function () {
       try {
         if (t.sort) {
           outputCompanies.sort(function (a, b) {
-            return _this32.doInputFunction(b, t.sort) - _this32.doInputFunction(a, t.sort);
+            return _this33.doInputFunction(b, t.sort) - _this33.doInputFunction(a, t.sort);
           });
         }
       } catch (e) {
@@ -3830,37 +4052,37 @@ var SearchTables = function () {
       var outputList = [];
       var debugColumnName = '';
       try {
-        var _iteratorNormalCompletion30 = true;
-        var _didIteratorError30 = false;
-        var _iteratorError30 = undefined;
+        var _iteratorNormalCompletion32 = true;
+        var _didIteratorError32 = false;
+        var _iteratorError32 = undefined;
 
         try {
-          for (var _iterator30 = outputCompanies[Symbol.iterator](), _step30; !(_iteratorNormalCompletion30 = (_step30 = _iterator30.next()).done); _iteratorNormalCompletion30 = true) {
-            var _c3 = _step30.value;
+          for (var _iterator32 = outputCompanies[Symbol.iterator](), _step32; !(_iteratorNormalCompletion32 = (_step32 = _iterator32.next()).done); _iteratorNormalCompletion32 = true) {
+            var _c3 = _step32.value;
 
             var row = {};
-            var _iteratorNormalCompletion31 = true;
-            var _didIteratorError31 = false;
-            var _iteratorError31 = undefined;
+            var _iteratorNormalCompletion33 = true;
+            var _didIteratorError33 = false;
+            var _iteratorError33 = undefined;
 
             try {
-              for (var _iterator31 = t.column[Symbol.iterator](), _step31; !(_iteratorNormalCompletion31 = (_step31 = _iterator31.next()).done); _iteratorNormalCompletion31 = true) {
-                var column = _step31.value;
+              for (var _iterator33 = t.column[Symbol.iterator](), _step33; !(_iteratorNormalCompletion33 = (_step33 = _iterator33.next()).done); _iteratorNormalCompletion33 = true) {
+                var column = _step33.value;
 
                 debugColumnName = column.columnName;
                 row[column.columnName] = this.doInputFunction(_c3, column.rule);
               }
             } catch (err) {
-              _didIteratorError31 = true;
-              _iteratorError31 = err;
+              _didIteratorError33 = true;
+              _iteratorError33 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion31 && _iterator31.return) {
-                  _iterator31.return();
+                if (!_iteratorNormalCompletion33 && _iterator33.return) {
+                  _iterator33.return();
                 }
               } finally {
-                if (_didIteratorError31) {
-                  throw _iteratorError31;
+                if (_didIteratorError33) {
+                  throw _iteratorError33;
                 }
               }
             }
@@ -3868,16 +4090,16 @@ var SearchTables = function () {
             outputList.push(row);
           }
         } catch (err) {
-          _didIteratorError30 = true;
-          _iteratorError30 = err;
+          _didIteratorError32 = true;
+          _iteratorError32 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion30 && _iterator30.return) {
-              _iterator30.return();
+            if (!_iteratorNormalCompletion32 && _iterator32.return) {
+              _iterator32.return();
             }
           } finally {
-            if (_didIteratorError30) {
-              throw _iteratorError30;
+            if (_didIteratorError32) {
+              throw _iteratorError32;
             }
           }
         }
@@ -3889,63 +4111,63 @@ var SearchTables = function () {
 
       // 需要重整，應該歸類到View裡面
       var thead = '';
-      var _iteratorNormalCompletion32 = true;
-      var _didIteratorError32 = false;
-      var _iteratorError32 = undefined;
+      var _iteratorNormalCompletion34 = true;
+      var _didIteratorError34 = false;
+      var _iteratorError34 = undefined;
 
       try {
-        for (var _iterator32 = t.column[Symbol.iterator](), _step32; !(_iteratorNormalCompletion32 = (_step32 = _iterator32.next()).done); _iteratorNormalCompletion32 = true) {
-          var _column = _step32.value;
+        for (var _iterator34 = t.column[Symbol.iterator](), _step34; !(_iteratorNormalCompletion34 = (_step34 = _iterator34.next()).done); _iteratorNormalCompletion34 = true) {
+          var _column = _step34.value;
 
           thead += '<th style=\'max-width: 390px;\'>' + _column.columnName + '</th>';
         }
       } catch (err) {
-        _didIteratorError32 = true;
-        _iteratorError32 = err;
+        _didIteratorError34 = true;
+        _iteratorError34 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion32 && _iterator32.return) {
-            _iterator32.return();
+          if (!_iteratorNormalCompletion34 && _iterator34.return) {
+            _iterator34.return();
           }
         } finally {
-          if (_didIteratorError32) {
-            throw _iteratorError32;
+          if (_didIteratorError34) {
+            throw _iteratorError34;
           }
         }
       }
 
       var output = '\n        <table border=\'1\' name=\'outputTable\'>\n            <thead name=\'outputTable\'>\n                ' + thead + '\n            </thead>\n            <tbody name=\'outputTable\'>\n            </tbody>\n        </table>\n    ';
       $('p[name=\'outputTable\']').append(output);
-      var _iteratorNormalCompletion33 = true;
-      var _didIteratorError33 = false;
-      var _iteratorError33 = undefined;
+      var _iteratorNormalCompletion35 = true;
+      var _didIteratorError35 = false;
+      var _iteratorError35 = undefined;
 
       try {
-        for (var _iterator33 = outputList[Symbol.iterator](), _step33; !(_iteratorNormalCompletion33 = (_step33 = _iterator33.next()).done); _iteratorNormalCompletion33 = true) {
-          var _row = _step33.value;
+        for (var _iterator35 = outputList[Symbol.iterator](), _step35; !(_iteratorNormalCompletion35 = (_step35 = _iterator35.next()).done); _iteratorNormalCompletion35 = true) {
+          var _row = _step35.value;
 
           var outputRow = '<tr>';
-          var _iteratorNormalCompletion34 = true;
-          var _didIteratorError34 = false;
-          var _iteratorError34 = undefined;
+          var _iteratorNormalCompletion36 = true;
+          var _didIteratorError36 = false;
+          var _iteratorError36 = undefined;
 
           try {
-            for (var _iterator34 = t.column[Symbol.iterator](), _step34; !(_iteratorNormalCompletion34 = (_step34 = _iterator34.next()).done); _iteratorNormalCompletion34 = true) {
-              var _column2 = _step34.value;
+            for (var _iterator36 = t.column[Symbol.iterator](), _step36; !(_iteratorNormalCompletion36 = (_step36 = _iterator36.next()).done); _iteratorNormalCompletion36 = true) {
+              var _column2 = _step36.value;
 
               outputRow += '<td style=\'max-width: 390px;\'>' + _row[_column2.columnName] + '</td>';
             }
           } catch (err) {
-            _didIteratorError34 = true;
-            _iteratorError34 = err;
+            _didIteratorError36 = true;
+            _iteratorError36 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion34 && _iterator34.return) {
-                _iterator34.return();
+              if (!_iteratorNormalCompletion36 && _iterator36.return) {
+                _iterator36.return();
               }
             } finally {
-              if (_didIteratorError34) {
-                throw _iteratorError34;
+              if (_didIteratorError36) {
+                throw _iteratorError36;
               }
             }
           }
@@ -3954,16 +4176,16 @@ var SearchTables = function () {
           $('tbody[name=\'outputTable\']').append(outputRow);
         }
       } catch (err) {
-        _didIteratorError33 = true;
-        _iteratorError33 = err;
+        _didIteratorError35 = true;
+        _iteratorError35 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion33 && _iterator33.return) {
-            _iterator33.return();
+          if (!_iteratorNormalCompletion35 && _iterator35.return) {
+            _iterator35.return();
           }
         } finally {
-          if (_didIteratorError33) {
-            throw _iteratorError33;
+          if (_didIteratorError35) {
+            throw _iteratorError35;
           }
         }
       }
@@ -4009,7 +4231,39 @@ var dict = {
       estimatedStockProfit: '預估股票分紅：',
       estimatedManagerProfit: '預估經理分紅：',
       estimatedEmployeeBonus: '預估員工分紅：',
-      estimatedProductVotingRewards: '預估推薦票獎勵：'
+      estimatedProductVotingRewards: '預估推薦票獎勵：',
+
+      holdStocksTable: '持股資訊總表',
+      holdStocks: '持有股數',
+      holdPercentage: '持有比例',
+      stockAsset: '股票總值',
+      estimatedProfit: '預估分紅',
+      vipLevel: 'VIP等級',
+      notFoundCompany: 'not found company'
+    },
+    company: {
+      companyId: '公司ID',
+      name: '公司名稱',
+      chairman: '董事長',
+      manager: '經理人',
+
+      grade: '公司評級',
+      capital: '資本額',
+      price: '股價',
+      release: '釋股數',
+      profit: '營收',
+
+      vipBonusStocks: 'VIP加成股票數',
+      managerProfitPercent: '經理薪水比例',
+
+      salary: '員工日薪',
+      nextSeasonSalary: '下季員工日薪',
+      bonus: '員工分紅百分比',
+      employeesNumber: '員工數量',
+      nextSeasonEmployeesNumber: '下季員工數量',
+
+      tags: '標籤',
+      createdAt: '創立時間'
     }
   },
   en: {
@@ -4027,7 +4281,39 @@ var dict = {
       estimatedStockProfit: 'Estimated stock profit：',
       estimatedManagerProfit: 'Estimated manager profit：',
       estimatedEmployeeBonus: 'Estimated employee profit：',
-      estimatedProductVotingRewards: 'Estimated Product Voting Rewards：'
+      estimatedProductVotingRewards: 'Estimated Product Voting Rewards：',
+
+      holdStocksTable: 'Hold stocks info table',
+      holdStocks: 'Hold stock number',
+      holdPercentage: 'Hold percentage',
+      stockAsset: 'Stock asset',
+      estimatedProfit: 'Estimated profit',
+      vipLevel: 'VIP level',
+      notFoundCompany: 'not found company'
+    },
+    company: {
+      companyId: 'company\'s ID',
+      name: 'name',
+      chairman: 'chairman',
+      manager: 'manager',
+
+      grade: 'grade',
+      capital: 'capital',
+      price: 'price',
+      release: 'release',
+      profit: 'profit',
+
+      vipBonusStocks: 'Vip bonus stocks',
+      managerProfitPercent: 'Manager profit percent',
+
+      salary: 'Employees daily salary',
+      nextSeasonSalary: 'Employees daily salary for next season',
+      bonus: 'Employees bonuses',
+      employeesNumber: 'Employees number',
+      nextSeasonEmployeesNumber: 'Employees number for next season',
+
+      tags: 'tags',
+      createdAt: 'Created time'
     }
   }
 };
