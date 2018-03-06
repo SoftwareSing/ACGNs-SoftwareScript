@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.01.00
+// @version      5.01.01
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -2569,8 +2569,8 @@ class ScriptVipView extends View {
           <tr name='chairman'> <td>董事長ID</td> <td>chairman</td> </tr>
           <tr name='manager'> <td>經理人ID</td> <td>manager</td> </tr>
 
-          <tr name='grade'> <td>資本額</td> <td>grade</td> </tr>
-          <tr name='capital'> <td>公司評級</td> <td>capital</td> </tr>
+          <tr name='grade'> <td>公司評級</td> <td>grade</td> </tr>
+          <tr name='capital'> <td>資本額</td> <td>capital</td> </tr>
           <tr name='price'> <td>股價</td> <td>price</td> </tr>
           <tr name='release'> <td>總釋股量</td> <td>release</td> </tr>
           <tr name='profit'> <td>總營收</td> <td>profit</td> </tr>
