@@ -1854,6 +1854,18 @@ class AccountInfoController extends EventController {
     this.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', () => {
       this.ownProductsEvent();
     });
+
+    Template.accountInfoBasic.onRendered(() => {
+      //理論上監聽 accountInfoBasic 不太對，應該監聽 accountInfo
+      //不過在切到別的帳號時不會觸發 accountInfo ，倒是一定會觸發 accountInfoBasic
+      this.showHoldStocksTableFolder();
+    });
+    this.panelFolderListener('holdStocksTable', () => {
+      const state = $(`a[data-toggle-panel-folder='holdStocksTable']`).find(`i[class='fa fa-folder-open']`);
+      if (state.length > 0) {
+        this.accountInfoView.displayHoldStocksTable(this.holdStocksTableInfo());
+      }
+    });
   }
 
   usersEvent() {
@@ -1908,7 +1920,7 @@ class AccountInfoController extends EventController {
     console.log(`start managersEvent()`);
 
     const pageId = FlowRouter.getParam('userId');
-    if (this.userId === undefined) {
+    if (pageId === undefined) {
       return;
     }
     if (this.userId === pageId) {
@@ -1934,7 +1946,7 @@ class AccountInfoController extends EventController {
     console.log(`start vipsEvent()`);
 
     const pageId = FlowRouter.getParam('userId');
-    if (this.userId === undefined) {
+    if (pageId === undefined) {
       return;
     }
     if (this.userId === pageId) {
@@ -1960,7 +1972,7 @@ class AccountInfoController extends EventController {
     console.log(`start ownStocksEvent()`);
 
     const pageId = FlowRouter.getParam('userId');
-    if (this.userId === undefined) {
+    if (pageId === undefined) {
       return;
     }
     if (this.userId === pageId) {
@@ -1985,10 +1997,113 @@ class AccountInfoController extends EventController {
   }
 
   ownProductsEvent() {
-    if (this.userId === undefined) {
+    const pageId = FlowRouter.getParam('userId');
+    if (pageId === undefined) {
       return;
     }
-    this.loginUser.updateProducts();
+    if (this.userId === pageId) {
+      if (this.user.userId === this.loginUser.userId) {
+        this.loginUser.updateProducts();
+      }
+    }
+    else {
+      this.waitList.push({
+        userId: pageId,
+        callback: this.ownProductsEvent
+      });
+    }
+  }
+
+
+  showHoldStocksTableFolder() {
+    const intoObject = $(`div[class='row border-grid-body']`);
+    if (intoObject.length > 0) {
+      const tmpInto = $(`div[class='col-12 border-grid'][name='holdStocksTable']`);
+      if (tmpInto.length < 1) {
+        this.accountInfoView.displayHoldStocksTableFolder();
+      }
+    }
+    else {
+      //不知為何，都用 onRendered 了，結果觸發時還是沒有創建...
+      setTimeout(() => {
+        this.showHoldStocksTableFolder();
+      }, 10);
+    }
+  }
+  /**
+   * 資料夾監聽器，監聽到點擊後呼叫callback
+   * @param {String} panelFolderName 資料夾的名稱
+   * @param {Function} callback callback
+   * @return {void}
+   */
+  panelFolderListener(panelFolderName, callback) {
+    Template.panelFolder.events({
+      'click [data-toggle-panel-folder]'(event, templateInstance) {
+        const { name } = templateInstance.data;
+        if (name === panelFolderName) {
+          setTimeout(() => {
+            callback();
+          }, 0);
+        }
+      }
+    });
+  }
+
+  holdStocksTableInfo() {
+    const tHead = [
+      translation(['company', 'name']),
+      translation(['company', 'price']),
+      translation(['company', 'profit']),
+      translation(['accountInfo', 'holdStocks']),
+      translation(['accountInfo', 'holdPercentage']),
+      translation(['accountInfo', 'stockAsset']),
+      translation(['accountInfo', 'estimatedProfit']),
+      translation(['accountInfo', 'vipLevel'])
+    ];
+    const tBody = [];
+
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const notFoundList = [];
+    for (const holdC of this.user.holdStocks) {
+      const companyData = localCompanies.find((x) => {
+        return (x.companyId === holdC.companyId);
+      });
+      if (companyData !== undefined) {
+        const row = [];
+        row.push(`<a href='/company/detail/${companyData.companyId}'>${companyData.name}</a>`);
+        row.push(companyData.price);
+        row.push(Math.ceil(companyData.profit));
+        row.push(holdC.stocks);
+        row.push(`${((holdC.stocks / companyData.release) * 100).toFixed(2)}%`);
+        row.push(companyData.price * holdC.stocks);
+        row.push(Math.ceil(earnPerShare(companyData) * effectiveStocks(holdC.stocks, holdC.vip)));
+        const vipLevel = (holdC.vip !== null) ? holdC.vip : 'x';
+        row.push(vipLevel);
+
+        tBody.push(row);
+      }
+      else {
+        notFoundList.push(holdC);
+      }
+    }
+
+    //未被找到的公司統一放在最後
+    for (const holdC of notFoundList) {
+      const row = [];
+      row.push(`<a href='/company/detail/${holdC.companyId}'>${translation(['accountInfo', 'notFoundCompany'])}</a>`);
+      row.push('???');
+      row.push('???');
+      row.push(holdC.stocks);
+      row.push('???');
+      row.push('???');
+      row.push('???');
+      const vipLevel = (holdC.vip !== null) ? holdC.vip : 'x';
+      row.push(vipLevel);
+
+      tBody.push(row);
+    }
+
+    return {tHead: tHead, tBody: tBody};
   }
 }
 
@@ -2166,6 +2281,40 @@ class AccountInfoView extends View {
     const afterObject = this.displayList.hrProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
     displayObject.insertAfter(afterObject);
     this.displayList.tax = displayObject;
+  }
+
+
+  displayHoldStocksTableFolder() {
+    const intoObject = $(`div[class='row border-grid-body']`).first();
+    const appendDiv = (`<div class='col-12 border-grid' name='holdStocksTable'></div>`);
+    intoObject.append(appendDiv);
+    const tmpInto = $(`div[class='col-12 border-grid'][name='holdStocksTable']`)[0];
+    Blaze.renderWithData(
+      Template.panelFolder,
+      {name: 'holdStocksTable', title: `${translation(['accountInfo', 'holdStocksTable'])}`},
+      tmpInto
+    );
+  }
+  displayHoldStocksTable(tableInfo) {
+    const oldTable = $(`table[name='holdStocksTable']`);
+    oldTable.remove();
+    //雖然通常來說 oldTable 應該不存在，不過...
+
+    const tHead = tableInfo.tHead || [];
+    const tBody = tableInfo.tBody || [];
+
+    const intoObject = ($(`a[data-toggle-panel-folder='holdStocksTable']`)
+      .closest(`div[class='col-12']`)
+      .next(`div[class='col-12']`)
+      .first());
+    const displayObject = this.createTable({
+      name: 'holdStocksTable',
+      tHead: tHead,
+      tBody: tBody,
+      customSetting: {tBody: `style='min-width: 75px; max-width: 390px;'`},
+      textOnly: true
+    });
+    intoObject.append(displayObject);
   }
 }
 
@@ -3168,7 +3317,39 @@ const dict = {
       estimatedStockProfit: '預估股票分紅：',
       estimatedManagerProfit: '預估經理分紅：',
       estimatedEmployeeBonus: '預估員工分紅：',
-      estimatedProductVotingRewards: '預估推薦票獎勵：'
+      estimatedProductVotingRewards: '預估推薦票獎勵：',
+
+      holdStocksTable: '持股資訊總表',
+      holdStocks: '持有股數',
+      holdPercentage: '持有比例',
+      stockAsset: '股票總值',
+      estimatedProfit: '預估分紅',
+      vipLevel: 'VIP等級',
+      notFoundCompany: 'not found company'
+    },
+    company: {
+      companyId: '公司ID',
+      name: '公司名稱',
+      chairman: '董事長',
+      manager: '經理人',
+
+      grade: '公司評級',
+      capital: '資本額',
+      price: '股價',
+      release: '釋股數',
+      profit: '營收',
+
+      vipBonusStocks: 'VIP加成股票數',
+      managerProfitPercent: '經理薪水比例',
+
+      salary: '員工日薪',
+      nextSeasonSalary: '下季員工日薪',
+      bonus: '員工分紅百分比',
+      employeesNumber: '員工數量',
+      nextSeasonEmployeesNumber: '下季員工數量',
+
+      tags: '標籤',
+      createdAt: '創立時間'
     }
   },
   en: {
@@ -3186,7 +3367,39 @@ const dict = {
       estimatedStockProfit: 'Estimated stock profit：',
       estimatedManagerProfit: 'Estimated manager profit：',
       estimatedEmployeeBonus: 'Estimated employee profit：',
-      estimatedProductVotingRewards: 'Estimated Product Voting Rewards：'
+      estimatedProductVotingRewards: 'Estimated Product Voting Rewards：',
+
+      holdStocksTable: 'Hold stocks info table',
+      holdStocks: 'Hold stock number',
+      holdPercentage: 'Hold percentage',
+      stockAsset: 'Stock asset',
+      estimatedProfit: 'Estimated profit',
+      vipLevel: 'VIP level',
+      notFoundCompany: 'not found company'
+    },
+    company: {
+      companyId: 'company\'s ID',
+      name: 'name',
+      chairman: 'chairman',
+      manager: 'manager',
+
+      grade: 'grade',
+      capital: 'capital',
+      price: 'price',
+      release: 'release',
+      profit: 'profit',
+
+      vipBonusStocks: 'Vip bonus stocks',
+      managerProfitPercent: 'Manager profit percent',
+
+      salary: 'Employees daily salary',
+      nextSeasonSalary: 'Employees daily salary for next season',
+      bonus: 'Employees bonuses',
+      employeesNumber: 'Employees number',
+      nextSeasonEmployeesNumber: 'Employees number for next season',
+
+      tags: 'tags',
+      createdAt: 'Created time'
     }
   }
 };
