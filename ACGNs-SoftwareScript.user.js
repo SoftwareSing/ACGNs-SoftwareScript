@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.01.01
+// @version      5.02.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -285,8 +285,8 @@ class MainController {
       }
     });
 
-    this.scriptView = new ScriptView();
-    this.scriptView.dispalyDropDownMenu();
+    this.scriptView = new ScriptView(this);
+    this.scriptView.displayDropDownMenu();
     this.scriptView.displayScriptMenu();
 
     this.companyListController = new CompanyListController(this.loginUser);
@@ -306,6 +306,34 @@ class MainController {
     const scriptAd = new ScriptAd();
     scriptAd.removeScriptAd();
     scriptAd.displayScriptAd();
+  }
+
+  showMostStockholdingCompany() {
+    console.log(`start showMostStockholdingCompany()`);
+
+    const max = 30;
+    const holdStocks = this.loginUser.findMostStockholdingCompany();
+    const list = [];
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    let i = 0;
+    for (const company of holdStocks) {
+      i += 1;
+      if (i > max) {
+        break;
+      }
+
+      const companyData = localCompanies.find((x) => {
+        return (x.companyId === company.companyId);
+      });
+      list.push({
+        companyId: company.companyId,
+        name: companyData ? companyData.name : '[unknow]'
+      });
+    }
+
+    this.scriptView.displayMostStockholdingCompany(list);
+
+    console.log(`end showMostStockholdingCompany()`);
   }
 }
 
@@ -830,6 +858,7 @@ class View {
             aria-labelledby='navbarDropdownMenuLink'
             name='${name}'>
             <div name='${name}' id='afterThis'>
+            <div name='${name}' id='beforeThis'>
             </div>
           </div>
         </li>
@@ -875,13 +904,15 @@ class View {
 
 /**
  * 控制所有頁面都看的到的物件的View
+ * @param {MainController} controller controller
  */
 class ScriptView extends View {
-  constructor() {
+  constructor(controller) {
     super('ScriptView');
+    this.controller = controller;
   }
 
-  dispalyDropDownMenu() {
+  displayDropDownMenu() {
     const displayObject = this.createDropDownMenu({
       name: 'softwareScriptMenu',
       text: (translation(['script', 'name']))
@@ -894,10 +925,10 @@ class ScriptView extends View {
   /**
    * 在外掛的下拉選單顯示輸入的物件
    * @param {{name: String, text: String, href: String, target: String, customSetting: String}} options 顯示的物件
-   * @param {$jquerySelect} afterObject insertAfter的物件
+   * @param {$jquerySelect} beforeObject insertBefore的物件
    * @return {void}
    */
-  dispalyDropDownMenuOption(options, afterObject) {
+  displayDropDownMenuOption(options, beforeObject) {
     const name = options.name;
     const customSetting = options.customSetting;
     const text = options.text;
@@ -911,18 +942,54 @@ class ScriptView extends View {
       target: target
     });
 
-    displayObject.insertAfter(afterObject);
+    displayObject.insertBefore(beforeObject);
   }
 
   displayScriptMenu() {
-    this.dispalyDropDownMenuOption(
+    const beforeDiv = $(`div[id='beforeThis'][name='softwareScriptMenu']`)[0];
+    this.displayDropDownMenuOption(
       {
         name: 'scriptVipPage',
         text: translation(['script', 'vip']),
         href: '/SoftwareScript/scriptVIP'
       },
-      $(`div[id='afterThis'][name='softwareScriptMenu']`)[0]
+      beforeDiv
     );
+
+    const hr = $(`<hr name='mostStocksCompany' />`);
+    hr.insertBefore(beforeDiv);
+    this.displayDropDownMenuOption(
+      {
+        name: 'showMostStockholdingCompany',
+        text: translation(['script', 'showMostStockholdingCompany']),
+        href: '#',
+        customSetting: `style='font-size: 13px;'`
+      },
+      beforeDiv
+    );
+    $(`a[name='showMostStockholdingCompany']`)[0].addEventListener('click', () => {
+      this.controller.showMostStockholdingCompany();
+    });
+  }
+  /**
+   * 顯示最多持股公司列表
+   * @param {Array} list 要顯示的列表
+   * @return {void}
+   */
+  displayMostStockholdingCompany(list) {
+    $(`li[class='nav-item'][name='mostStockholdingCompany']`).remove();
+
+    const beforeDiv = $(`div[id='beforeThis'][name='softwareScriptMenu']`)[0];
+    for (const company of list) {
+      this.displayDropDownMenuOption(
+        {
+          name: 'mostStockholdingCompany',
+          text: company.name,
+          href: `/company/detail/${company.companyId}`
+        },
+        beforeDiv
+      );
+    }
   }
 }
 
@@ -1368,6 +1435,39 @@ class User {
     console.log(`---end computeTax(): ${tax}`);
 
     return tax;
+  }
+
+
+  /**
+   * 依照持股比例排序持有公司並輸出
+   * @return {Array} 列表
+   */
+  findMostStockholdingCompany() {
+    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    this.loadFromSessionstorage();
+    const holdStocks = JSON.parse(JSON.stringify(this.holdStocks));
+    holdStocks.sort((a, b) => {
+      const companyA = localCompanies.find((x) => {
+        return (x.companyId === a.companyId);
+      });
+      const companyB = localCompanies.find((x) => {
+        return (x.companyId === a.companyId);
+      });
+      if ((companyA === undefined) && (companyB === undefined)) {
+        return 0;
+      }
+      else if (companyA === undefined) {
+        return 1;
+      }
+      else if (companyB === undefined) {
+        return -1;
+      }
+      else {
+        return ((b.stocks / companyB.release) - (a.stocks / companyA.release));
+      }
+    });
+
+    return holdStocks;
   }
 }
 
@@ -2763,7 +2863,7 @@ class ScriptVipView extends View {
               callback: (newRule) => {
                 if (newRule) {
                   this.controller.addSearchTableColumn(tableName, newName, newRule);
-                  this.dispalySearchTableColumns(tableName);
+                  this.displaySearchTableColumns(tableName);
                 }
               }
             });
@@ -2827,7 +2927,7 @@ class ScriptVipView extends View {
       $(`input[name='tableFilter']`)[0].value = thisTable.filter;
       $(`input[name='tableSort']`)[0].value = thisTable.sort;
 
-      this.dispalySearchTableColumns(thisTable.tableName);
+      this.displaySearchTableColumns(thisTable.tableName);
     }
     else {
       $(`span[name='tableName']`)[0].innerText = '';
@@ -2839,8 +2939,8 @@ class ScriptVipView extends View {
     console.log('---end displaySearchTableInfo()');
   }
 
-  dispalySearchTableColumns(tableName) {
-    console.log('---start dispalySearchTableColumns()');
+  displaySearchTableColumns(tableName) {
+    console.log('---start displaySearchTableColumns()');
 
     $(`tr[name='tableColumn']`).remove();
     const localSearchTables = JSON.parse(window.localStorage.getItem('localSearchTables')) || 'null';
@@ -2868,7 +2968,7 @@ class ScriptVipView extends View {
               callback: (newRule) => {
                 if (newRule) {
                   this.controller.changeSearchTableColumn(tableName, {name: c.columnName, newName: newName}, newRule);
-                  this.dispalySearchTableColumns(tableName);
+                  this.displaySearchTableColumns(tableName);
                 }
               }
             });
@@ -2883,7 +2983,7 @@ class ScriptVipView extends View {
         callback: (result) => {
           if (result) {
             this.controller.deleteSearchTableColumn(tableName, c.columnName);
-            this.dispalySearchTableColumns(tableName);
+            this.displaySearchTableColumns(tableName);
           }
         }
       });
@@ -2909,7 +3009,7 @@ class ScriptVipView extends View {
       });
     }
 
-    console.log('---end dispalySearchTableColumns()');
+    console.log('---end displaySearchTableColumns()');
   }
 
 
@@ -3306,7 +3406,8 @@ const dict = {
     script: {
       name: 'SoftwareScript',
       updateScript: '更新外掛',
-      vip: '外掛VIP'
+      vip: '外掛VIP',
+      showMostStockholdingCompany: '列出最多持股公司'
     },
     accountInfo: {
       estimatedTax: '預估稅金：',
@@ -3356,7 +3457,8 @@ const dict = {
     script: {
       name: 'SoftwareScript',
       updateScript: 'update Script',
-      vip: 'script VIP'
+      vip: 'script VIP',
+      showMostStockholdingCompany: 'show most stocks company'
     },
     accountInfo: {
       estimatedTax: 'Estimated tax：',
