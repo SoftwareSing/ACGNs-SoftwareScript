@@ -194,6 +194,7 @@ const { dbVips } = require('./db/dbVips.js');
 const { dbDirectors } = require('./db/dbDirectors.js');
 const { dbOrders } = require('./db/dbOrders.js');
 const { dbUserOwnedProducts } = require('./db/dbUserOwnedProducts.js');
+const { dbLog } = require('./db/dbLog.js');
 
 /***************import****************/
 /*************************************/
@@ -617,6 +618,25 @@ class EventController {
           console.log(`${templateName} is loading`);
         }
       });
+    });
+  }
+
+  /**
+   * 資料夾監聽器，監聽到點擊後呼叫callback
+   * @param {String} panelFolderName 資料夾的名稱
+   * @param {Function} callback callback
+   * @return {void}
+   */
+  panelFolderListener(panelFolderName, callback) {
+    Template.panelFolder.events({
+      'click [data-toggle-panel-folder]'(event, templateInstance) {
+        const { name } = templateInstance.data;
+        if (name === panelFolderName) {
+          setTimeout(() => {
+            callback();
+          }, 0);
+        }
+      }
     });
   }
 }
@@ -1817,6 +1837,93 @@ class Companies {
   }
 }
 
+
+/**
+ * 用於紀錄所有log
+ */
+class LogRecorder {
+  //Singleton
+  constructor() {
+    if (! LogRecorder.instance) {
+      LogRecorder.instance = this;
+      this.localLog = [];
+      console.log(`create LogRecorder`);
+    }
+
+    return LogRecorder.instance;
+  }
+  static get instance() {
+    return this._instance;
+  }
+  static set instance(input) {
+    this._instance = input;
+  }
+
+  /**
+   * 回傳過濾過的log
+   * @param {String} att 用於過濾的屬性
+   * @param {String} value 符合的值, 通常是字串
+   * @return {Array} 過濾後的log
+   */
+  find(att, value) {
+    let list = [];
+    if (att !== undefined && value !== undefined) {
+      list = this.localLog.filter((x) => {
+        return (x[att] === value);
+      });
+    }
+    else {
+      list = this.localLog;
+    }
+
+    return list;
+  }
+  /**
+   * 回傳過濾後的log
+   * @param {Funstion} fun 用於過濾的函式
+   * @return {Array} 過濾後的log
+   */
+  filter(fun) {
+    let list = [];
+    if (typeof fun === 'function') {
+      list = this.localLog.filter(fun);
+    }
+    else {
+      list = this.localLog;
+    }
+
+    return list;
+  }
+  push(serverLog) {
+    for (const log of serverLog) {
+      const old = this.localLog.find((x) => {
+        return (x._id._str === log._id._str);
+      });
+      if (old === undefined) {
+        log.softwareScriptStamp = true;
+        this.localLog.push(log);
+      }
+    }
+  }
+  recordServerLog() {
+    const serverLog = dbLog.find().fetch();
+    this.push(serverLog);
+  }
+
+  pushToDbLog(list) {
+    if (! list) {
+      list = this.localLog;
+    }
+    for (const log of list) {
+      log.softwareScriptStamp = true;
+      dbLog.insert(log);
+    }
+  }
+  removeFormDbLog() {
+    dbLog.remove({ softwareScriptStamp: true});
+  }
+}
+
 /****************class****************/
 /*************************************/
 /*************************************/
@@ -2129,24 +2236,6 @@ class AccountInfoController extends EventController {
         this.showHoldStocksTableFolder();
       }, 10);
     }
-  }
-  /**
-   * 資料夾監聽器，監聽到點擊後呼叫callback
-   * @param {String} panelFolderName 資料夾的名稱
-   * @param {Function} callback callback
-   * @return {void}
-   */
-  panelFolderListener(panelFolderName, callback) {
-    Template.panelFolder.events({
-      'click [data-toggle-panel-folder]'(event, templateInstance) {
-        const { name } = templateInstance.data;
-        if (name === panelFolderName) {
-          setTimeout(() => {
-            callback();
-          }, 0);
-        }
-      }
-    });
   }
 
   holdStocksTableInfo() {
