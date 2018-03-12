@@ -1847,6 +1847,7 @@ class LogRecorder {
     if (! LogRecorder.instance) {
       LogRecorder.instance = this;
       this.localLog = [];
+      this.meteorLog = Meteor.connection._mongo_livedata_collections.log;
       console.log(`create LogRecorder`);
     }
 
@@ -1859,6 +1860,17 @@ class LogRecorder {
     this._instance = input;
   }
 
+  isAlreadyExists(list, log) {
+    const old = list.find((x) => {
+      return (x._id._str === log._id._str);
+    });
+    if (old !== undefined) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
   /**
    * 回傳過濾過的log
    * @param {String} att 用於過濾的屬性
@@ -1896,10 +1908,7 @@ class LogRecorder {
   }
   push(serverLog) {
     for (const log of serverLog) {
-      const old = this.localLog.find((x) => {
-        return (x._id._str === log._id._str);
-      });
-      if (old === undefined) {
+      if (! this.isAlreadyExists(this.localLog, log)) {
         log.softwareScriptStamp = true;
         this.localLog.push(log);
       }
@@ -1914,13 +1923,18 @@ class LogRecorder {
     if (! list) {
       list = this.localLog;
     }
+    const serverLog = dbLog.find().fetch();
     for (const log of list) {
-      log.softwareScriptStamp = true;
-      dbLog.insert(log);
+      if (! this.isAlreadyExists(serverLog, log)) {
+        log.softwareScriptStamp = true;
+        //由於直接用 dbLog.insert 會發資料到伺服器, 所以不能用 dbLog 操作
+        this.meteorLog.insert(log);
+      }
     }
   }
   removeFormDbLog() {
-    dbLog.remove({ softwareScriptStamp: true});
+    //由於直接用 dbLog.remove 會發去伺服器, 所以不能用 dbLog 操作
+    this.meteorLog.remove({ softwareScriptStamp: true });
   }
 }
 
