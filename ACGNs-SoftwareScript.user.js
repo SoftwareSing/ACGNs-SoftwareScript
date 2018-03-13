@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.02.00
+// @version      5.03.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -187,6 +187,7 @@ function startScript() {
 
 const { getCurrentSeason, getInitialVoteTicketCount } = require('./db/dbSeason');
 const { alertDialog } = require('./client/layout/alertDialog.js');
+const { formatDateText } = require('./client/utils/helpers.js');
 
 const { dbCompanies } = require('./db/dbCompanies.js');
 const { dbEmployees } = require('./db/dbEmployees.js');
@@ -1919,22 +1920,20 @@ class LogRecorder {
     this.push(serverLog);
   }
 
-  pushToDbLog(list) {
+  /**
+   * 依照時間排序並回傳, 未輸入陣列則以目前記錄的log去排序
+   * @param {Array} list 要排序的陣列
+   * @return {Array} 排序完的陣列
+   */
+  sort(list) {
     if (! list) {
       list = this.localLog;
     }
-    const serverLog = dbLog.find().fetch();
-    for (const log of list) {
-      if (! this.isAlreadyExists(serverLog, log)) {
-        log.softwareScriptStamp = true;
-        //由於直接用 dbLog.insert 會發資料到伺服器, 所以不能用 dbLog 操作
-        this.meteorLog.insert(log);
-      }
-    }
-  }
-  removeFormDbLog() {
-    //由於直接用 dbLog.remove 會發去伺服器, 所以不能用 dbLog 操作
-    this.meteorLog.remove({ softwareScriptStamp: true });
+    list.sort((a, b) => {
+      return (b.createdAt.getTime() - a.createdAt.getTime());
+    });
+
+    return list;
   }
 }
 
@@ -1983,6 +1982,9 @@ class CompanyDetailController extends EventController {
   constructor(loginUser) {
     super('CompanyDetailController', loginUser);
 
+    this.companyDetailView = new CompanyDetailView(this);
+    this.logRecorder = new LogRecorder();
+
     this.whoFirst = null;
     this.loaded = null;
     this.templateListener(Template.companyDetail, 'Template.companyDetail', () => {
@@ -1993,6 +1995,19 @@ class CompanyDetailController extends EventController {
     });
     this.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', () => {
       this.useUserOwnedProductsInfo();
+    });
+    this.templateListener(Template.companyLogList, 'Template.companyLogList', () => {
+      this.useLogInfo();
+    });
+
+    Template.companyDetailContentNormal.onRendered(() => {
+      this.showBigLogFolder();
+    });
+    this.panelFolderListener('bigLog', () => {
+      const state = $(`a[data-toggle-panel-folder='bigLog']`).find(`i[class='fa fa-folder-open']`);
+      if (state.length > 0) {
+        this.showAllLog();
+      }
     });
   }
 
@@ -2039,6 +2054,138 @@ class CompanyDetailController extends EventController {
 
   useUserOwnedProductsInfo() {
     this.loginUser.updateProducts();
+  }
+
+  useLogInfo() {
+    this.logRecorder.recordServerLog();
+  }
+  showBigLogFolder() {
+    const intoObject = $(`div[class='row border-grid-body']`);
+    if (intoObject.length > 0) {
+      const tmpInto = $(`div[class='col-12 border-grid'][name='bigLog']`);
+      if (tmpInto.length < 1) {
+        this.companyDetailView.displayBigLogFolder();
+      }
+    }
+    else {
+      setTimeout(() => {
+        this.showBigLogFolder();
+      }, 10);
+    }
+  }
+  showAllLog() {
+    const detailId = FlowRouter.getParam('companyId');
+    let localLog = this.logRecorder.find('companyId', detailId);
+    localLog = this.logRecorder.sort(localLog);
+    this.companyDetailView.displayBigLog(localLog);
+  }
+}
+
+class CompanyDetailView extends View {
+  constructor(controller) {
+    super(`CompanyDetailView`);
+    this.controller = controller;
+    this.getDescriptionHtml = Template.displayLog.__helpers[' getDescriptionHtml'];
+  }
+
+  displayBigLogFolder() {
+    const intoObject = $(`div[class='row border-grid-body']`).first();
+    const appendDiv = (`<div class='col-12 border-grid' name='bigLog'></div>`);
+    intoObject.append(appendDiv);
+    const tmpInto = $(`div[class='col-12 border-grid'][name='bigLog']`)[0];
+    Blaze.renderWithData(
+      Template.panelFolder,
+      {name: 'bigLog', title: `${translation(['script', 'bigLog'])}`},
+      tmpInto
+    );
+  }
+
+  displayBigLog(localLog) {
+    const intoObject = ($(`a[data-toggle-panel-folder='bigLog']`)
+      .closest(`div[class='col-12']`)
+      .next(`div[class='col-12']`)
+      .first());
+    for (const log of localLog) {
+      const displayObject = (`
+        <div class='logData' style='word-break: break-all;'>
+          <span class='text-info'>(${formatDateText(log.createdAt)})</span>
+          ${this.getDescriptionHtml(log)}
+        </div>
+      `);
+      intoObject.append(displayObject);
+    }
+    this.displayLogDetailInfo(intoObject);
+  }
+  displayLogDetailInfo(intoObject) {
+    // 由於試了幾次實在沒辦法直接從伺服器抓出來
+    // 本段直接複製自股市Github
+    // /client/utils/displayLog.js
+    intoObject.find('[data-user-link]').each((_, elem) => {
+      const $link = $(elem);
+      const userId = $link.attr('data-user-link');
+
+      // TODO write a helper
+      if (userId === '!system') {
+        $link.text('系統');
+      }
+      else if (userId === '!FSC') {
+        $link.text('金管會');
+      }
+      else {
+        $.ajax({
+          url: '/userInfo',
+          data: { id: userId },
+          dataType: 'json',
+          success: ({ name: userName, status }) => {
+            if (status === 'registered') {
+              const path = FlowRouter.path('accountInfo', { userId });
+              $link.html(`<a href='${path}'>${userName}</a>`);
+            }
+            else {
+              $link.text(userName);
+            }
+          }
+        });
+      }
+    });
+
+    intoObject.find('[data-company-link]').each((_, elem) => {
+      const $link = $(elem);
+      const companyId = $link.attr('data-company-link');
+      $.ajax({
+        url: '/companyInfo',
+        data: { id: companyId },
+        dataType: 'json',
+        success: ({ name: companyName, status }) => {
+          let path;
+          // TODO write a helper
+          switch (status) {
+            case 'foundation': {
+              path = FlowRouter.path('foundationDetail', { foundationId: companyId });
+              break;
+            }
+            case 'market': {
+              path = FlowRouter.path('companyDetail', { companyId });
+              break;
+            }
+          }
+          $link.html(`<a href='${path}'>${companyName}</a>`);
+        }
+      });
+    });
+
+    intoObject.find('[data-product-link]').each((_, elem) => {
+      const $link = $(elem);
+      const productId = $link.attr('data-product-link');
+      $.ajax({
+        url: '/productInfo',
+        data: { id: productId },
+        dataType: 'json',
+        success: ({ url, productName }) => {
+          $link.html(`<a href='${url}' target='_blank'>${productName}</a>`);
+        }
+      });
+    });
   }
 }
 
@@ -3510,7 +3657,9 @@ const dict = {
       name: 'SoftwareScript',
       updateScript: '更新外掛',
       vip: '外掛VIP',
-      showMostStockholdingCompany: '列出最多持股公司'
+      showMostStockholdingCompany: '列出最多持股公司',
+
+      bigLog: '大量紀錄'
     },
     accountInfo: {
       estimatedTax: '預估稅金：',
@@ -3561,7 +3710,9 @@ const dict = {
       name: 'SoftwareScript',
       updateScript: 'update Script',
       vip: 'script VIP',
-      showMostStockholdingCompany: 'show most stocks company'
+      showMostStockholdingCompany: 'show most stocks company',
+
+      bigLog: 'Big log'
     },
     accountInfo: {
       estimatedTax: 'Estimated tax：',
