@@ -1839,6 +1839,11 @@ class Companies {
 }
 
 
+/****************class****************/
+/*************************************/
+/*************************************/
+/***************bigLog****************/
+
 /**
  * 用於紀錄所有log
  */
@@ -1937,134 +1942,22 @@ class LogRecorder {
   }
 }
 
-/****************class****************/
-/*************************************/
-/*************************************/
-/*************companyList*************/
-
 /**
- * CompanyList的Controller
- * @param {LoginUser} loginUser 登入中的使用者
+ * 大量紀錄 的View
+ * 用於顯示 大量紀錄 資料夾, 以及顯示大量紀錄
  */
-class CompanyListController extends EventController {
-  constructor(loginUser) {
-    super('CompanyListController', loginUser);
-
-    this.templateListener(Template.companyList, 'Template.companyList', () => {
-      this.updateUserInfo();
-      this.useCompaniesInfo();
-    });
+class BigLogView extends View {
+  constructor() {
+    super(`create BigLogView`);
+    this.getDescriptionHtml = Template.displayLog.__helpers[' getDescriptionHtml'];
   }
 
-  updateUserInfo() {
-    this.loginUser.updateFullHoldStocks();
-    this.loginUser.updateOrders();
-  }
-
-  useCompaniesInfo() {
-    const companies = new Companies();
-    companies.companyPatch();
-
-    companies.updateToLocalstorage();
-  }
-}
-
-/*************companyList*************/
-/*************************************/
-/*************************************/
-/************companyDetail************/
-
-/**
- * CompanyDetail的Controller
- * @param {LoginUser} loginUser 登入中的使用者
- */
-class CompanyDetailController extends EventController {
-  constructor(loginUser) {
-    super('CompanyDetailController', loginUser);
-
-    this.companyDetailView = new CompanyDetailView(this);
-    this.logRecorder = new LogRecorder();
-
-    this.whoFirst = null;
-    this.loaded = null;
-    this.templateListener(Template.companyDetail, 'Template.companyDetail', () => {
-      this.useCompaniesInfo();
-    });
-    this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', () => {
-      this.useEmployeesInfo();
-    });
-    this.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', () => {
-      this.useUserOwnedProductsInfo();
-    });
-    this.templateListener(Template.companyLogList, 'Template.companyLogList', () => {
-      this.useLogInfo();
-    });
-
-    Template.companyDetailContentNormal.onRendered(() => {
-      this.showBigLogFolder();
-    });
-    this.panelFolderListener('bigLog', () => {
-      const state = $(`a[data-toggle-panel-folder='bigLog']`).find(`i[class='fa fa-folder-open']`);
-      if (state.length > 0) {
-        this.showAllLog();
-      }
-    });
-  }
-
-  useCompaniesInfo() {
-    console.log(`start useCompaniesInfo()`);
-
-    this.companies = new Companies();
-    this.companies.companyPatch();
-
-    const detailId = FlowRouter.getParam('companyId');
-    if ((this.whoFirst === 'employees') && (this.loaded === detailId)) {
-      //這個比較慢執行，employees資料已經載入完成了
-      this.companies.updateEmployeesInfo();
-      this.companies.updateToLocalstorage();
-      this.whoFirst = null;
-      this.loaded = null;
-    }
-    else {
-      this.whoFirst = 'companies';
-      this.loaded = detailId;
-    }
-
-    console.log(`end useCompaniesInfo()`);
-  }
-
-  useEmployeesInfo() {
-    console.log(`start useEmployeesInfo`);
-
-    const detailId = FlowRouter.getParam('companyId');
-    if ((this.whoFirst === 'companies') && (this.loaded === detailId)) {
-      //這個比較慢執行，companies已經建好了
-      this.companies.updateEmployeesInfo();
-      this.companies.updateToLocalstorage();
-      this.whoFirst = null;
-      this.loaded = null;
-    }
-    else {
-      this.whoFirst = 'employees';
-      this.loaded = detailId;
-    }
-
-    console.log(`end useEmployeesInfo()`);
-  }
-
-  useUserOwnedProductsInfo() {
-    this.loginUser.updateProducts();
-  }
-
-  useLogInfo() {
-    this.logRecorder.recordServerLog();
-  }
   showBigLogFolder() {
     const intoObject = $(`div[class='row border-grid-body']`);
     if (intoObject.length > 0) {
       const tmpInto = $(`div[class='col-12 border-grid'][name='bigLog']`);
       if (tmpInto.length < 1) {
-        this.companyDetailView.displayBigLogFolder();
+        this.displayBigLogFolder();
       }
     }
     else {
@@ -2073,21 +1966,6 @@ class CompanyDetailController extends EventController {
       }, 10);
     }
   }
-  showAllLog() {
-    const detailId = FlowRouter.getParam('companyId');
-    let localLog = this.logRecorder.find('companyId', detailId);
-    localLog = this.logRecorder.sort(localLog);
-    this.companyDetailView.displayBigLog(localLog);
-  }
-}
-
-class CompanyDetailView extends View {
-  constructor(controller) {
-    super(`CompanyDetailView`);
-    this.controller = controller;
-    this.getDescriptionHtml = Template.displayLog.__helpers[' getDescriptionHtml'];
-  }
-
   displayBigLogFolder() {
     const intoObject = $(`div[class='row border-grid-body']`).first();
     const appendDiv = (`<div class='col-12 border-grid' name='bigLog'></div>`);
@@ -2100,6 +1978,11 @@ class CompanyDetailView extends View {
     );
   }
 
+  /**
+   * 顯示大量紀錄
+   * @param {Array} localLog 要顯示的紀錄列表
+   * @return {void}
+   */
   displayBigLog(localLog) {
     const intoObject = ($(`a[data-toggle-panel-folder='bigLog']`)
       .closest(`div[class='col-12']`)
@@ -2186,6 +2069,133 @@ class CompanyDetailView extends View {
         }
       });
     });
+  }
+}
+
+/***************bigLog****************/
+/*************************************/
+/*************************************/
+/*************companyList*************/
+
+/**
+ * CompanyList的Controller
+ * @param {LoginUser} loginUser 登入中的使用者
+ */
+class CompanyListController extends EventController {
+  constructor(loginUser) {
+    super('CompanyListController', loginUser);
+
+    this.templateListener(Template.companyList, 'Template.companyList', () => {
+      this.updateUserInfo();
+      this.useCompaniesInfo();
+    });
+  }
+
+  updateUserInfo() {
+    this.loginUser.updateFullHoldStocks();
+    this.loginUser.updateOrders();
+  }
+
+  useCompaniesInfo() {
+    const companies = new Companies();
+    companies.companyPatch();
+
+    companies.updateToLocalstorage();
+  }
+}
+
+/*************companyList*************/
+/*************************************/
+/*************************************/
+/************companyDetail************/
+
+/**
+ * CompanyDetail的Controller
+ * @param {LoginUser} loginUser 登入中的使用者
+ */
+class CompanyDetailController extends EventController {
+  constructor(loginUser) {
+    super('CompanyDetailController', loginUser);
+
+    this.logRecorder = new LogRecorder();
+    this.bigLogView = new BigLogView();
+
+    this.whoFirst = null;
+    this.loaded = null;
+    this.templateListener(Template.companyDetail, 'Template.companyDetail', () => {
+      this.useCompaniesInfo();
+    });
+    this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', () => {
+      this.useEmployeesInfo();
+    });
+    this.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', () => {
+      this.useUserOwnedProductsInfo();
+    });
+    this.templateListener(Template.companyLogList, 'Template.companyLogList', () => {
+      this.useLogInfo();
+    });
+
+    Template.companyDetailContentNormal.onRendered(() => {
+      this.bigLogView.showBigLogFolder();
+    });
+    this.panelFolderListener('bigLog', () => {
+      const state = $(`a[data-toggle-panel-folder='bigLog']`).find(`i[class='fa fa-folder-open']`);
+      if (state.length > 0) {
+        const detailId = FlowRouter.getParam('companyId');
+        let localLog = this.logRecorder.find('companyId', detailId);
+        localLog = this.logRecorder.sort(localLog);
+        this.bigLogView.displayBigLog(localLog);
+      }
+    });
+  }
+
+  useCompaniesInfo() {
+    console.log(`start useCompaniesInfo()`);
+
+    this.companies = new Companies();
+    this.companies.companyPatch();
+
+    const detailId = FlowRouter.getParam('companyId');
+    if ((this.whoFirst === 'employees') && (this.loaded === detailId)) {
+      //這個比較慢執行，employees資料已經載入完成了
+      this.companies.updateEmployeesInfo();
+      this.companies.updateToLocalstorage();
+      this.whoFirst = null;
+      this.loaded = null;
+    }
+    else {
+      this.whoFirst = 'companies';
+      this.loaded = detailId;
+    }
+
+    console.log(`end useCompaniesInfo()`);
+  }
+
+  useEmployeesInfo() {
+    console.log(`start useEmployeesInfo`);
+
+    const detailId = FlowRouter.getParam('companyId');
+    if ((this.whoFirst === 'companies') && (this.loaded === detailId)) {
+      //這個比較慢執行，companies已經建好了
+      this.companies.updateEmployeesInfo();
+      this.companies.updateToLocalstorage();
+      this.whoFirst = null;
+      this.loaded = null;
+    }
+    else {
+      this.whoFirst = 'employees';
+      this.loaded = detailId;
+    }
+
+    console.log(`end useEmployeesInfo()`);
+  }
+
+  useUserOwnedProductsInfo() {
+    this.loginUser.updateProducts();
+  }
+
+  useLogInfo() {
+    this.logRecorder.recordServerLog();
   }
 }
 
