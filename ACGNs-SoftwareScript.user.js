@@ -1945,17 +1945,19 @@ class LogRecorder {
 /**
  * 大量紀錄 的View
  * 用於顯示 大量紀錄 資料夾, 以及顯示大量紀錄
+ * @param {String} name 資料夾的名稱
  */
 class BigLogView extends View {
-  constructor() {
+  constructor(name) {
     super(`create BigLogView`);
     this.getDescriptionHtml = Template.displayLog.__helpers[' getDescriptionHtml'];
+    this.name = String(name);
   }
 
   showBigLogFolder() {
     const intoObject = $(`div[class='row border-grid-body']`);
     if (intoObject.length > 0) {
-      const tmpInto = $(`div[class='col-12 border-grid'][name='bigLog']`);
+      const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`);
       if (tmpInto.length < 1) {
         this.displayBigLogFolder();
       }
@@ -1968,12 +1970,12 @@ class BigLogView extends View {
   }
   displayBigLogFolder() {
     const intoObject = $(`div[class='row border-grid-body']`).first();
-    const appendDiv = (`<div class='col-12 border-grid' name='bigLog'></div>`);
+    const appendDiv = (`<div class='col-12 border-grid' name=${this.name}></div>`);
     intoObject.append(appendDiv);
-    const tmpInto = $(`div[class='col-12 border-grid'][name='bigLog']`)[0];
+    const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`)[0];
     Blaze.renderWithData(
       Template.panelFolder,
-      {name: 'bigLog', title: `${translation(['script', 'bigLog'])}`},
+      {name: this.name, title: `${translation(['script', 'bigLog'])}`},
       tmpInto
     );
   }
@@ -1984,7 +1986,7 @@ class BigLogView extends View {
    * @return {void}
    */
   displayBigLog(localLog) {
-    const intoObject = ($(`a[data-toggle-panel-folder='bigLog']`)
+    const intoObject = ($(`a[data-toggle-panel-folder=${this.name}]`)
       .closest(`div[class='col-12']`)
       .next(`div[class='col-12']`)
       .first());
@@ -2118,7 +2120,7 @@ class CompanyDetailController extends EventController {
     super('CompanyDetailController', loginUser);
 
     this.logRecorder = new LogRecorder();
-    this.bigLogView = new BigLogView();
+    this.bigLogView = new BigLogView('companyBigLog');
 
     this.whoFirst = null;
     this.loaded = null;
@@ -2138,8 +2140,8 @@ class CompanyDetailController extends EventController {
     Template.companyDetailContentNormal.onRendered(() => {
       this.bigLogView.showBigLogFolder();
     });
-    this.panelFolderListener('bigLog', () => {
-      const state = $(`a[data-toggle-panel-folder='bigLog']`).find(`i[class='fa fa-folder-open']`);
+    this.panelFolderListener('companyBigLog', () => {
+      const state = $(`a[data-toggle-panel-folder='companyBigLog']`).find(`i[class='fa fa-folder-open']`);
       if (state.length > 0) {
         const detailId = FlowRouter.getParam('companyId');
         let localLog = this.logRecorder.find('companyId', detailId);
@@ -2212,6 +2214,8 @@ class AccountInfoController extends EventController {
   constructor(loginUser) {
     super('AccountInfoController', loginUser);
     this.accountInfoView = new AccountInfoView();
+    this.logRecorder = new LogRecorder();
+    this.bigLogView = new BigLogView('accountBigLog');
 
     this.user = null;
     this.userId = null;
@@ -2232,16 +2236,42 @@ class AccountInfoController extends EventController {
     this.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', () => {
       this.ownProductsEvent();
     });
+    this.templateListener(Template.accountAccuseLogList, 'Template.accountAccuseLogList', () => {
+      this.logEvent();
+    });
+    this.templateListener(Template.accountInfoLogList, 'Template.accountInfoLogList', () => {
+      this.logEvent();
+    });
 
     Template.accountInfoBasic.onRendered(() => {
       //理論上監聽 accountInfoBasic 不太對，應該監聽 accountInfo
       //不過在切到別的帳號時不會觸發 accountInfo ，倒是一定會觸發 accountInfoBasic
       this.showHoldStocksTableFolder();
+      this.bigLogView.showBigLogFolder();
     });
     this.panelFolderListener('holdStocksTable', () => {
       const state = $(`a[data-toggle-panel-folder='holdStocksTable']`).find(`i[class='fa fa-folder-open']`);
       if (state.length > 0) {
         this.accountInfoView.displayHoldStocksTable(this.holdStocksTableInfo());
+      }
+    });
+    this.panelFolderListener('accountBigLog', () => {
+      const state = $(`a[data-toggle-panel-folder='accountBigLog']`).find(`i[class='fa fa-folder-open']`);
+      if (state.length > 0) {
+        const userId = FlowRouter.getParam('userId');
+        let localLog = this.logRecorder.filter((x) => {
+          if (x.userId) {
+            for (const user of x.userId) {
+              if (user === userId) {
+                return true;
+              }
+            }
+          }
+
+          return false;
+        });
+        localLog = this.logRecorder.sort(localLog);
+        this.bigLogView.displayBigLog(localLog);
       }
     });
   }
@@ -2390,6 +2420,10 @@ class AccountInfoController extends EventController {
         callback: this.ownProductsEvent
       });
     }
+  }
+
+  logEvent() {
+    this.logRecorder.recordServerLog();
   }
 
 
