@@ -37,8 +37,9 @@
 // grade: String, capital: Number,
 // price: Number, release: Number, profit: Number,
 // vipBonusStocks: Number,
-// managerProfitPercent: 0.05,
-// salary: Number, nextSeasonSalary: Number, bonus: Number,
+// managerBonusRatePercent: Number,
+// capitalIncreaseRatePercent: Number,
+// salary: Number, nextSeasonSalary: Number, employeeBonusRatePercent: Number,
 // employeesNumber: Number, nextSeasonEmployeesNumber: Number
 // tags: Array,
 // createdAt: String
@@ -208,9 +209,14 @@ const { dbLog } = require('./db/dbLog.js');
  * @return {Number} 每股盈餘
  */
 function earnPerShare(company) {
-  let stocksProfitPercent = (1 - company.managerProfitPercent - 0.15);
+  let stocksProfitPercent = (1 -
+    (company.managerBonusRatePercent / 100) -
+    (company.capitalIncreaseRatePercent / 100) -
+    (Meteor.settings.public.companyProfitDistribution.incomeTaxRatePercent / 100)
+  );
   if (company.employeesNumber > 0) {
-    stocksProfitPercent -= (company.bonus * 0.01);
+    stocksProfitPercent -= (company.employeeBonusRatePercent / 100);
+    stocksProfitPercent -= (Meteor.settings.public.companyProfitDistribution.employeeProductVotingRewardRatePercent / 100);
   }
 
   return ((company.profit * stocksProfitPercent) / (company.release + company.vipBonusStocks));
@@ -1345,7 +1351,7 @@ class User {
         return x.companyId === c.companyId;
       });
       if (companyData !== undefined) {
-        managerProfit += Math.ceil(companyData.profit * companyData.managerProfitPercent);
+        managerProfit += Math.ceil(companyData.profit * (companyData.managerBonusRatePercent / 100));
       }
       else {
         console.log(`-----computeManagersProfit(): not find companyId: ${c.companyId}`);
@@ -1367,7 +1373,7 @@ class User {
       });
       if (companyData !== undefined) {
         if (companyData.employeesNumber !== 0) {
-          const totalBonus = companyData.profit * companyData.bonus * 0.01;
+          const totalBonus = companyData.profit * (companyData.employeeBonusRatePercent / 100);
           bonus = Math.floor(totalBonus / companyData.employeesNumber);
         }
       }
@@ -1391,14 +1397,14 @@ class User {
 
     //計算公司推薦票回饋
     if (this.employee !== '') {
-      const { employeeProductVotingRewardFactor } = Meteor.settings.public;
+      const { employeeProductVotingRewardRatePercent } = Meteor.settings.public.companyProfitDistribution;
       const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
       const companyData = localCompanies.find((x) => {
         return x.companyId === this.employee;
       });
       if (companyData !== undefined) {
         if (companyData.employeesNumber !== 0) {
-          const baseReward = employeeProductVotingRewardFactor * companyData.profit;
+          const baseReward = employeeProductVotingRewardRatePercent * companyData.profit;
           //因為沒辦法得知全部員工投票數，以其他所有員工都有投完票來計算
           const totalEmployeeVoteTickets = initialVoteTicketCount * (companyData.employeesNumber - 1) + count;
           reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets);
@@ -1644,11 +1650,12 @@ class Company {
     this.profit = serverCompany.profit;
 
     this.vipBonusStocks = 0; //外掛獨有參數
-    this.managerProfitPercent = 0.05; //未來會有的
+    this.managerBonusRatePercent = serverCompany.managerBonusRatePercent;
+    this.capitalIncreaseRatePercent = serverCompany.capitalIncreaseRatePercent;
 
     this.salary = serverCompany.salary;
     this.nextSeasonSalary = serverCompany.nextSeasonSalary;
-    this.bonus = serverCompany.seasonalBonusPercent;
+    this.employeeBonusRatePercent = serverCompany.employeeBonusRatePercent;
     this.employeesNumber = 0;
     this.nextSeasonEmployeesNumber = 0;
 
@@ -1690,7 +1697,6 @@ class Company {
 
       this.salary = companyData.salary;
       this.nextSeasonSalary = companyData.nextSeasonSalary;
-      this.bonus = companyData.bonus;
       this.employeesNumber = companyData.employeesNumber;
       this.nextSeasonEmployeesNumber = companyData.nextSeasonEmployeesNumber;
 
@@ -1720,11 +1726,12 @@ class Company {
       profit: this.profit,
 
       vipBonusStocks: this.vipBonusStocks, //外掛獨有參數
-      managerProfitPercent: this.managerProfitPercent,
+      managerBonusRatePercent: this.managerBonusRatePercent,
+      capitalIncreaseRatePercent: this.capitalIncreaseRatePercent,
 
       salary: this.salary,
       nextSeasonSalary: this.nextSeasonSalary,
-      bonus: this.bonus,
+      employeeBonusRatePercent: this.employeeBonusRatePercent,
       employeesNumber: this.employeesNumber,
       nextSeasonEmployeesNumber: this.nextSeasonEmployeesNumber,
 
@@ -1778,11 +1785,12 @@ class Companies {
           profit: company.profit,
 
           vipBonusStocks: 0, //外掛獨有參數
-          managerProfitPercent: 0.05,
+          managerBonusRatePercent: company.managerBonusRatePercent,
+          capitalIncreaseRatePercent: company.capitalIncreaseRatePercent,
 
           salary: 1000,
           nextSeasonSalary: 1000,
-          bonus: 5,
+          employeeBonusRatePercent: company.employeeBonusRatePercent,
           employeesNumber: 0,
           nextSeasonEmployeesNumber: 0,
 
@@ -2970,11 +2978,12 @@ class ScriptVipView extends View {
           <tr name='profit'> <td>總營收</td> <td>profit</td> </tr>
 
           <tr name='vipBonusStocks'> <td>VIP加成股數</td> <td>vipBonusStocks</td> </tr>
-          <tr name='managerProfitPercent'> <td>經理分紅比例</td> <td>managerProfitPercent</td> </tr>
+          <tr name='managerBonusRatePercent'> <td>經理分紅比例</td> <td>managerBonusRatePercent</td> </tr>
+          <tr name='capitalIncreaseRatePercent'> <td>資本額注入比例</td> <td>capitalIncreaseRatePercent</td> </tr>
 
           <tr name='salary'> <td>本季員工薪水</td> <td>salary</td> </tr>
           <tr name='nextSeasonSalary'> <td>下季員工薪水</td> <td>nextSeasonSalary</td> </tr>
-          <tr name='bonus'> <td>員工分紅%數</td> <td>bonus</td> </tr>
+          <tr name='employeeBonusRatePercent'> <td>員工分紅%數</td> <td>employeeBonusRatePercent</td> </tr>
           <tr name='employeesNumber'> <td>本季員工人數</td> <td>employeesNumber</td> </tr>
           <tr name='nextSeasonEmployeesNumber'> <td>下季員工人數</td> <td>nextSeasonEmployeesNumber</td> </tr>
 
@@ -3574,11 +3583,14 @@ class SearchTables {
     const profit = company.profit;
 
     const vipBonusStocks = company.vipBonusStocks;
-    const managerProfitPercent = company.managerProfitPercent;
+    const managerProfitPercent = company.managerBonusRatePercent;
+    const managerBonusRatePercent = company.managerBonusRatePercent;
+    const capitalIncreaseRatePercent = company.capitalIncreaseRatePercent;
 
     const salary = company.salary;
     const nextSeasonSalary = company.nextSeasonSalary;
-    const bonus = company.bonus;
+    const bonus = company.employeeBonusRatePercent;
+    const employeeBonusRatePercent = company.employeeBonusRatePercent;
     const employeesNumber = company.employeesNumber;
     const nextSeasonEmployeesNumber = company.nextSeasonEmployeesNumber;
 
@@ -3737,11 +3749,12 @@ const dict = {
       profit: '營收',
 
       vipBonusStocks: 'VIP加成股票數',
-      managerProfitPercent: '經理薪水比例',
+      managerBonusRatePercent: '經理分紅百分比',
+      capitalIncreaseRatePercent: '資本額注入百分比',
 
       salary: '員工日薪',
       nextSeasonSalary: '下季員工日薪',
-      bonus: '員工分紅百分比',
+      employeeBonusRatePercent: '員工分紅百分比',
       employeesNumber: '員工數量',
       nextSeasonEmployeesNumber: '下季員工數量',
 
@@ -3790,11 +3803,12 @@ const dict = {
       profit: 'profit',
 
       vipBonusStocks: 'Vip bonus stocks',
-      managerProfitPercent: 'Manager profit percent',
+      managerBonusRatePercent: 'Manager bonus rate percent',
+      capitalIncreaseRatePercent: 'Capital increase rate percent',
 
       salary: 'Employees daily salary',
       nextSeasonSalary: 'Employees daily salary for next season',
-      bonus: 'Employees bonuses',
+      employeeBonusRatePercent: 'Employee bonus rate percent',
       employeesNumber: 'Employees number',
       nextSeasonEmployeesNumber: 'Employees number for next season',
 
