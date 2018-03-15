@@ -1584,15 +1584,22 @@ class LoginUser extends User {
     console.log(`---end updateOrders()`);
   }
 
+  get buyOrders() {
+    const buyOrders = [];
+    for (const order of this.orders) {
+      if (order.orderType === '購入') {
+        buyOrders.push(order);
+      }
+    }
 
+    return buyOrders;
+  }
   computeBuyOrdersMoney() {
     console.log(`---start computeBuyOrdersMoney()`);
 
     let money = 0;
-    for (const order of this.orders) {
-      if (order.orderType === '購入') {
-        money += order.unitPrice * (order.amount - order.done);
-      }
+    for (const order of this.buyOrders) {
+      money += order.unitPrice * (order.amount - order.done);
     }
 
     console.log(`---end computeBuyOrdersMoney(): ${money}`);
@@ -1600,20 +1607,28 @@ class LoginUser extends User {
     return money;
   }
 
+  get sellOrders() {
+    const sellOrders = [];
+    for (const order of this.orders) {
+      if (order.orderType === '賣出') {
+        sellOrders.push(order);
+      }
+    }
+
+    return sellOrders;
+  }
   computeSellOrdersAsset() {
     console.log(`---start computeSellOrdersAsset()`);
 
     let asset = 0;
     const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
-    for (const order of this.orders) {
-      if (order.orderType === '賣出') {
-        const companyData = localCompanies.find((x) => {
-          return (x.companyId === order.companyId);
-        });
-        //以參考價計算賣單股票價值, 如果找不到資料則用賣單價格
-        const price = (companyData !== undefined) ? companyData.price : order.unitPrice;
-        asset += price * (order.amount - order.done);
-      }
+    for (const order of this.sellOrders) {
+      const companyData = localCompanies.find((x) => {
+        return (x.companyId === order.companyId);
+      });
+      //以參考價計算賣單股票價值, 如果找不到資料則用賣單價格
+      const price = (companyData !== undefined) ? companyData.price : order.unitPrice;
+      asset += price * (order.amount - order.done);
     }
 
     console.log(`---end computeSellOrdersAsset(): ${asset}`);
@@ -2486,9 +2501,18 @@ class AccountInfoController extends EventController {
     ];
     const tBody = [];
 
+    const holdStocks = JSON.parse(JSON.stringify(this.user.holdStocks));
+    if (this.user === this.loginUser) {
+      for (const order of this.loginUser.sellOrders) {
+        const i = holdStocks.findIndex((x) => {
+          return (x.companyId === order.companyId);
+        });
+        holdStocks[i].stocks += (order.amount - order.done);
+      }
+    }
     const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
     const notFoundList = [];
-    for (const holdC of this.user.holdStocks) {
+    for (const holdC of holdStocks) {
       const companyData = localCompanies.find((x) => {
         return (x.companyId === holdC.companyId);
       });
