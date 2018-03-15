@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.03.00
+// @version      5.04.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -349,6 +349,9 @@ class CloudUpdater {
    */
   constructor(serverType) {
     this.serverType = serverType;
+
+    const myVersion = GM_info.script.version; // eslint-disable-line camelcase
+    this.version = Number(myVersion.substr(0, 4));
   }
 
   /**
@@ -390,23 +393,31 @@ class CloudUpdater {
 
   checkUpdateTime(url, localUpdateTime, updater) {
     const cloud = this.getWebData(url);
-    cloud((cloudTime) => {
+    cloud((cloudInfo) => {
+      const cloudTime = cloudInfo.updateTime;
+      const conformedVersion = Number(cloudInfo.conformedVersion);
       console.log(`cloud url: ${url}`);
       console.log(`${localUpdateTime} === ${cloudTime}: ${localUpdateTime === cloudTime}`);
+      console.log(`${this.version} >= ${conformedVersion}: ${this.version >= conformedVersion}`);
       if (cloudTime === localUpdateTime) {
         console.log(`cloud don't have new data`);
         console.log('');
       }
-      else {
+      else if (this.version >= conformedVersion) {
         console.log(`cloud have new data`);
         console.log('');
         updater(cloudTime);
+      }
+      else {
+        console.log(`script version(${this.version}) is too old, can not update`);
+        console.log(`cloud data only supports version ${conformedVersion} or later`);
+        console.log('');
       }
     });
   }
 
   checkCompaniesUpdate() {
-    let timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/updateTime.json';
+    let timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/updateInfo.json';
     let dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/companies.json';
     if (this.serverType === 'museum') {
       dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/companys.json';
@@ -429,7 +440,7 @@ class CloudUpdater {
   }
 
   checkScriptAdUpdate() {
-    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/updateTime.json';
+    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/updateInfo.json';
     const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/AD.json';
 
     const updater = (cloudTime) => {
@@ -452,7 +463,7 @@ class CloudUpdater {
   }
 
   checkScriptVipProductsUpdate() {
-    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/updateTime.json';
+    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/updateInfo.json';
     const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/scriptVipProducts.json';
 
     const updater = (cloudTime) => {
