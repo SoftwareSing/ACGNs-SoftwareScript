@@ -341,9 +341,12 @@ class MainController {
 
 /**
  * 用來連線雲端以更新資料
- * @param {String} serverType 現在連的股市伺服器
  */
 class CloudUpdater {
+  /**
+   * 建構CloudUpdater
+   * @param {*} serverType 現在連的股市伺服器
+   */
   constructor(serverType) {
     this.serverType = serverType;
   }
@@ -587,11 +590,14 @@ class ScriptVip {
 // }
 
 /**
- * 建構頁面的Controller
- * @param {String} controllerName 名字
- * @param {LoginUser} loginUser 登入的使用者
+ * 頁面的Controller
  */
 class EventController {
+  /**
+   * 建構 EventController
+   * @param {String} controllerName 名字
+   * @param {LoginUser} loginUser 登入的使用者
+   */
   constructor(controllerName, loginUser) {
     console.log(`create controller: ${controllerName}`);
     this.loginUser = loginUser;
@@ -644,9 +650,12 @@ class EventController {
 
 /**
  * View
- * @param {String} name View的name
  */
 class View {
+  /**
+   * 建構 View
+   * @param {String} name View的name
+   */
   constructor(name) {
     console.log(`create View: ${name}`);
   }
@@ -925,9 +934,12 @@ class View {
 
 /**
  * 控制所有頁面都看的到的物件的View
- * @param {MainController} controller controller
  */
 class ScriptView extends View {
+  /**
+   * 建構 ScriptView
+   * @param {MainController} controller controller
+   */
   constructor(controller) {
     super('ScriptView');
     this.controller = controller;
@@ -1069,9 +1081,12 @@ class ScriptAd {
 
 /**
  * 用於存放AccountInfo頁面中的user資訊
- * @param {String} id userId
  */
 class User {
+  /**
+   * 建構 User
+   * @param {String} id userId
+   */
   constructor(id) {
     console.log(`create user: ${id}`);
     this.userId = id;
@@ -1627,9 +1642,12 @@ class LoginUser extends User {
 
 /**
  * CompanyObject
- * @param {object} serverCompany 從dbCompanies中擷取出來的單一個company
  */
 class Company {
+  /**
+   * 建構 Company
+   * @param {object} serverCompany 從dbCompanies中擷取出來的單一個company
+   */
   constructor(serverCompany) {
     this.companyId = serverCompany._id;
     this.name = serverCompany.companyName;
@@ -1945,9 +1963,12 @@ class LogRecorder {
 /**
  * 大量紀錄 的View
  * 用於顯示 大量紀錄 資料夾, 以及顯示大量紀錄
- * @param {String} name 資料夾的名稱
  */
 class BigLogView extends View {
+  /**
+   * 建構 BigLogView
+   * @param {String} name 資料夾的名稱
+   */
   constructor(name) {
     super(`create BigLogView`);
     this.getDescriptionHtml = Template.displayLog.__helpers[' getDescriptionHtml'];
@@ -2081,9 +2102,12 @@ class BigLogView extends View {
 
 /**
  * CompanyList的Controller
- * @param {LoginUser} loginUser 登入中的使用者
  */
 class CompanyListController extends EventController {
+  /**
+   * 建構 CompanyListController
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
   constructor(loginUser) {
     super('CompanyListController', loginUser);
 
@@ -2113,9 +2137,12 @@ class CompanyListController extends EventController {
 
 /**
  * CompanyDetail的Controller
- * @param {LoginUser} loginUser 登入中的使用者
  */
 class CompanyDetailController extends EventController {
+  /**
+   * 建構 CompanyDetailController
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
   constructor(loginUser) {
     super('CompanyDetailController', loginUser);
 
@@ -2208,9 +2235,12 @@ class CompanyDetailController extends EventController {
 
 /**
  * AccountInfo的Controller
- * @param {LoginUser} loginUser 登入中的使用者
  */
 class AccountInfoController extends EventController {
+  /**
+   * 建構 AccountInfoController
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
   constructor(loginUser) {
     super('AccountInfoController', loginUser);
     this.accountInfoView = new AccountInfoView();
@@ -2719,9 +2749,12 @@ class AccountInfoView extends View {
 
 /**
  * ScriptVip頁面的Controller
- * @param {LoginUser} loginUser 登入中的使用者
  */
 class ScriptVipController extends EventController {
+  /**
+   * 建構ScriptVipController
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
   constructor(loginUser) {
     super('ScriptVipController', loginUser);
     this.searchTables = new SearchTables();
@@ -2805,9 +2838,12 @@ class ScriptVipController extends EventController {
 
 /**
  * ScriptVip頁面的View
- * @param {EventController} controller 控制View的Controller
  */
 class ScriptVipView extends View {
+  /**
+   * 建構 ScriptVipView
+   * @param {EventController} controller 控制View的Controller
+   */
   constructor(controller) {
     super('ScriptVipView');
 
