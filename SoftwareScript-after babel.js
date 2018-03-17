@@ -15,7 +15,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.05.00
+// @version      5.06.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1895,7 +1895,7 @@ var User = function () {
         });
         if (_companyData2 !== undefined) {
           if (_companyData2.employeesNumber !== 0) {
-            var baseReward = employeeProductVotingRewardRatePercent * _companyData2.profit;
+            var baseReward = employeeProductVotingRewardRatePercent / 100 * _companyData2.profit;
             //因為沒辦法得知全部員工投票數，以其他所有員工都有投完票來計算
             var totalEmployeeVoteTickets = initialVoteTicketCount * (_companyData2.employeesNumber - 1) + count;
             reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets);
