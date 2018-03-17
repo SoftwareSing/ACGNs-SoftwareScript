@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.06.00
+// @version      5.06.01
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1295,7 +1295,9 @@ class User {
       return (x._id === this.userId);
     });
     if (serverUser !== undefined) {
-      if ((this.name !== serverUser.username) && (this.money !== serverUser.profile.money) && (this.ticket !== serverUser.profile.voteTickets)) {
+      if ((this.name !== serverUser.username) ||
+      (this.money !== serverUser.profile.money) ||
+      (this.ticket !== serverUser.profile.voteTickets)) {
         isChange = true;
         this.name = serverUser.username;
         this.money = serverUser.profile.money;
