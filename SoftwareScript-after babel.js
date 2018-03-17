@@ -15,7 +15,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.04.00
+// @version      5.05.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -51,8 +51,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // grade: String, capital: Number,
 // price: Number, release: Number, profit: Number,
 // vipBonusStocks: Number,
-// managerProfitPercent: 0.05,
-// salary: Number, nextSeasonSalary: Number, bonus: Number,
+// managerBonusRatePercent: Number,
+// capitalIncreaseRatePercent: Number,
+// salary: Number, nextSeasonSalary: Number, employeeBonusRatePercent: Number,
 // employeesNumber: Number, nextSeasonEmployeesNumber: Number
 // tags: Array,
 // createdAt: String
@@ -230,9 +231,10 @@ var _require10 = require('./db/dbLog.js'),
 
 
 function earnPerShare(company) {
-  var stocksProfitPercent = 1 - company.managerProfitPercent - 0.15;
+  var stocksProfitPercent = 1 - company.managerBonusRatePercent / 100 - company.capitalIncreaseRatePercent / 100 - Meteor.settings.public.companyProfitDistribution.incomeTaxRatePercent / 100;
   if (company.employeesNumber > 0) {
-    stocksProfitPercent -= company.bonus * 0.01;
+    stocksProfitPercent -= company.employeeBonusRatePercent / 100;
+    stocksProfitPercent -= Meteor.settings.public.companyProfitDistribution.employeeProductVotingRewardRatePercent / 100;
   }
 
   return company.profit * stocksProfitPercent / (company.release + company.vipBonusStocks);
@@ -1813,7 +1815,7 @@ var User = function () {
             return x.companyId === c.companyId;
           });
           if (companyData !== undefined) {
-            managerProfit += Math.ceil(companyData.profit * companyData.managerProfitPercent);
+            managerProfit += Math.ceil(companyData.profit * (companyData.managerBonusRatePercent / 100));
           } else {
             console.log('-----computeManagersProfit(): not find companyId: ' + c.companyId);
           }
@@ -1856,7 +1858,7 @@ var User = function () {
         });
         if (_companyData !== undefined) {
           if (_companyData.employeesNumber !== 0) {
-            var totalBonus = _companyData.profit * _companyData.bonus * 0.01;
+            var totalBonus = _companyData.profit * (_companyData.employeeBonusRatePercent / 100);
             bonus = Math.floor(totalBonus / _companyData.employeesNumber);
           }
         }
@@ -1885,7 +1887,7 @@ var User = function () {
 
       //計算公司推薦票回饋
       if (this.employee !== '') {
-        var employeeProductVotingRewardFactor = Meteor.settings.public.employeeProductVotingRewardFactor;
+        var employeeProductVotingRewardRatePercent = Meteor.settings.public.companyProfitDistribution.employeeProductVotingRewardRatePercent;
 
         var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
         var _companyData2 = localCompanies.find(function (x) {
@@ -1893,7 +1895,7 @@ var User = function () {
         });
         if (_companyData2 !== undefined) {
           if (_companyData2.employeesNumber !== 0) {
-            var baseReward = employeeProductVotingRewardFactor * _companyData2.profit;
+            var baseReward = employeeProductVotingRewardRatePercent * _companyData2.profit;
             //因為沒辦法得知全部員工投票數，以其他所有員工都有投完票來計算
             var totalEmployeeVoteTickets = initialVoteTicketCount * (_companyData2.employeesNumber - 1) + count;
             reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets);
@@ -2288,11 +2290,12 @@ var Company = function () {
     this.profit = serverCompany.profit;
 
     this.vipBonusStocks = 0; //外掛獨有參數
-    this.managerProfitPercent = 0.05; //未來會有的
+    this.managerBonusRatePercent = serverCompany.managerBonusRatePercent;
+    this.capitalIncreaseRatePercent = serverCompany.capitalIncreaseRatePercent;
 
     this.salary = serverCompany.salary;
     this.nextSeasonSalary = serverCompany.nextSeasonSalary;
-    this.bonus = serverCompany.seasonalBonusPercent;
+    this.employeeBonusRatePercent = serverCompany.employeeBonusRatePercent;
     this.employeesNumber = 0;
     this.nextSeasonEmployeesNumber = 0;
 
@@ -2359,7 +2362,6 @@ var Company = function () {
 
         this.salary = companyData.salary;
         this.nextSeasonSalary = companyData.nextSeasonSalary;
-        this.bonus = companyData.bonus;
         this.employeesNumber = companyData.employeesNumber;
         this.nextSeasonEmployeesNumber = companyData.nextSeasonEmployeesNumber;
 
@@ -2392,11 +2394,12 @@ var Company = function () {
         profit: this.profit,
 
         vipBonusStocks: this.vipBonusStocks, //外掛獨有參數
-        managerProfitPercent: this.managerProfitPercent,
+        managerBonusRatePercent: this.managerBonusRatePercent,
+        capitalIncreaseRatePercent: this.capitalIncreaseRatePercent,
 
         salary: this.salary,
         nextSeasonSalary: this.nextSeasonSalary,
-        bonus: this.bonus,
+        employeeBonusRatePercent: this.employeeBonusRatePercent,
         employeesNumber: this.employeesNumber,
         nextSeasonEmployeesNumber: this.nextSeasonEmployeesNumber,
 
@@ -2478,11 +2481,12 @@ var Companies = function () {
             profit: company.profit,
 
             vipBonusStocks: 0, //外掛獨有參數
-            managerProfitPercent: 0.05,
+            managerBonusRatePercent: company.managerBonusRatePercent,
+            capitalIncreaseRatePercent: company.capitalIncreaseRatePercent,
 
             salary: 1000,
             nextSeasonSalary: 1000,
-            bonus: 5,
+            employeeBonusRatePercent: company.employeeBonusRatePercent,
             employeesNumber: 0,
             nextSeasonEmployeesNumber: 0,
 
@@ -3997,7 +4001,7 @@ var ScriptVipView = function (_View4) {
       console.log('start displaySearchTables()');
 
       var localCompaniesUpdateTime = JSON.parse(window.localStorage.getItem('localCompaniesUpdateTime')) || 'null';
-      var info = $('\n      <p>\n        VIP\u53EF\u4EE5\u7528\u6B64\u529F\u80FD\u641C\u5C0B\u516C\u53F8\u8CC7\u6599<br />\n        \u516C\u53F8\u8CC7\u6599\u70BA \u5F9E\u96F2\u7AEF\u540C\u6B65 \u6216 \u65BC\u700F\u89BD\u80A1\u5E02\u6642\u81EA\u52D5\u66F4\u65B0\uFF0C\u56E0\u6B64\u53EF\u80FD\u8207\u6700\u65B0\u8CC7\u6599\u6709\u6240\u843D\u5DEE<br />\n        \u76EE\u524D\u7684\u96F2\u7AEF\u8CC7\u6599\u66F4\u65B0\u6642\u9593: ' + localCompaniesUpdateTime + '<br />\n        &nbsp;(\u6BCF\u6B21\u91CD\u65B0\u8F09\u5165\u80A1\u5E02\u6642\uFF0C\u6703\u78BA\u8A8D\u96F2\u7AEF\u662F\u5426\u6709\u66F4\u65B0\u8CC7\u6599)\n      </p>\n      <p>&nbsp;</p>\n      <p>\u5404\u9805\u6578\u503C\u540D\u7A31\u5C0D\u7167\u8868(\u4E0D\u5728\u8868\u4E2D\u7684\u6578\u503C\u7121\u6CD5\u4F7F\u7528)\uFF1A\n        <table border=\'1\' name=\'valueNameTable\'>\n          <tr name=\'companyID\'> <td>\u516C\u53F8ID</td> <td>ID</td> </tr>\n          <tr name=\'name\'> <td>\u516C\u53F8\u540D\u7A31</td> <td>name</td> </tr>\n          <tr name=\'chairman\'> <td>\u8463\u4E8B\u9577ID</td> <td>chairman</td> </tr>\n          <tr name=\'manager\'> <td>\u7D93\u7406\u4EBAID</td> <td>manager</td> </tr>\n\n          <tr name=\'grade\'> <td>\u516C\u53F8\u8A55\u7D1A</td> <td>grade</td> </tr>\n          <tr name=\'capital\'> <td>\u8CC7\u672C\u984D</td> <td>capital</td> </tr>\n          <tr name=\'price\'> <td>\u80A1\u50F9</td> <td>price</td> </tr>\n          <tr name=\'release\'> <td>\u7E3D\u91CB\u80A1\u91CF</td> <td>release</td> </tr>\n          <tr name=\'profit\'> <td>\u7E3D\u71DF\u6536</td> <td>profit</td> </tr>\n\n          <tr name=\'vipBonusStocks\'> <td>VIP\u52A0\u6210\u80A1\u6578</td> <td>vipBonusStocks</td> </tr>\n          <tr name=\'managerProfitPercent\'> <td>\u7D93\u7406\u5206\u7D05\u6BD4\u4F8B</td> <td>managerProfitPercent</td> </tr>\n\n          <tr name=\'salary\'> <td>\u672C\u5B63\u54E1\u5DE5\u85AA\u6C34</td> <td>salary</td> </tr>\n          <tr name=\'nextSeasonSalary\'> <td>\u4E0B\u5B63\u54E1\u5DE5\u85AA\u6C34</td> <td>nextSeasonSalary</td> </tr>\n          <tr name=\'bonus\'> <td>\u54E1\u5DE5\u5206\u7D05%\u6578</td> <td>bonus</td> </tr>\n          <tr name=\'employeesNumber\'> <td>\u672C\u5B63\u54E1\u5DE5\u4EBA\u6578</td> <td>employeesNumber</td> </tr>\n          <tr name=\'nextSeasonEmployeesNumber\'> <td>\u4E0B\u5B63\u54E1\u5DE5\u4EBA\u6578</td> <td>nextSeasonEmployeesNumber</td> </tr>\n\n          <tr name=\'tags\'> <td>\u6A19\u7C64 tag (\u9663\u5217)</td> <td>tags</td> </tr>\n          <tr name=\'createdAt\'> <td>\u5275\u7ACB\u6642\u9593</td> <td>createdAt</td> </tr>\n        </table>\n      </p>\n      <p>\u5E38\u7528\u51FD\u5F0F\uFF1A\n        <table border=\'1\' name=\'valueNameTable\'>\n          <tr name=\'\u7B49\u65BC\'>\n            <td bgcolor=\'yellow\'>\u7B49\u65BC (\u8ACB\u75282\u62163\u500B\u7B49\u865F)</td>\n            <td bgcolor=\'yellow\'>==</td>\n          </tr>\n          <tr name=\'OR\'>\n            <td>x OR(\u6216) y</td>\n            <td>(x || y)</td>\n          </tr>\n          <tr name=\'AND\'>\n            <td>x AND y</td>\n            <td>(x && y)</td>\n          </tr>\n          <tr name=\'toFixed()\'>\n            <td>\u628Ax\u56DB\u6368\u4E94\u5165\u81F3\u5C0F\u6578\u9EDEy\u4F4D</td>\n            <td>x.toFixed(y)</td>\n          </tr>\n          <tr name=\'Math.ceil(price * 1.15)\'>\n            <td>\u8A08\u7B97\u6F32\u505C\u50F9\u683C</td>\n            <td>Math.ceil(price * 1.15)</td>\n          </tr>\n          <tr name=\'Math.ceil(price * 0.85)\'>\n            <td>\u8A08\u7B97\u8DCC\u505C\u50F9\u683C</td>\n            <td>Math.ceil(price * 0.85)</td>\n          </tr>\n          <tr name=\'\u672C\u76CA\u6BD4\'>\n            <td>\u672C\u76CA\u6BD4</td>\n            <td>(price * release) / profit</td>\n          </tr>\n          <tr name=\'\u76CA\u672C\u6BD4\'>\n            <td>\u76CA\u672C\u6BD4</td>\n            <td>profit / (price * release)</td>\n          </tr>\n          <tr name=\'\u5305\u542B\'>\n            <td>\u540D\u5B57\u4E2D\u5305\u542B \u8266\u3053\u308C \u7684\u516C\u53F8</td>\n            <td>(name.indexOf(\'\u8266\u3053\u308C\') > -1)</td>\n          </tr>\n        </table>\n      </p>\n      <p>&nbsp;</p>\n      <p> <a href=\'https://hackmd.io/s/SycGT5yIG\' target=\'_blank\'>\u8CC7\u6599\u641C\u5C0B\u7528\u6CD5\u6559\u5B78</a> </p>\n      <p>\n        <select class=\'form-control\' style=\'width: 300px;\' name=\'dataSearchList\'></select>\n        <button class=\'btn btn-info btn-sm\' name=\'createTable\'>\u5EFA\u7ACB\u65B0\u7684\u641C\u5C0B\u8868</button>\n        <button class=\'btn btn-danger btn-sm\' name=\'deleteTable\'>\u522A\u9664\u9019\u500B\u641C\u5C0B\u8868</button>\n        <button class=\'btn btn-danger btn-sm\' name=\'deleteAllTable\'>\u522A\u9664\u6240\u6709</button>\n      </p>\n      <p name=\'showTableName\'> \u8868\u683C\u540D\u7A31\uFF1A <span class=\'text-info\' name=\'tableName\'></span></p>\n      <p name=\'showTableFilter\'>\n        \u904E\u6FFE\u516C\u5F0F\uFF1A<input class=\'form-control\'\n          type=\'text\' name=\'tableFilter\'\n          placeholder=\'\u8ACB\u8F38\u5165\u904E\u6FFE\u516C\u5F0F\uFF0C\u5982: (price>1000)\'>\n        <button class=\'btn btn-info btn-sm\' name=\'addTableFilter\'>\u5132\u5B58\u904E\u6FFE\u516C\u5F0F</button>\n        <button class=\'btn btn-danger btn-sm\' name=\'deleteTableFilter\'>\u522A\u9664\u904E\u6FFE\u516C\u5F0F</button>\n      </p>\n      <p name=\'showTableSort\'>\n        \u6392\u5E8F\u4F9D\u64DA\uFF1A<input class=\'form-control\'\n          type=\'text\' name=\'tableSort\'\n          placeholder=\'\u8ACB\u8F38\u5165\u6392\u5E8F\u516C\u5F0F\uFF0C\u5982: (price)\uFF0C\u5C0F\u5230\u5927\u8ACB\u52A0\u8CA0\u865F: -(price)\'>\n        <button class=\'btn btn-info btn-sm\' name=\'addTableSort\'>\u5132\u5B58\u6392\u5E8F\u516C\u5F0F</button>\n        <button class=\'btn btn-danger btn-sm\' name=\'deleteTableSort\'>\u522A\u9664\u6392\u5E8F\u516C\u5F0F</button>\n      </p>\n      <p>&nbsp;</p>\n      <p name\'showTableColumn\'>\u8868\u683C\u6B04\u4F4D<br />\n        <button class=\'btn btn-info btn-sm\' name=\'addTableColumn\'>\u65B0\u589E\u6B04\u4F4D</button>\n        <table border=\'1\' name\'tableColumn\'>\n          <thead>\n            <th>\u540D\u7A31</th>\n            <th>\u516C\u5F0F</th>\n            <th>\u64CD\u4F5C</th>\n          </thead>\n          <tbody name=\'tableColumn\'>\n          </tbody>\n        </table>\n      </p>\n      <p>&nbsp;</p>\n      <p>\n        <button class=\'btn btn-info\' name=\'outputTable\'>\u8F38\u51FA\u7D50\u679C</button>\n        <button class=\'btn btn-warning\' name=\'clearOutputTable\'>\u6E05\u7A7A\u8F38\u51FA</button>\n      </p>\n      <p name=\'outputTable\'></p>\n      <p>&nbsp;</p>\n    ');
+      var info = $('\n      <p>\n        VIP\u53EF\u4EE5\u7528\u6B64\u529F\u80FD\u641C\u5C0B\u516C\u53F8\u8CC7\u6599<br />\n        \u516C\u53F8\u8CC7\u6599\u70BA \u5F9E\u96F2\u7AEF\u540C\u6B65 \u6216 \u65BC\u700F\u89BD\u80A1\u5E02\u6642\u81EA\u52D5\u66F4\u65B0\uFF0C\u56E0\u6B64\u53EF\u80FD\u8207\u6700\u65B0\u8CC7\u6599\u6709\u6240\u843D\u5DEE<br />\n        \u76EE\u524D\u7684\u96F2\u7AEF\u8CC7\u6599\u66F4\u65B0\u6642\u9593: ' + localCompaniesUpdateTime + '<br />\n        &nbsp;(\u6BCF\u6B21\u91CD\u65B0\u8F09\u5165\u80A1\u5E02\u6642\uFF0C\u6703\u78BA\u8A8D\u96F2\u7AEF\u662F\u5426\u6709\u66F4\u65B0\u8CC7\u6599)\n      </p>\n      <p>&nbsp;</p>\n      <p>\u5404\u9805\u6578\u503C\u540D\u7A31\u5C0D\u7167\u8868(\u4E0D\u5728\u8868\u4E2D\u7684\u6578\u503C\u7121\u6CD5\u4F7F\u7528)\uFF1A\n        <table border=\'1\' name=\'valueNameTable\'>\n          <tr name=\'companyID\'> <td>\u516C\u53F8ID</td> <td>ID</td> </tr>\n          <tr name=\'name\'> <td>\u516C\u53F8\u540D\u7A31</td> <td>name</td> </tr>\n          <tr name=\'chairman\'> <td>\u8463\u4E8B\u9577ID</td> <td>chairman</td> </tr>\n          <tr name=\'manager\'> <td>\u7D93\u7406\u4EBAID</td> <td>manager</td> </tr>\n\n          <tr name=\'grade\'> <td>\u516C\u53F8\u8A55\u7D1A</td> <td>grade</td> </tr>\n          <tr name=\'capital\'> <td>\u8CC7\u672C\u984D</td> <td>capital</td> </tr>\n          <tr name=\'price\'> <td>\u80A1\u50F9</td> <td>price</td> </tr>\n          <tr name=\'release\'> <td>\u7E3D\u91CB\u80A1\u91CF</td> <td>release</td> </tr>\n          <tr name=\'profit\'> <td>\u7E3D\u71DF\u6536</td> <td>profit</td> </tr>\n\n          <tr name=\'vipBonusStocks\'> <td>VIP\u52A0\u6210\u80A1\u6578</td> <td>vipBonusStocks</td> </tr>\n          <tr name=\'managerBonusRatePercent\'> <td>\u7D93\u7406\u5206\u7D05\u6BD4\u4F8B</td> <td>managerBonusRatePercent</td> </tr>\n          <tr name=\'capitalIncreaseRatePercent\'> <td>\u8CC7\u672C\u984D\u6CE8\u5165\u6BD4\u4F8B</td> <td>capitalIncreaseRatePercent</td> </tr>\n\n          <tr name=\'salary\'> <td>\u672C\u5B63\u54E1\u5DE5\u85AA\u6C34</td> <td>salary</td> </tr>\n          <tr name=\'nextSeasonSalary\'> <td>\u4E0B\u5B63\u54E1\u5DE5\u85AA\u6C34</td> <td>nextSeasonSalary</td> </tr>\n          <tr name=\'employeeBonusRatePercent\'> <td>\u54E1\u5DE5\u5206\u7D05%\u6578</td> <td>employeeBonusRatePercent</td> </tr>\n          <tr name=\'employeesNumber\'> <td>\u672C\u5B63\u54E1\u5DE5\u4EBA\u6578</td> <td>employeesNumber</td> </tr>\n          <tr name=\'nextSeasonEmployeesNumber\'> <td>\u4E0B\u5B63\u54E1\u5DE5\u4EBA\u6578</td> <td>nextSeasonEmployeesNumber</td> </tr>\n\n          <tr name=\'tags\'> <td>\u6A19\u7C64 tag (\u9663\u5217)</td> <td>tags</td> </tr>\n          <tr name=\'createdAt\'> <td>\u5275\u7ACB\u6642\u9593</td> <td>createdAt</td> </tr>\n        </table>\n      </p>\n      <p>\u5E38\u7528\u51FD\u5F0F\uFF1A\n        <table border=\'1\' name=\'valueNameTable\'>\n          <tr name=\'\u7B49\u65BC\'>\n            <td bgcolor=\'yellow\'>\u7B49\u65BC (\u8ACB\u75282\u62163\u500B\u7B49\u865F)</td>\n            <td bgcolor=\'yellow\'>==</td>\n          </tr>\n          <tr name=\'OR\'>\n            <td>x OR(\u6216) y</td>\n            <td>(x || y)</td>\n          </tr>\n          <tr name=\'AND\'>\n            <td>x AND y</td>\n            <td>(x && y)</td>\n          </tr>\n          <tr name=\'toFixed()\'>\n            <td>\u628Ax\u56DB\u6368\u4E94\u5165\u81F3\u5C0F\u6578\u9EDEy\u4F4D</td>\n            <td>x.toFixed(y)</td>\n          </tr>\n          <tr name=\'Math.ceil(price * 1.15)\'>\n            <td>\u8A08\u7B97\u6F32\u505C\u50F9\u683C</td>\n            <td>Math.ceil(price * 1.15)</td>\n          </tr>\n          <tr name=\'Math.ceil(price * 0.85)\'>\n            <td>\u8A08\u7B97\u8DCC\u505C\u50F9\u683C</td>\n            <td>Math.ceil(price * 0.85)</td>\n          </tr>\n          <tr name=\'\u672C\u76CA\u6BD4\'>\n            <td>\u672C\u76CA\u6BD4</td>\n            <td>(price * release) / profit</td>\n          </tr>\n          <tr name=\'\u76CA\u672C\u6BD4\'>\n            <td>\u76CA\u672C\u6BD4</td>\n            <td>profit / (price * release)</td>\n          </tr>\n          <tr name=\'\u5305\u542B\'>\n            <td>\u540D\u5B57\u4E2D\u5305\u542B \u8266\u3053\u308C \u7684\u516C\u53F8</td>\n            <td>(name.indexOf(\'\u8266\u3053\u308C\') > -1)</td>\n          </tr>\n        </table>\n      </p>\n      <p>&nbsp;</p>\n      <p> <a href=\'https://hackmd.io/s/SycGT5yIG\' target=\'_blank\'>\u8CC7\u6599\u641C\u5C0B\u7528\u6CD5\u6559\u5B78</a> </p>\n      <p>\n        <select class=\'form-control\' style=\'width: 300px;\' name=\'dataSearchList\'></select>\n        <button class=\'btn btn-info btn-sm\' name=\'createTable\'>\u5EFA\u7ACB\u65B0\u7684\u641C\u5C0B\u8868</button>\n        <button class=\'btn btn-danger btn-sm\' name=\'deleteTable\'>\u522A\u9664\u9019\u500B\u641C\u5C0B\u8868</button>\n        <button class=\'btn btn-danger btn-sm\' name=\'deleteAllTable\'>\u522A\u9664\u6240\u6709</button>\n      </p>\n      <p name=\'showTableName\'> \u8868\u683C\u540D\u7A31\uFF1A <span class=\'text-info\' name=\'tableName\'></span></p>\n      <p name=\'showTableFilter\'>\n        \u904E\u6FFE\u516C\u5F0F\uFF1A<input class=\'form-control\'\n          type=\'text\' name=\'tableFilter\'\n          placeholder=\'\u8ACB\u8F38\u5165\u904E\u6FFE\u516C\u5F0F\uFF0C\u5982: (price>1000)\'>\n        <button class=\'btn btn-info btn-sm\' name=\'addTableFilter\'>\u5132\u5B58\u904E\u6FFE\u516C\u5F0F</button>\n        <button class=\'btn btn-danger btn-sm\' name=\'deleteTableFilter\'>\u522A\u9664\u904E\u6FFE\u516C\u5F0F</button>\n      </p>\n      <p name=\'showTableSort\'>\n        \u6392\u5E8F\u4F9D\u64DA\uFF1A<input class=\'form-control\'\n          type=\'text\' name=\'tableSort\'\n          placeholder=\'\u8ACB\u8F38\u5165\u6392\u5E8F\u516C\u5F0F\uFF0C\u5982: (price)\uFF0C\u5C0F\u5230\u5927\u8ACB\u52A0\u8CA0\u865F: -(price)\'>\n        <button class=\'btn btn-info btn-sm\' name=\'addTableSort\'>\u5132\u5B58\u6392\u5E8F\u516C\u5F0F</button>\n        <button class=\'btn btn-danger btn-sm\' name=\'deleteTableSort\'>\u522A\u9664\u6392\u5E8F\u516C\u5F0F</button>\n      </p>\n      <p>&nbsp;</p>\n      <p name\'showTableColumn\'>\u8868\u683C\u6B04\u4F4D<br />\n        <button class=\'btn btn-info btn-sm\' name=\'addTableColumn\'>\u65B0\u589E\u6B04\u4F4D</button>\n        <table border=\'1\' name\'tableColumn\'>\n          <thead>\n            <th>\u540D\u7A31</th>\n            <th>\u516C\u5F0F</th>\n            <th>\u64CD\u4F5C</th>\n          </thead>\n          <tbody name=\'tableColumn\'>\n          </tbody>\n        </table>\n      </p>\n      <p>&nbsp;</p>\n      <p>\n        <button class=\'btn btn-info\' name=\'outputTable\'>\u8F38\u51FA\u7D50\u679C</button>\n        <button class=\'btn btn-warning\' name=\'clearOutputTable\'>\u6E05\u7A7A\u8F38\u51FA</button>\n      </p>\n      <p name=\'outputTable\'></p>\n      <p>&nbsp;</p>\n    ');
       info.insertAfter($('h2[name=\'searchTables\']')[0]);
 
       $('button[name=\'deleteAllTable\']')[0].addEventListener('click', function () {
@@ -4663,11 +4667,14 @@ var SearchTables = function () {
       var profit = company.profit;
 
       var vipBonusStocks = company.vipBonusStocks;
-      var managerProfitPercent = company.managerProfitPercent;
+      var managerProfitPercent = company.managerBonusRatePercent;
+      var managerBonusRatePercent = company.managerBonusRatePercent;
+      var capitalIncreaseRatePercent = company.capitalIncreaseRatePercent;
 
       var salary = company.salary;
       var nextSeasonSalary = company.nextSeasonSalary;
-      var bonus = company.bonus;
+      var bonus = company.employeeBonusRatePercent;
+      var employeeBonusRatePercent = company.employeeBonusRatePercent;
       var employeesNumber = company.employeesNumber;
       var nextSeasonEmployeesNumber = company.nextSeasonEmployeesNumber;
 
@@ -4950,11 +4957,12 @@ var dict = {
       profit: '營收',
 
       vipBonusStocks: 'VIP加成股票數',
-      managerProfitPercent: '經理薪水比例',
+      managerBonusRatePercent: '經理分紅百分比',
+      capitalIncreaseRatePercent: '資本額注入百分比',
 
       salary: '員工日薪',
       nextSeasonSalary: '下季員工日薪',
-      bonus: '員工分紅百分比',
+      employeeBonusRatePercent: '員工分紅百分比',
       employeesNumber: '員工數量',
       nextSeasonEmployeesNumber: '下季員工數量',
 
@@ -5003,11 +5011,12 @@ var dict = {
       profit: 'profit',
 
       vipBonusStocks: 'Vip bonus stocks',
-      managerProfitPercent: 'Manager profit percent',
+      managerBonusRatePercent: 'Manager bonus rate percent',
+      capitalIncreaseRatePercent: 'Capital increase rate percent',
 
       salary: 'Employees daily salary',
       nextSeasonSalary: 'Employees daily salary for next season',
-      bonus: 'Employees bonuses',
+      employeeBonusRatePercent: 'Employee bonus rate percent',
       employeesNumber: 'Employees number',
       nextSeasonEmployeesNumber: 'Employees number for next season',
 
