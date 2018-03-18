@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.06.02
+// @version      5.06.03
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -96,7 +96,7 @@ function checkSeriousError() {
   //用於如果上一版發生嚴重錯誤導致localStorage錯亂，以致插件無法正常啟動時
   //或是用於當插件更新時，需要重設localStorage
 
-  const seriousErrorVersion = 4.999999;
+  const seriousErrorVersion = 5.05;
   //seriousErrorVersion會輸入有問題的版本號，當發生問題時我會增加本數字，或是於更新需要時亦會增加
   //使用者本地的數字紀錄如果小於這個數字將會清空所有localStorage
 
@@ -120,7 +120,7 @@ function checkSeriousError() {
     window.localStorage.removeItem('localScriptVipProductsUpdateTime');
     window.localStorage.removeItem('localScriptVipProducts');
     window.localStorage.removeItem('localDisplayScriptAd');
-    window.localStorage.removeItem('localSearchTables');
+    //window.localStorage.removeItem('localSearchTables');
     window.sessionStorage.removeItem('sessionUsers');
 
     // 舊資料
