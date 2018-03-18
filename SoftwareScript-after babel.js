@@ -15,7 +15,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.06.01
+// @version      5.06.02
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -3387,7 +3387,11 @@ var AccountInfoController = function (_EventController3) {
             var i = holdStocks.findIndex(function (x) {
               return x.companyId === order.companyId;
             });
-            holdStocks[i].stocks += order.amount - order.done;
+            if (i !== -1) {
+              holdStocks[i].stocks += order.amount - order.done;
+            } else {
+              holdStocks.push({ companyId: order.companyId, stocks: order.amount - order.done, vip: null });
+            }
           };
 
           for (var _iterator29 = this.loginUser.sellOrders[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
