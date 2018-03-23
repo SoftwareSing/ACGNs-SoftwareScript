@@ -1686,8 +1686,8 @@ class Company {
     this.companyId = serverCompany._id;
     this.name = serverCompany.companyName;
 
-    this.chairman = serverCompany.chairman;
-    this.manager = serverCompany.manager;
+    this.chairman = serverCompany.chairman || '';
+    this.manager = serverCompany.manager || '';
 
     this.grade = serverCompany.grade;
     this.capital = serverCompany.capital;
@@ -1705,7 +1705,7 @@ class Company {
     this.employeesNumber = 0;
     this.nextSeasonEmployeesNumber = 0;
 
-    this.tags = serverCompany.tags;
+    this.tags = serverCompany.tags || [];
     this.createdAt = serverCompany.createdAt.getTime();
   }
 
@@ -3650,8 +3650,8 @@ class SearchTables {
     const Id = company.companyId;
     const id = company.companyId;
     const name = company.name;
-    const chairman = company.chairman;
-    const manager = company.manager;
+    const chairman = company.chairman || '';
+    const manager = company.manager || '';
 
     const grade = company.grade;
     const capital = company.capital;
@@ -3672,7 +3672,7 @@ class SearchTables {
     const employeesNumber = company.employeesNumber;
     const nextSeasonEmployeesNumber = company.nextSeasonEmployeesNumber;
 
-    const tags = company.tags;
+    const tags = company.tags || [];
     const createdAt = company.createdAt;
 
     debugConsole('=====do=' + fun);
