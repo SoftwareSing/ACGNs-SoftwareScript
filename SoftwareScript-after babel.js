@@ -15,7 +15,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.06.03
+// @version      5.07.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -268,6 +268,16 @@ function stripscript(s) {
   return rs;
 }
 
+/**
+ * 獲取在localStorage中的localCompanies
+ * @return {Array} localCompanies
+ */
+function getLocalCompanies() {
+  var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+
+  return localCompanies;
+}
+
 /**************function***************/
 /*************************************/
 /*************************************/
@@ -349,7 +359,7 @@ var MainController = function () {
       var max = 30;
       var holdStocks = this.loginUser.findMostStockholdingCompany();
       var list = [];
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var i = 0;
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
@@ -1708,7 +1718,7 @@ var User = function () {
       console.log('---start computeAsset()');
 
       var asset = 0;
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var _iteratorNormalCompletion13 = true;
       var _didIteratorError13 = false;
       var _iteratorError13 = undefined;
@@ -1755,7 +1765,7 @@ var User = function () {
       console.log('---start computeProfit()');
 
       var profit = 0;
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var _iteratorNormalCompletion14 = true;
       var _didIteratorError14 = false;
       var _iteratorError14 = undefined;
@@ -1802,7 +1812,7 @@ var User = function () {
       console.log('---start computeManagersProfit()');
 
       var managerProfit = 0;
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var _iteratorNormalCompletion15 = true;
       var _didIteratorError15 = false;
       var _iteratorError15 = undefined;
@@ -1852,7 +1862,7 @@ var User = function () {
 
       var bonus = 0;
       if (this.employee !== '') {
-        var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+        var localCompanies = getLocalCompanies();
         var _companyData = localCompanies.find(function (x) {
           return x.companyId === _this18.employee;
         });
@@ -1889,7 +1899,7 @@ var User = function () {
       if (this.employee !== '') {
         var employeeProductVotingRewardRatePercent = Meteor.settings.public.companyProfitDistribution.employeeProductVotingRewardRatePercent;
 
-        var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+        var localCompanies = getLocalCompanies();
         var _companyData2 = localCompanies.find(function (x) {
           return x.companyId === _this19.employee;
         });
@@ -1945,7 +1955,7 @@ var User = function () {
   }, {
     key: 'findMostStockholdingCompany',
     value: function findMostStockholdingCompany() {
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       this.loadFromSessionstorage();
       var holdStocks = JSON.parse(JSON.stringify(this.holdStocks));
       holdStocks.sort(function (a, b) {
@@ -2133,7 +2143,7 @@ var LoginUser = function (_User) {
       console.log('---start computeSellOrdersAsset()');
 
       var asset = 0;
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var _iteratorNormalCompletion18 = true;
       var _didIteratorError18 = false;
       var _iteratorError18 = undefined;
@@ -2280,8 +2290,8 @@ var Company = function () {
     this.companyId = serverCompany._id;
     this.name = serverCompany.companyName;
 
-    this.chairman = serverCompany.chairman;
-    this.manager = serverCompany.manager;
+    this.chairman = serverCompany.chairman || '';
+    this.manager = serverCompany.manager || '';
 
     this.grade = serverCompany.grade;
     this.capital = serverCompany.capital;
@@ -2293,13 +2303,13 @@ var Company = function () {
     this.managerBonusRatePercent = serverCompany.managerBonusRatePercent;
     this.capitalIncreaseRatePercent = serverCompany.capitalIncreaseRatePercent;
 
-    this.salary = serverCompany.salary;
-    this.nextSeasonSalary = serverCompany.nextSeasonSalary;
+    this.salary = serverCompany.salary || 1000;
+    this.nextSeasonSalary = serverCompany.nextSeasonSalary || 1000;
     this.employeeBonusRatePercent = serverCompany.employeeBonusRatePercent;
     this.employeesNumber = 0;
     this.nextSeasonEmployeesNumber = 0;
 
-    this.tags = serverCompany.tags;
+    this.tags = serverCompany.tags || [];
     this.createdAt = serverCompany.createdAt.getTime();
   }
 
@@ -2460,7 +2470,7 @@ var Companies = function () {
   _createClass(Companies, [{
     key: 'companyPatch',
     value: function companyPatch() {
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       this.list.forEach(function (company, i, list) {
         var companyData = localCompanies.find(function (x) {
           return x.companyId === company.companyId;
@@ -2511,7 +2521,7 @@ var Companies = function () {
   }, {
     key: 'updateToLocalstorage',
     value: function updateToLocalstorage() {
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var _iteratorNormalCompletion23 = true;
       var _didIteratorError23 = false;
       var _iteratorError23 = undefined;
@@ -2551,28 +2561,28 @@ var Companies = function () {
 
       window.localStorage.setItem('localCompanies', JSON.stringify(localCompanies));
     }
+
+    /**
+     * 尋找特定公司
+     * 找不到時回傳undefined
+     * @param {String} companyId company的ID
+     * @return {Company} 找到的公司
+     */
+
   }, {
-    key: 'computeUserProfit',
-    value: function computeUserProfit(loginUser) {
-      var userProfit = 0;
+    key: 'find',
+    value: function find(companyId) {
       var _iteratorNormalCompletion24 = true;
       var _didIteratorError24 = false;
       var _iteratorError24 = undefined;
 
       try {
-        var _loop12 = function _loop12() {
-          var company = _step24.value;
-
-          var userHold = loginUser.holdStocks.find(function (x) {
-            return x.companyId === company.companyId;
-          });
-          if (userHold !== undefined) {
-            userProfit += earnPerShare(company.outputInfo()) * effectiveStocks(userHold.stocks, userHold.vip);
-          }
-        };
-
         for (var _iterator24 = this.list[Symbol.iterator](), _step24; !(_iteratorNormalCompletion24 = (_step24 = _iterator24.next()).done); _iteratorNormalCompletion24 = true) {
-          _loop12();
+          var _company3 = _step24.value;
+
+          if (_company3.companyId === companyId) {
+            return _company3;
+          }
         }
       } catch (err) {
         _didIteratorError24 = true;
@@ -2585,6 +2595,46 @@ var Companies = function () {
         } finally {
           if (_didIteratorError24) {
             throw _iteratorError24;
+          }
+        }
+      }
+
+      return undefined;
+    }
+  }, {
+    key: 'computeUserProfit',
+    value: function computeUserProfit(loginUser) {
+      var userProfit = 0;
+      var _iteratorNormalCompletion25 = true;
+      var _didIteratorError25 = false;
+      var _iteratorError25 = undefined;
+
+      try {
+        var _loop12 = function _loop12() {
+          var company = _step25.value;
+
+          var userHold = loginUser.holdStocks.find(function (x) {
+            return x.companyId === company.companyId;
+          });
+          if (userHold !== undefined) {
+            userProfit += earnPerShare(company.outputInfo()) * effectiveStocks(userHold.stocks, userHold.vip);
+          }
+        };
+
+        for (var _iterator25 = this.list[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
+          _loop12();
+        }
+      } catch (err) {
+        _didIteratorError25 = true;
+        _iteratorError25 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion25 && _iterator25.return) {
+            _iterator25.return();
+          }
+        } finally {
+          if (_didIteratorError25) {
+            throw _iteratorError25;
           }
         }
       }
@@ -2675,13 +2725,13 @@ var LogRecorder = function () {
   }, {
     key: 'push',
     value: function push(serverLog) {
-      var _iteratorNormalCompletion25 = true;
-      var _didIteratorError25 = false;
-      var _iteratorError25 = undefined;
+      var _iteratorNormalCompletion26 = true;
+      var _didIteratorError26 = false;
+      var _iteratorError26 = undefined;
 
       try {
-        for (var _iterator25 = serverLog[Symbol.iterator](), _step25; !(_iteratorNormalCompletion25 = (_step25 = _iterator25.next()).done); _iteratorNormalCompletion25 = true) {
-          var log = _step25.value;
+        for (var _iterator26 = serverLog[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
+          var log = _step26.value;
 
           if (!this.isAlreadyExists(this.localLog, log)) {
             log.softwareScriptStamp = true;
@@ -2689,16 +2739,16 @@ var LogRecorder = function () {
           }
         }
       } catch (err) {
-        _didIteratorError25 = true;
-        _iteratorError25 = err;
+        _didIteratorError26 = true;
+        _iteratorError26 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion25 && _iterator25.return) {
-            _iterator25.return();
+          if (!_iteratorNormalCompletion26 && _iterator26.return) {
+            _iterator26.return();
           }
         } finally {
-          if (_didIteratorError25) {
-            throw _iteratorError25;
+          if (_didIteratorError26) {
+            throw _iteratorError26;
           }
         }
       }
@@ -2801,28 +2851,28 @@ var BigLogView = function (_View2) {
     key: 'displayBigLog',
     value: function displayBigLog(localLog) {
       var intoObject = $('a[data-toggle-panel-folder=' + this.name + ']').closest('div[class=\'col-12\']').next('div[class=\'col-12\']').first();
-      var _iteratorNormalCompletion26 = true;
-      var _didIteratorError26 = false;
-      var _iteratorError26 = undefined;
+      var _iteratorNormalCompletion27 = true;
+      var _didIteratorError27 = false;
+      var _iteratorError27 = undefined;
 
       try {
-        for (var _iterator26 = localLog[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
-          var log = _step26.value;
+        for (var _iterator27 = localLog[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
+          var log = _step27.value;
 
           var displayObject = '\n        <div class=\'logData\' style=\'word-break: break-all;\'>\n          <span class=\'text-info\'>(' + formatDateText(log.createdAt) + ')</span>\n          ' + this.getDescriptionHtml(log) + '\n        </div>\n      ';
           intoObject.append(displayObject);
         }
       } catch (err) {
-        _didIteratorError26 = true;
-        _iteratorError26 = err;
+        _didIteratorError27 = true;
+        _iteratorError27 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion26 && _iterator26.return) {
-            _iterator26.return();
+          if (!_iteratorNormalCompletion27 && _iterator27.return) {
+            _iterator27.return();
           }
         } finally {
-          if (_didIteratorError26) {
-            throw _iteratorError26;
+          if (_didIteratorError27) {
+            throw _iteratorError27;
           }
         }
       }
@@ -2937,6 +2987,13 @@ var CompanyListController = function (_EventController) {
 
     var _this25 = _possibleConstructorReturn(this, (CompanyListController.__proto__ || Object.getPrototypeOf(CompanyListController)).call(this, 'CompanyListController', loginUser));
 
+    _this25.companyListView = new CompanyListView(_this25.loginUser);
+
+    Template.companyListCard.onRendered(function () {
+      var instance = Template.instance();
+      _this25.companyListView.addCardInfo(instance);
+    });
+
     _this25.templateListener(Template.companyList, 'Template.companyList', function () {
       _this25.updateUserInfo();
       _this25.useCompaniesInfo();
@@ -2963,6 +3020,158 @@ var CompanyListController = function (_EventController) {
   return CompanyListController;
 }(EventController);
 
+/**
+ * CompanyList的View
+ */
+
+
+var CompanyListView = function (_View3) {
+  _inherits(CompanyListView, _View3);
+
+  /**
+   * 建構CompanyListView
+   * @param {LoginUser} loginUser LoginUser
+   */
+  function CompanyListView(loginUser) {
+    _classCallCheck(this, CompanyListView);
+
+    var _this26 = _possibleConstructorReturn(this, (CompanyListView.__proto__ || Object.getPrototypeOf(CompanyListView)).call(this, 'CompanyListView'));
+
+    _this26.loginUser = loginUser;
+
+    //強制覆蓋
+    Template.companyListCard._callbacks.rendered = [];
+    return _this26;
+  }
+
+  _createClass(CompanyListView, [{
+    key: 'addCardInfo',
+    value: function addCardInfo(instance) {
+      var _this27 = this;
+
+      function insertAfterLastRow(row) {
+        instance.$('.row-info').last().after(row);
+      }
+
+      function hideRow(row) {
+        row.removeClass('d-flex').addClass('d-none');
+      }
+
+      function showRow(row) {
+        row.removeClass('d-none').addClass('d-flex');
+      }
+
+      var getStockAmount = Template.companyListCard.__helpers[' getStockAmount'];
+      var infoRowSample = instance.$('.row-info').last();
+
+      var ownValueRow = infoRowSample.clone();
+      ownValueRow.find('p:eq(0)').html(translation(['companyList', 'stockAsset']));
+      insertAfterLastRow(ownValueRow);
+
+      var profitRow = infoRowSample.clone();
+      profitRow.find('p:eq(0)').html(translation(['company', 'profit']));
+      insertAfterLastRow(profitRow);
+
+      var peRatioRow = infoRowSample.clone();
+      peRatioRow.find('p:eq(0)').html(translation(['companyList', 'peRatio']));
+      insertAfterLastRow(peRatioRow);
+
+      var peRatioVipRow = infoRowSample.clone();
+      peRatioVipRow.find('p:eq(0)').html(translation(['companyList', 'peRatioVip']));
+      insertAfterLastRow(peRatioVipRow);
+
+      var peRatioUserRow = infoRowSample.clone();
+      peRatioUserRow.find('p:eq(0)').html(translation(['companyList', 'peRatioUser']));
+      insertAfterLastRow(peRatioUserRow);
+
+      var userProfitRow = infoRowSample.clone();
+      userProfitRow.find('p:eq(0)').html(translation(['companyList', 'estimatedProfit']));
+      insertAfterLastRow(userProfitRow);
+
+      var managerSalaryRow = infoRowSample.clone();
+      managerSalaryRow.find('p:eq(0)').html(translation(['companyList', 'estimatedManagerProfit']));
+      insertAfterLastRow(managerSalaryRow);
+
+      instance.autorun(function () {
+        var serverCompany = Template.currentData();
+        var company = new Company(serverCompany);
+        var companyData = _this27.localCompanies.find(function (x) {
+          return x.companyId === company.companyId;
+        });
+        if (companyData !== undefined) {
+          company.updateWithLocalcompanies(companyData);
+        }
+
+        profitRow.find('p:eq(1)').html('$ ' + Math.round(company.profit));
+
+        var vipBonusStocks = Number(company.vipBonusStocks);
+        company.vipBonusStocks = 0;
+        var peRatio = company.price / earnPerShare(company);
+        company.vipBonusStocks = vipBonusStocks;
+        peRatioRow.find('p:eq(1)').html(isFinite(peRatio) ? peRatio.toFixed(2) : '∞');
+
+        var peRatioVip = company.price / earnPerShare(company);
+        peRatioVipRow.find('p:eq(1)').html(isFinite(peRatioVip) ? peRatioVip.toFixed(2) : '∞');
+
+        if (Meteor.user()) {
+          var stockAmount = getStockAmount(company.companyId);
+          if (stockAmount > 0) {
+            var _stockAmount = getStockAmount(company.companyId);
+            var ownValue = _stockAmount * company.price;
+            ownValueRow.find('p:eq(1)').html('$ ' + ownValue);
+            showRow(ownValueRow);
+
+            var holdC = _this27.loginUser.holdStocks.find(function (x) {
+              return x.companyId === company.companyId;
+            }) || { vip: null };
+            var userProfit = Math.round(earnPerShare(company) * effectiveStocks(_stockAmount, holdC.vip));
+            userProfitRow.find('p:eq(1)').html('$ ' + userProfit);
+            showRow(userProfitRow);
+
+            var peRatioUser = ownValue / userProfit;
+            peRatioUserRow.find('p:eq(1)').html(isFinite(peRatioUser) ? peRatioUser.toFixed(2) : '∞');
+            showRow(peRatioUserRow);
+          } else {
+            hideRow(ownValueRow);
+            hideRow(userProfitRow);
+            hideRow(peRatioUserRow);
+          }
+
+          if (Meteor.userId() !== company.manager) {
+            hideRow(managerSalaryRow);
+          } else {
+            var managerSalary = Math.round(company.profit * (company.managerBonusRatePercent / 100));
+            managerSalaryRow.find('p:eq(1)').html('$ ' + managerSalary);
+            showRow(managerSalaryRow);
+          }
+        } else {
+          hideRow(ownValueRow);
+          hideRow(userProfitRow);
+          hideRow(managerSalaryRow);
+          hideRow(peRatioUserRow);
+        }
+      });
+    }
+  }, {
+    key: 'localCompanies',
+    get: function get() {
+      var nowTime = new Date();
+      //避免在短時間內過於頻繁的存取 localStorage
+      if (!this.lastGetTime) {
+        this.lastGetTime = nowTime;
+        this._localCompanies = getLocalCompanies();
+      } else if (nowTime.getTime() - this.lastGetTime.getTime() > 3000) {
+        this.lastGetTime = nowTime;
+        this._localCompanies = getLocalCompanies();
+      }
+
+      return this._localCompanies;
+    }
+  }]);
+
+  return CompanyListView;
+}(View);
+
 /*************companyList*************/
 /*************************************/
 /*************************************/
@@ -2983,39 +3192,39 @@ var CompanyDetailController = function (_EventController2) {
   function CompanyDetailController(loginUser) {
     _classCallCheck(this, CompanyDetailController);
 
-    var _this26 = _possibleConstructorReturn(this, (CompanyDetailController.__proto__ || Object.getPrototypeOf(CompanyDetailController)).call(this, 'CompanyDetailController', loginUser));
+    var _this28 = _possibleConstructorReturn(this, (CompanyDetailController.__proto__ || Object.getPrototypeOf(CompanyDetailController)).call(this, 'CompanyDetailController', loginUser));
 
-    _this26.logRecorder = new LogRecorder();
-    _this26.bigLogView = new BigLogView('companyBigLog');
+    _this28.logRecorder = new LogRecorder();
+    _this28.bigLogView = new BigLogView('companyBigLog');
 
-    _this26.whoFirst = null;
-    _this26.loaded = null;
-    _this26.templateListener(Template.companyDetail, 'Template.companyDetail', function () {
-      _this26.useCompaniesInfo();
+    _this28.whoFirst = null;
+    _this28.loaded = null;
+    _this28.templateListener(Template.companyDetail, 'Template.companyDetail', function () {
+      _this28.useCompaniesInfo();
     });
-    _this26.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', function () {
-      _this26.useEmployeesInfo();
+    _this28.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', function () {
+      _this28.useEmployeesInfo();
     });
-    _this26.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', function () {
-      _this26.useUserOwnedProductsInfo();
+    _this28.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', function () {
+      _this28.useUserOwnedProductsInfo();
     });
-    _this26.templateListener(Template.companyLogList, 'Template.companyLogList', function () {
-      _this26.useLogInfo();
+    _this28.templateListener(Template.companyLogList, 'Template.companyLogList', function () {
+      _this28.useLogInfo();
     });
 
     Template.companyDetailContentNormal.onRendered(function () {
-      _this26.bigLogView.showBigLogFolder();
+      _this28.bigLogView.showBigLogFolder();
     });
-    _this26.panelFolderListener('companyBigLog', function () {
+    _this28.panelFolderListener('companyBigLog', function () {
       var state = $('a[data-toggle-panel-folder=\'companyBigLog\']').find('i[class=\'fa fa-folder-open\']');
       if (state.length > 0) {
         var detailId = FlowRouter.getParam('companyId');
-        var localLog = _this26.logRecorder.find('companyId', detailId);
-        localLog = _this26.logRecorder.sort(localLog);
-        _this26.bigLogView.displayBigLog(localLog);
+        var localLog = _this28.logRecorder.find('companyId', detailId);
+        localLog = _this28.logRecorder.sort(localLog);
+        _this28.bigLogView.displayBigLog(localLog);
       }
     });
-    return _this26;
+    return _this28;
   }
 
   _createClass(CompanyDetailController, [{
@@ -3094,79 +3303,79 @@ var AccountInfoController = function (_EventController3) {
   function AccountInfoController(loginUser) {
     _classCallCheck(this, AccountInfoController);
 
-    var _this27 = _possibleConstructorReturn(this, (AccountInfoController.__proto__ || Object.getPrototypeOf(AccountInfoController)).call(this, 'AccountInfoController', loginUser));
+    var _this29 = _possibleConstructorReturn(this, (AccountInfoController.__proto__ || Object.getPrototypeOf(AccountInfoController)).call(this, 'AccountInfoController', loginUser));
 
-    _this27.accountInfoView = new AccountInfoView();
-    _this27.logRecorder = new LogRecorder();
-    _this27.bigLogView = new BigLogView('accountBigLog');
+    _this29.accountInfoView = new AccountInfoView();
+    _this29.logRecorder = new LogRecorder();
+    _this29.bigLogView = new BigLogView('accountBigLog');
 
-    _this27.user = null;
-    _this27.userId = null;
-    _this27.waitList = [];
+    _this29.user = null;
+    _this29.userId = null;
+    _this29.waitList = [];
 
-    _this27.templateListener(Template.accountInfo, 'Template.accountInfo', function () {
-      _this27.usersEvent();
+    _this29.templateListener(Template.accountInfo, 'Template.accountInfo', function () {
+      _this29.usersEvent();
     });
-    _this27.templateListener(Template.managerTitleList, 'Template.managerTitleList', function () {
-      _this27.managersEvent();
+    _this29.templateListener(Template.managerTitleList, 'Template.managerTitleList', function () {
+      _this29.managersEvent();
     });
-    _this27.templateListener(Template.vipTitleList, 'Template.vipTitleList', function () {
-      _this27.vipsEvent();
+    _this29.templateListener(Template.vipTitleList, 'Template.vipTitleList', function () {
+      _this29.vipsEvent();
     });
-    _this27.templateListener(Template.accountInfoOwnStockList, 'Template.accountInfoOwnStockList', function () {
-      _this27.ownStocksEvent();
+    _this29.templateListener(Template.accountInfoOwnStockList, 'Template.accountInfoOwnStockList', function () {
+      _this29.ownStocksEvent();
     });
-    _this27.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', function () {
-      _this27.ownProductsEvent();
+    _this29.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', function () {
+      _this29.ownProductsEvent();
     });
-    _this27.templateListener(Template.accountAccuseLogList, 'Template.accountAccuseLogList', function () {
-      _this27.logEvent();
+    _this29.templateListener(Template.accountAccuseLogList, 'Template.accountAccuseLogList', function () {
+      _this29.logEvent();
     });
-    _this27.templateListener(Template.accountInfoLogList, 'Template.accountInfoLogList', function () {
-      _this27.logEvent();
+    _this29.templateListener(Template.accountInfoLogList, 'Template.accountInfoLogList', function () {
+      _this29.logEvent();
     });
 
     Template.accountInfoBasic.onRendered(function () {
       //理論上監聽 accountInfoBasic 不太對，應該監聽 accountInfo
       //不過在切到別的帳號時不會觸發 accountInfo ，倒是一定會觸發 accountInfoBasic
-      _this27.showHoldStocksTableFolder();
-      _this27.bigLogView.showBigLogFolder();
+      _this29.showHoldStocksTableFolder();
+      _this29.bigLogView.showBigLogFolder();
     });
-    _this27.panelFolderListener('holdStocksTable', function () {
+    _this29.panelFolderListener('holdStocksTable', function () {
       var state = $('a[data-toggle-panel-folder=\'holdStocksTable\']').find('i[class=\'fa fa-folder-open\']');
       if (state.length > 0) {
-        _this27.accountInfoView.displayHoldStocksTable(_this27.holdStocksTableInfo());
+        _this29.accountInfoView.displayHoldStocksTable(_this29.holdStocksTableInfo());
       }
     });
-    _this27.panelFolderListener('accountBigLog', function () {
+    _this29.panelFolderListener('accountBigLog', function () {
       var state = $('a[data-toggle-panel-folder=\'accountBigLog\']').find('i[class=\'fa fa-folder-open\']');
       if (state.length > 0) {
         var userId = FlowRouter.getParam('userId');
-        var localLog = _this27.logRecorder.filter(function (x) {
+        var localLog = _this29.logRecorder.filter(function (x) {
           if (x.userId) {
-            var _iteratorNormalCompletion27 = true;
-            var _didIteratorError27 = false;
-            var _iteratorError27 = undefined;
+            var _iteratorNormalCompletion28 = true;
+            var _didIteratorError28 = false;
+            var _iteratorError28 = undefined;
 
             try {
-              for (var _iterator27 = x.userId[Symbol.iterator](), _step27; !(_iteratorNormalCompletion27 = (_step27 = _iterator27.next()).done); _iteratorNormalCompletion27 = true) {
-                var user = _step27.value;
+              for (var _iterator28 = x.userId[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
+                var user = _step28.value;
 
                 if (user === userId) {
                   return true;
                 }
               }
             } catch (err) {
-              _didIteratorError27 = true;
-              _iteratorError27 = err;
+              _didIteratorError28 = true;
+              _iteratorError28 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion27 && _iterator27.return) {
-                  _iterator27.return();
+                if (!_iteratorNormalCompletion28 && _iterator28.return) {
+                  _iterator28.return();
                 }
               } finally {
-                if (_didIteratorError27) {
-                  throw _iteratorError27;
+                if (_didIteratorError28) {
+                  throw _iteratorError28;
                 }
               }
             }
@@ -3174,11 +3383,11 @@ var AccountInfoController = function (_EventController3) {
 
           return false;
         });
-        localLog = _this27.logRecorder.sort(localLog);
-        _this27.bigLogView.displayBigLog(localLog);
+        localLog = _this29.logRecorder.sort(localLog);
+        _this29.bigLogView.displayBigLog(localLog);
       }
     });
-    return _this27;
+    return _this29;
   }
 
   _createClass(AccountInfoController, [{
@@ -3219,29 +3428,29 @@ var AccountInfoController = function (_EventController3) {
 
       //如果有在user資訊載好前就載入的其他資訊，會被丟進等待清單
       //以for迴圈完成清單內的任務
-      var _iteratorNormalCompletion28 = true;
-      var _didIteratorError28 = false;
-      var _iteratorError28 = undefined;
+      var _iteratorNormalCompletion29 = true;
+      var _didIteratorError29 = false;
+      var _iteratorError29 = undefined;
 
       try {
-        for (var _iterator28 = this.waitList[Symbol.iterator](), _step28; !(_iteratorNormalCompletion28 = (_step28 = _iterator28.next()).done); _iteratorNormalCompletion28 = true) {
-          var task = _step28.value;
+        for (var _iterator29 = this.waitList[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
+          var task = _step29.value;
 
           if (task.userId === this.userId) {
             task.callback();
           }
         }
       } catch (err) {
-        _didIteratorError28 = true;
-        _iteratorError28 = err;
+        _didIteratorError29 = true;
+        _iteratorError29 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion28 && _iterator28.return) {
-            _iterator28.return();
+          if (!_iteratorNormalCompletion29 && _iterator29.return) {
+            _iterator29.return();
           }
         } finally {
-          if (_didIteratorError28) {
-            throw _iteratorError28;
+          if (_didIteratorError29) {
+            throw _iteratorError29;
           }
         }
       }
@@ -3353,7 +3562,7 @@ var AccountInfoController = function (_EventController3) {
   }, {
     key: 'showHoldStocksTableFolder',
     value: function showHoldStocksTableFolder() {
-      var _this28 = this;
+      var _this30 = this;
 
       var intoObject = $('div[class=\'row border-grid-body\']');
       if (intoObject.length > 0) {
@@ -3364,7 +3573,7 @@ var AccountInfoController = function (_EventController3) {
       } else {
         //不知為何，都用 onRendered 了，結果觸發時還是沒有創建...
         setTimeout(function () {
-          _this28.showHoldStocksTableFolder();
+          _this30.showHoldStocksTableFolder();
         }, 10);
       }
     }
@@ -3376,13 +3585,13 @@ var AccountInfoController = function (_EventController3) {
 
       var holdStocks = JSON.parse(JSON.stringify(this.user.holdStocks));
       if (this.user === this.loginUser) {
-        var _iteratorNormalCompletion29 = true;
-        var _didIteratorError29 = false;
-        var _iteratorError29 = undefined;
+        var _iteratorNormalCompletion30 = true;
+        var _didIteratorError30 = false;
+        var _iteratorError30 = undefined;
 
         try {
           var _loop13 = function _loop13() {
-            var order = _step29.value;
+            var order = _step30.value;
 
             var i = holdStocks.findIndex(function (x) {
               return x.companyId === order.companyId;
@@ -3394,33 +3603,33 @@ var AccountInfoController = function (_EventController3) {
             }
           };
 
-          for (var _iterator29 = this.loginUser.sellOrders[Symbol.iterator](), _step29; !(_iteratorNormalCompletion29 = (_step29 = _iterator29.next()).done); _iteratorNormalCompletion29 = true) {
+          for (var _iterator30 = this.loginUser.sellOrders[Symbol.iterator](), _step30; !(_iteratorNormalCompletion30 = (_step30 = _iterator30.next()).done); _iteratorNormalCompletion30 = true) {
             _loop13();
           }
         } catch (err) {
-          _didIteratorError29 = true;
-          _iteratorError29 = err;
+          _didIteratorError30 = true;
+          _iteratorError30 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion29 && _iterator29.return) {
-              _iterator29.return();
+            if (!_iteratorNormalCompletion30 && _iterator30.return) {
+              _iterator30.return();
             }
           } finally {
-            if (_didIteratorError29) {
-              throw _iteratorError29;
+            if (_didIteratorError30) {
+              throw _iteratorError30;
             }
           }
         }
       }
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var notFoundList = [];
-      var _iteratorNormalCompletion30 = true;
-      var _didIteratorError30 = false;
-      var _iteratorError30 = undefined;
+      var _iteratorNormalCompletion31 = true;
+      var _didIteratorError31 = false;
+      var _iteratorError31 = undefined;
 
       try {
         var _loop14 = function _loop14() {
-          var holdC = _step30.value;
+          var holdC = _step31.value;
 
           var companyData = localCompanies.find(function (x) {
             return x.companyId === holdC.companyId;
@@ -3443,33 +3652,33 @@ var AccountInfoController = function (_EventController3) {
           }
         };
 
-        for (var _iterator30 = holdStocks[Symbol.iterator](), _step30; !(_iteratorNormalCompletion30 = (_step30 = _iterator30.next()).done); _iteratorNormalCompletion30 = true) {
+        for (var _iterator31 = holdStocks[Symbol.iterator](), _step31; !(_iteratorNormalCompletion31 = (_step31 = _iterator31.next()).done); _iteratorNormalCompletion31 = true) {
           _loop14();
         }
 
         //未被找到的公司統一放在最後
       } catch (err) {
-        _didIteratorError30 = true;
-        _iteratorError30 = err;
+        _didIteratorError31 = true;
+        _iteratorError31 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion30 && _iterator30.return) {
-            _iterator30.return();
+          if (!_iteratorNormalCompletion31 && _iterator31.return) {
+            _iterator31.return();
           }
         } finally {
-          if (_didIteratorError30) {
-            throw _iteratorError30;
+          if (_didIteratorError31) {
+            throw _iteratorError31;
           }
         }
       }
 
-      var _iteratorNormalCompletion31 = true;
-      var _didIteratorError31 = false;
-      var _iteratorError31 = undefined;
+      var _iteratorNormalCompletion32 = true;
+      var _didIteratorError32 = false;
+      var _iteratorError32 = undefined;
 
       try {
-        for (var _iterator31 = notFoundList[Symbol.iterator](), _step31; !(_iteratorNormalCompletion31 = (_step31 = _iterator31.next()).done); _iteratorNormalCompletion31 = true) {
-          var _holdC = _step31.value;
+        for (var _iterator32 = notFoundList[Symbol.iterator](), _step32; !(_iteratorNormalCompletion32 = (_step32 = _iterator32.next()).done); _iteratorNormalCompletion32 = true) {
+          var _holdC = _step32.value;
 
           var row = [];
           row.push('<a href=\'/company/detail/' + _holdC.companyId + '\'>' + translation(['accountInfo', 'notFoundCompany']) + '</a>');
@@ -3485,16 +3694,16 @@ var AccountInfoController = function (_EventController3) {
           tBody.push(row);
         }
       } catch (err) {
-        _didIteratorError31 = true;
-        _iteratorError31 = err;
+        _didIteratorError32 = true;
+        _iteratorError32 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion31 && _iterator31.return) {
-            _iterator31.return();
+          if (!_iteratorNormalCompletion32 && _iterator32.return) {
+            _iterator32.return();
           }
         } finally {
-          if (_didIteratorError31) {
-            throw _iteratorError31;
+          if (_didIteratorError32) {
+            throw _iteratorError32;
           }
         }
       }
@@ -3511,16 +3720,16 @@ var AccountInfoController = function (_EventController3) {
  */
 
 
-var AccountInfoView = function (_View3) {
-  _inherits(AccountInfoView, _View3);
+var AccountInfoView = function (_View4) {
+  _inherits(AccountInfoView, _View4);
 
   function AccountInfoView() {
     _classCallCheck(this, AccountInfoView);
 
-    var _this29 = _possibleConstructorReturn(this, (AccountInfoView.__proto__ || Object.getPrototypeOf(AccountInfoView)).call(this, 'AccountInfoView'));
+    var _this31 = _possibleConstructorReturn(this, (AccountInfoView.__proto__ || Object.getPrototypeOf(AccountInfoView)).call(this, 'AccountInfoView'));
 
-    _this29.resetDisplayList();
-    return _this29;
+    _this31.resetDisplayList();
+    return _this31;
   }
 
   _createClass(AccountInfoView, [{
@@ -3759,17 +3968,17 @@ var ScriptVipController = function (_EventController4) {
   function ScriptVipController(loginUser) {
     _classCallCheck(this, ScriptVipController);
 
-    var _this30 = _possibleConstructorReturn(this, (ScriptVipController.__proto__ || Object.getPrototypeOf(ScriptVipController)).call(this, 'ScriptVipController', loginUser));
+    var _this32 = _possibleConstructorReturn(this, (ScriptVipController.__proto__ || Object.getPrototypeOf(ScriptVipController)).call(this, 'ScriptVipController', loginUser));
 
-    _this30.searchTables = new SearchTables();
-    _this30.scriptVipView = new ScriptVipView(_this30);
+    _this32.searchTables = new SearchTables();
+    _this32.scriptVipView = new ScriptVipView(_this32);
 
     Template.softwareScriptVip.onRendered(function () {
-      _this30.scriptVipView.displayScriptVipProducts(_this30.loginUser);
-      _this30.scriptVipView.displayScriptAdInfo(_this30.loginUser);
-      _this30.scriptVipView.displaySearchTables(_this30.loginUser);
+      _this32.scriptVipView.displayScriptVipProducts(_this32.loginUser);
+      _this32.scriptVipView.displayScriptAdInfo(_this32.loginUser);
+      _this32.scriptVipView.displaySearchTables(_this32.loginUser);
     });
-    return _this30;
+    return _this32;
   }
 
   _createClass(ScriptVipController, [{
@@ -3865,8 +4074,8 @@ var ScriptVipController = function (_EventController4) {
  */
 
 
-var ScriptVipView = function (_View4) {
-  _inherits(ScriptVipView, _View4);
+var ScriptVipView = function (_View5) {
+  _inherits(ScriptVipView, _View5);
 
   /**
    * 建構 ScriptVipView
@@ -3875,10 +4084,10 @@ var ScriptVipView = function (_View4) {
   function ScriptVipView(controller) {
     _classCallCheck(this, ScriptVipView);
 
-    var _this31 = _possibleConstructorReturn(this, (ScriptVipView.__proto__ || Object.getPrototypeOf(ScriptVipView)).call(this, 'ScriptVipView'));
+    var _this33 = _possibleConstructorReturn(this, (ScriptVipView.__proto__ || Object.getPrototypeOf(ScriptVipView)).call(this, 'ScriptVipView'));
 
-    _this31.controller = controller;
-    _this31.scriptAd = new ScriptAd();
+    _this33.controller = controller;
+    _this33.scriptAd = new ScriptAd();
 
     var tmpVip = new Blaze.Template('Template.softwareScriptVip', function () {
       // eslint-disable-next-line new-cap
@@ -3887,7 +4096,7 @@ var ScriptVipView = function (_View4) {
       return page;
     });
     Template.softwareScriptVip = tmpVip;
-    return _this31;
+    return _this33;
   }
 
   /**
@@ -3917,29 +4126,29 @@ var ScriptVipView = function (_View4) {
           return x.userId === 'default';
         });
       }
-      var _iteratorNormalCompletion32 = true;
-      var _didIteratorError32 = false;
-      var _iteratorError32 = undefined;
+      var _iteratorNormalCompletion33 = true;
+      var _didIteratorError33 = false;
+      var _iteratorError33 = undefined;
 
       try {
-        for (var _iterator32 = userProducts.products[Symbol.iterator](), _step32; !(_iteratorNormalCompletion32 = (_step32 = _iterator32.next()).done); _iteratorNormalCompletion32 = true) {
-          var _p = _step32.value;
+        for (var _iterator33 = userProducts.products[Symbol.iterator](), _step33; !(_iteratorNormalCompletion33 = (_step33 = _iterator33.next()).done); _iteratorNormalCompletion33 = true) {
+          var _p = _step33.value;
 
           var description = '<a companyId=\'' + _p.companyId + '\' href=\'/company/detail/' + _p.companyId + '\'>' + _p.description + '</a>';
           var out = [description, _p.point, _p.amount];
           productList.push(out);
         }
       } catch (err) {
-        _didIteratorError32 = true;
-        _iteratorError32 = err;
+        _didIteratorError33 = true;
+        _iteratorError33 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion32 && _iterator32.return) {
-            _iterator32.return();
+          if (!_iteratorNormalCompletion33 && _iterator33.return) {
+            _iterator33.return();
           }
         } finally {
-          if (_didIteratorError32) {
-            throw _iteratorError32;
+          if (_didIteratorError33) {
+            throw _iteratorError33;
           }
         }
       }
@@ -3963,7 +4172,7 @@ var ScriptVipView = function (_View4) {
   }, {
     key: 'displayScriptAdInfo',
     value: function displayScriptAdInfo(loginUser) {
-      var _this32 = this;
+      var _this34 = this;
 
       console.log('start displayScriptAdInfo()');
 
@@ -3977,14 +4186,14 @@ var ScriptVipView = function (_View4) {
       } else {
         $('button[name=\'closeAd\']')[0].addEventListener('click', function () {
           window.localStorage.setItem('localDisplayScriptAd', JSON.stringify(false));
-          _this32.scriptAd.removeScriptAd();
+          _this34.scriptAd.removeScriptAd();
         });
       }
 
       $('button[name=\'openAd\']')[0].addEventListener('click', function () {
         window.localStorage.setItem('localDisplayScriptAd', JSON.stringify(true));
         if ($('a[name=\'scriptAd\'][demo=\'false\']').length < 1) {
-          _this32.scriptAd.displayScriptAd();
+          _this34.scriptAd.displayScriptAd();
         }
       });
 
@@ -4000,7 +4209,7 @@ var ScriptVipView = function (_View4) {
   }, {
     key: 'displaySearchTables',
     value: function displaySearchTables(loginUser) {
-      var _this33 = this;
+      var _this35 = this;
 
       console.log('start displaySearchTables()');
 
@@ -4014,7 +4223,7 @@ var ScriptVipView = function (_View4) {
           message: '\u60A8\u78BA\u5B9A\u8981\u522A\u9664\u6240\u6709\u7684\u8868\u683C\u55CE? <br />\n                (\u5EFA\u8B70\u767C\u751F\u56B4\u91CD\u932F\u8AA4\u81F3\u7121\u6CD5\u64CD\u4F5C\u6642 \u518D\u9019\u9EBC\u505A)',
           callback: function callback(result) {
             if (result) {
-              _this33.controller.deleteLocalSearchTables();
+              _this35.controller.deleteLocalSearchTables();
             }
           }
         });
@@ -4029,7 +4238,7 @@ var ScriptVipView = function (_View4) {
           customSetting: '',
           callback: function callback(result) {
             if (result) {
-              _this33.controller.createNewSearchTable(result);
+              _this35.controller.createNewSearchTable(result);
             }
           }
         });
@@ -4041,7 +4250,7 @@ var ScriptVipView = function (_View4) {
           message: '\u60A8\u78BA\u5B9A\u8981\u522A\u9664\u8868\u683C ' + tableName + ' \u55CE?',
           callback: function callback(result) {
             if (result) {
-              _this33.controller.deleteSearchTable(tableName);
+              _this35.controller.deleteSearchTable(tableName);
             }
           }
         });
@@ -4055,22 +4264,22 @@ var ScriptVipView = function (_View4) {
       $('button[name=\'addTableFilter\']')[0].addEventListener('click', function () {
         var tableName = $('select[name=\'dataSearchList\']')[0].value;
         var filter = $('input[name=\'tableFilter\']')[0].value;
-        _this33.controller.addSearchTableFilter(tableName, filter);
+        _this35.controller.addSearchTableFilter(tableName, filter);
       });
       $('button[name=\'deleteTableFilter\']')[0].addEventListener('click', function () {
         var tableName = $('select[name=\'dataSearchList\']')[0].value;
-        _this33.controller.deleteSearchTableFilter(tableName);
+        _this35.controller.deleteSearchTableFilter(tableName);
         $('input[name=\'tableFilter\']')[0].value = '';
       });
 
       $('button[name=\'addTableSort\']')[0].addEventListener('click', function () {
         var tableName = $('select[name=\'dataSearchList\']')[0].value;
         var sort = $('input[name=\'tableSort\']')[0].value;
-        _this33.controller.addSearchTableSort(tableName, sort);
+        _this35.controller.addSearchTableSort(tableName, sort);
       });
       $('button[name=\'deleteTableSort\']')[0].addEventListener('click', function () {
         var tableName = $('select[name=\'dataSearchList\']')[0].value;
-        _this33.controller.deleteSearchTableSort(tableName);
+        _this35.controller.deleteSearchTableSort(tableName);
         $('input[name=\'tableSort\']')[0].value = '';
       });
 
@@ -4092,8 +4301,8 @@ var ScriptVipView = function (_View4) {
                 customSetting: 'placeholder=\'\u8ACB\u8F38\u5165\u6B04\u4F4D\u516C\u5F0F\uFF0C\u5982: (profit / (price * stock))\'',
                 callback: function callback(newRule) {
                   if (newRule) {
-                    _this33.controller.addSearchTableColumn(tableName, newName, newRule);
-                    _this33.displaySearchTableColumns(tableName);
+                    _this35.controller.addSearchTableColumn(tableName, newName, newRule);
+                    _this35.displaySearchTableColumns(tableName);
                   }
                 }
               });
@@ -4107,11 +4316,11 @@ var ScriptVipView = function (_View4) {
           var tableName = $('span[name=\'tableName\']')[0].innerText;
           if (tableName !== '') {
             var filter = $('input[name=\'tableFilter\']')[0].value;
-            _this33.controller.addSearchTableFilter(tableName, filter);
+            _this35.controller.addSearchTableFilter(tableName, filter);
             var sort = $('input[name=\'tableSort\']')[0].value;
-            _this33.controller.addSearchTableSort(tableName, sort);
+            _this35.controller.addSearchTableSort(tableName, sort);
 
-            _this33.displayOutputTable(tableName);
+            _this35.displayOutputTable(tableName);
           }
         } else {
           alertDialog.alert('你不是VIP！(怒)');
@@ -4126,41 +4335,41 @@ var ScriptVipView = function (_View4) {
   }, {
     key: 'displaySearchTablesList',
     value: function displaySearchTablesList() {
-      var _this34 = this;
+      var _this36 = this;
 
       console.log('---start displaySearchTablesList()');
 
       $('option[name=\'dataSearchList\']').remove();
       var localSearchTables = JSON.parse(window.localStorage.getItem('localSearchTables')) || 'null';
-      var _iteratorNormalCompletion33 = true;
-      var _didIteratorError33 = false;
-      var _iteratorError33 = undefined;
+      var _iteratorNormalCompletion34 = true;
+      var _didIteratorError34 = false;
+      var _iteratorError34 = undefined;
 
       try {
-        for (var _iterator33 = localSearchTables[Symbol.iterator](), _step33; !(_iteratorNormalCompletion33 = (_step33 = _iterator33.next()).done); _iteratorNormalCompletion33 = true) {
-          var t = _step33.value;
+        for (var _iterator34 = localSearchTables[Symbol.iterator](), _step34; !(_iteratorNormalCompletion34 = (_step34 = _iterator34.next()).done); _iteratorNormalCompletion34 = true) {
+          var t = _step34.value;
 
           var item = $('<option name=\'dataSearchList\' value=\'' + t.tableName + '\'>' + t.tableName + '</option>');
           $('select[name=\'dataSearchList\']').append(item);
         }
       } catch (err) {
-        _didIteratorError33 = true;
-        _iteratorError33 = err;
+        _didIteratorError34 = true;
+        _iteratorError34 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion33 && _iterator33.return) {
-            _iterator33.return();
+          if (!_iteratorNormalCompletion34 && _iterator34.return) {
+            _iterator34.return();
           }
         } finally {
-          if (_didIteratorError33) {
-            throw _iteratorError33;
+          if (_didIteratorError34) {
+            throw _iteratorError34;
           }
         }
       }
 
       $('select[name=\'dataSearchList\']')[0].addEventListener('change', function () {
         $('table[name=outputTable]').remove();
-        _this34.displaySearchTableInfo();
+        _this36.displaySearchTableInfo();
       });
 
       console.log('---end displaySearchTablesList()');
@@ -4193,7 +4402,7 @@ var ScriptVipView = function (_View4) {
   }, {
     key: 'displaySearchTableColumns',
     value: function displaySearchTableColumns(tableName) {
-      var _this35 = this;
+      var _this37 = this;
 
       console.log('---start displaySearchTableColumns()');
 
@@ -4222,8 +4431,8 @@ var ScriptVipView = function (_View4) {
                 customSetting: '',
                 callback: function callback(newRule) {
                   if (newRule) {
-                    _this35.controller.changeSearchTableColumn(tableName, { name: c.columnName, newName: newName }, newRule);
-                    _this35.displaySearchTableColumns(tableName);
+                    _this37.controller.changeSearchTableColumn(tableName, { name: c.columnName, newName: newName }, newRule);
+                    _this37.displaySearchTableColumns(tableName);
                   }
                 }
               });
@@ -4237,20 +4446,20 @@ var ScriptVipView = function (_View4) {
           message: '\u60A8\u78BA\u5B9A\u8981\u522A\u9664\u6B04\u4F4D ' + c.columnName + ' \u55CE?',
           callback: function callback(result) {
             if (result) {
-              _this35.controller.deleteSearchTableColumn(tableName, c.columnName);
-              _this35.displaySearchTableColumns(tableName);
+              _this37.controller.deleteSearchTableColumn(tableName, c.columnName);
+              _this37.displaySearchTableColumns(tableName);
             }
           }
         });
       };
 
-      var _iteratorNormalCompletion34 = true;
-      var _didIteratorError34 = false;
-      var _iteratorError34 = undefined;
+      var _iteratorNormalCompletion35 = true;
+      var _didIteratorError35 = false;
+      var _iteratorError35 = undefined;
 
       try {
         var _loop15 = function _loop15() {
-          var c = _step34.value;
+          var c = _step35.value;
 
           var t = '\n        <tr name=\'tableColumn\'>\n          <td>' + c.columnName + '</td>\n          <td>' + String(c.rule) + '</td>\n          <td>\n            <button class=\'btn btn-warning btn-sm\' name=\'changeTableColumn\' id=\'' + c.columnName + '\'>\u4FEE\u6539</button>\n            <button class=\'btn btn-danger btn-sm\' name=\'deleteTableColumn\' id=\'' + c.columnName + '\'>\u522A\u9664</button>\n          </td>\n        </tr>\n      ';
           $('tbody[name=\'tableColumn\']').append(t);
@@ -4262,20 +4471,20 @@ var ScriptVipView = function (_View4) {
           });
         };
 
-        for (var _iterator34 = thisTable.column[Symbol.iterator](), _step34; !(_iteratorNormalCompletion34 = (_step34 = _iterator34.next()).done); _iteratorNormalCompletion34 = true) {
+        for (var _iterator35 = thisTable.column[Symbol.iterator](), _step35; !(_iteratorNormalCompletion35 = (_step35 = _iterator35.next()).done); _iteratorNormalCompletion35 = true) {
           _loop15();
         }
       } catch (err) {
-        _didIteratorError34 = true;
-        _iteratorError34 = err;
+        _didIteratorError35 = true;
+        _iteratorError35 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion34 && _iterator34.return) {
-            _iterator34.return();
+          if (!_iteratorNormalCompletion35 && _iterator35.return) {
+            _iterator35.return();
           }
         } finally {
-          if (_didIteratorError34) {
-            throw _iteratorError34;
+          if (_didIteratorError35) {
+            throw _iteratorError35;
           }
         }
       }
@@ -4347,27 +4556,27 @@ var SearchTables = function () {
         return t.tableName === tableName;
       });
       var outputArray = [];
-      var _iteratorNormalCompletion35 = true;
-      var _didIteratorError35 = false;
-      var _iteratorError35 = undefined;
+      var _iteratorNormalCompletion36 = true;
+      var _didIteratorError36 = false;
+      var _iteratorError36 = undefined;
 
       try {
-        for (var _iterator35 = table.column[Symbol.iterator](), _step35; !(_iteratorNormalCompletion35 = (_step35 = _iterator35.next()).done); _iteratorNormalCompletion35 = true) {
-          var column = _step35.value;
+        for (var _iterator36 = table.column[Symbol.iterator](), _step36; !(_iteratorNormalCompletion36 = (_step36 = _iterator36.next()).done); _iteratorNormalCompletion36 = true) {
+          var column = _step36.value;
 
           outputArray.push(column.columnName);
         }
       } catch (err) {
-        _didIteratorError35 = true;
-        _iteratorError35 = err;
+        _didIteratorError36 = true;
+        _iteratorError36 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion35 && _iterator35.return) {
-            _iterator35.return();
+          if (!_iteratorNormalCompletion36 && _iterator36.return) {
+            _iterator36.return();
           }
         } finally {
-          if (_didIteratorError35) {
-            throw _iteratorError35;
+          if (_didIteratorError36) {
+            throw _iteratorError36;
           }
         }
       }
@@ -4383,40 +4592,40 @@ var SearchTables = function () {
   }, {
     key: 'outputSearchResults',
     value: function outputSearchResults(tableName) {
-      var _this36 = this;
+      var _this38 = this;
 
       console.log('start outputSearchResults()');
 
       var table = this.tables.find(function (t) {
         return t.tableName === tableName;
       });
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var outputCompanies = [];
       try {
         if (table.filter) {
-          var _iteratorNormalCompletion36 = true;
-          var _didIteratorError36 = false;
-          var _iteratorError36 = undefined;
+          var _iteratorNormalCompletion37 = true;
+          var _didIteratorError37 = false;
+          var _iteratorError37 = undefined;
 
           try {
-            for (var _iterator36 = localCompanies[Symbol.iterator](), _step36; !(_iteratorNormalCompletion36 = (_step36 = _iterator36.next()).done); _iteratorNormalCompletion36 = true) {
-              var _company3 = _step36.value;
+            for (var _iterator37 = localCompanies[Symbol.iterator](), _step37; !(_iteratorNormalCompletion37 = (_step37 = _iterator37.next()).done); _iteratorNormalCompletion37 = true) {
+              var _company4 = _step37.value;
 
-              if (this.doInputFunction(_company3, table.filter)) {
-                outputCompanies.push(_company3);
+              if (this.doInputFunction(_company4, table.filter)) {
+                outputCompanies.push(_company4);
               }
             }
           } catch (err) {
-            _didIteratorError36 = true;
-            _iteratorError36 = err;
+            _didIteratorError37 = true;
+            _iteratorError37 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion36 && _iterator36.return) {
-                _iterator36.return();
+              if (!_iteratorNormalCompletion37 && _iterator37.return) {
+                _iterator37.return();
               }
             } finally {
-              if (_didIteratorError36) {
-                throw _iteratorError36;
+              if (_didIteratorError37) {
+                throw _iteratorError37;
               }
             }
           }
@@ -4432,7 +4641,7 @@ var SearchTables = function () {
       try {
         if (table.sort) {
           outputCompanies.sort(function (a, b) {
-            return _this36.doInputFunction(b, table.sort) - _this36.doInputFunction(a, table.sort);
+            return _this38.doInputFunction(b, table.sort) - _this38.doInputFunction(a, table.sort);
           });
         }
       } catch (e) {
@@ -4444,38 +4653,38 @@ var SearchTables = function () {
       var outputList = [];
       var debugColumnName = '';
       try {
-        var _iteratorNormalCompletion37 = true;
-        var _didIteratorError37 = false;
-        var _iteratorError37 = undefined;
+        var _iteratorNormalCompletion38 = true;
+        var _didIteratorError38 = false;
+        var _iteratorError38 = undefined;
 
         try {
-          for (var _iterator37 = outputCompanies[Symbol.iterator](), _step37; !(_iteratorNormalCompletion37 = (_step37 = _iterator37.next()).done); _iteratorNormalCompletion37 = true) {
-            var _company4 = _step37.value;
+          for (var _iterator38 = outputCompanies[Symbol.iterator](), _step38; !(_iteratorNormalCompletion38 = (_step38 = _iterator38.next()).done); _iteratorNormalCompletion38 = true) {
+            var _company5 = _step38.value;
 
             var row = [];
-            var _iteratorNormalCompletion38 = true;
-            var _didIteratorError38 = false;
-            var _iteratorError38 = undefined;
+            var _iteratorNormalCompletion39 = true;
+            var _didIteratorError39 = false;
+            var _iteratorError39 = undefined;
 
             try {
-              for (var _iterator38 = table.column[Symbol.iterator](), _step38; !(_iteratorNormalCompletion38 = (_step38 = _iterator38.next()).done); _iteratorNormalCompletion38 = true) {
-                var column = _step38.value;
+              for (var _iterator39 = table.column[Symbol.iterator](), _step39; !(_iteratorNormalCompletion39 = (_step39 = _iterator39.next()).done); _iteratorNormalCompletion39 = true) {
+                var column = _step39.value;
 
                 debugColumnName = column.columnName;
-                var pushValue = this.doInputFunction(_company4, column.rule);
+                var pushValue = this.doInputFunction(_company5, column.rule);
                 row.push(pushValue);
               }
             } catch (err) {
-              _didIteratorError38 = true;
-              _iteratorError38 = err;
+              _didIteratorError39 = true;
+              _iteratorError39 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion38 && _iterator38.return) {
-                  _iterator38.return();
+                if (!_iteratorNormalCompletion39 && _iterator39.return) {
+                  _iterator39.return();
                 }
               } finally {
-                if (_didIteratorError38) {
-                  throw _iteratorError38;
+                if (_didIteratorError39) {
+                  throw _iteratorError39;
                 }
               }
             }
@@ -4483,16 +4692,16 @@ var SearchTables = function () {
             outputList.push(row);
           }
         } catch (err) {
-          _didIteratorError37 = true;
-          _iteratorError37 = err;
+          _didIteratorError38 = true;
+          _iteratorError38 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion37 && _iterator37.return) {
-              _iterator37.return();
+            if (!_iteratorNormalCompletion38 && _iterator38.return) {
+              _iterator38.return();
             }
           } finally {
-            if (_didIteratorError37) {
-              throw _iteratorError37;
+            if (_didIteratorError38) {
+              throw _iteratorError38;
             }
           }
         }
@@ -4660,8 +4869,8 @@ var SearchTables = function () {
       var Id = company.companyId;
       var id = company.companyId;
       var name = company.name;
-      var chairman = company.chairman;
-      var manager = company.manager;
+      var chairman = company.chairman || '';
+      var manager = company.manager || '';
 
       var grade = company.grade;
       var capital = company.capital;
@@ -4682,7 +4891,7 @@ var SearchTables = function () {
       var employeesNumber = company.employeesNumber;
       var nextSeasonEmployeesNumber = company.nextSeasonEmployeesNumber;
 
-      var tags = company.tags;
+      var tags = company.tags || [];
       var createdAt = company.createdAt;
 
       debugConsole('=====do=' + fun);
@@ -4693,7 +4902,7 @@ var SearchTables = function () {
   }, {
     key: 'outputTable',
     value: function outputTable(tableName) {
-      var _this37 = this;
+      var _this39 = this;
 
       console.log('start outputTable()');
 
@@ -4702,33 +4911,33 @@ var SearchTables = function () {
       var t = this.tables.find(function (x) {
         return x.tableName === tableName;
       });
-      var localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      var localCompanies = getLocalCompanies();
       var outputCompanies = [];
       try {
         if (t.filter) {
-          var _iteratorNormalCompletion39 = true;
-          var _didIteratorError39 = false;
-          var _iteratorError39 = undefined;
+          var _iteratorNormalCompletion40 = true;
+          var _didIteratorError40 = false;
+          var _iteratorError40 = undefined;
 
           try {
-            for (var _iterator39 = localCompanies[Symbol.iterator](), _step39; !(_iteratorNormalCompletion39 = (_step39 = _iterator39.next()).done); _iteratorNormalCompletion39 = true) {
-              var _c2 = _step39.value;
+            for (var _iterator40 = localCompanies[Symbol.iterator](), _step40; !(_iteratorNormalCompletion40 = (_step40 = _iterator40.next()).done); _iteratorNormalCompletion40 = true) {
+              var _c2 = _step40.value;
 
               if (this.doInputFunction(_c2, t.filter)) {
                 outputCompanies.push(_c2);
               }
             }
           } catch (err) {
-            _didIteratorError39 = true;
-            _iteratorError39 = err;
+            _didIteratorError40 = true;
+            _iteratorError40 = err;
           } finally {
             try {
-              if (!_iteratorNormalCompletion39 && _iterator39.return) {
-                _iterator39.return();
+              if (!_iteratorNormalCompletion40 && _iterator40.return) {
+                _iterator40.return();
               }
             } finally {
-              if (_didIteratorError39) {
-                throw _iteratorError39;
+              if (_didIteratorError40) {
+                throw _iteratorError40;
               }
             }
           }
@@ -4744,7 +4953,7 @@ var SearchTables = function () {
       try {
         if (t.sort) {
           outputCompanies.sort(function (a, b) {
-            return _this37.doInputFunction(b, t.sort) - _this37.doInputFunction(a, t.sort);
+            return _this39.doInputFunction(b, t.sort) - _this39.doInputFunction(a, t.sort);
           });
         }
       } catch (e) {
@@ -4756,37 +4965,37 @@ var SearchTables = function () {
       var outputList = [];
       var debugColumnName = '';
       try {
-        var _iteratorNormalCompletion40 = true;
-        var _didIteratorError40 = false;
-        var _iteratorError40 = undefined;
+        var _iteratorNormalCompletion41 = true;
+        var _didIteratorError41 = false;
+        var _iteratorError41 = undefined;
 
         try {
-          for (var _iterator40 = outputCompanies[Symbol.iterator](), _step40; !(_iteratorNormalCompletion40 = (_step40 = _iterator40.next()).done); _iteratorNormalCompletion40 = true) {
-            var _c3 = _step40.value;
+          for (var _iterator41 = outputCompanies[Symbol.iterator](), _step41; !(_iteratorNormalCompletion41 = (_step41 = _iterator41.next()).done); _iteratorNormalCompletion41 = true) {
+            var _c3 = _step41.value;
 
             var row = {};
-            var _iteratorNormalCompletion41 = true;
-            var _didIteratorError41 = false;
-            var _iteratorError41 = undefined;
+            var _iteratorNormalCompletion42 = true;
+            var _didIteratorError42 = false;
+            var _iteratorError42 = undefined;
 
             try {
-              for (var _iterator41 = t.column[Symbol.iterator](), _step41; !(_iteratorNormalCompletion41 = (_step41 = _iterator41.next()).done); _iteratorNormalCompletion41 = true) {
-                var column = _step41.value;
+              for (var _iterator42 = t.column[Symbol.iterator](), _step42; !(_iteratorNormalCompletion42 = (_step42 = _iterator42.next()).done); _iteratorNormalCompletion42 = true) {
+                var column = _step42.value;
 
                 debugColumnName = column.columnName;
                 row[column.columnName] = this.doInputFunction(_c3, column.rule);
               }
             } catch (err) {
-              _didIteratorError41 = true;
-              _iteratorError41 = err;
+              _didIteratorError42 = true;
+              _iteratorError42 = err;
             } finally {
               try {
-                if (!_iteratorNormalCompletion41 && _iterator41.return) {
-                  _iterator41.return();
+                if (!_iteratorNormalCompletion42 && _iterator42.return) {
+                  _iterator42.return();
                 }
               } finally {
-                if (_didIteratorError41) {
-                  throw _iteratorError41;
+                if (_didIteratorError42) {
+                  throw _iteratorError42;
                 }
               }
             }
@@ -4794,16 +5003,16 @@ var SearchTables = function () {
             outputList.push(row);
           }
         } catch (err) {
-          _didIteratorError40 = true;
-          _iteratorError40 = err;
+          _didIteratorError41 = true;
+          _iteratorError41 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion40 && _iterator40.return) {
-              _iterator40.return();
+            if (!_iteratorNormalCompletion41 && _iterator41.return) {
+              _iterator41.return();
             }
           } finally {
-            if (_didIteratorError40) {
-              throw _iteratorError40;
+            if (_didIteratorError41) {
+              throw _iteratorError41;
             }
           }
         }
@@ -4815,69 +5024,15 @@ var SearchTables = function () {
 
       // 需要重整，應該歸類到View裡面
       var thead = '';
-      var _iteratorNormalCompletion42 = true;
-      var _didIteratorError42 = false;
-      var _iteratorError42 = undefined;
-
-      try {
-        for (var _iterator42 = t.column[Symbol.iterator](), _step42; !(_iteratorNormalCompletion42 = (_step42 = _iterator42.next()).done); _iteratorNormalCompletion42 = true) {
-          var _column = _step42.value;
-
-          thead += '<th style=\'max-width: 390px;\'>' + _column.columnName + '</th>';
-        }
-      } catch (err) {
-        _didIteratorError42 = true;
-        _iteratorError42 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion42 && _iterator42.return) {
-            _iterator42.return();
-          }
-        } finally {
-          if (_didIteratorError42) {
-            throw _iteratorError42;
-          }
-        }
-      }
-
-      var output = '\n        <table border=\'1\' name=\'outputTable\'>\n            <thead name=\'outputTable\'>\n                ' + thead + '\n            </thead>\n            <tbody name=\'outputTable\'>\n            </tbody>\n        </table>\n    ';
-      $('p[name=\'outputTable\']').append(output);
       var _iteratorNormalCompletion43 = true;
       var _didIteratorError43 = false;
       var _iteratorError43 = undefined;
 
       try {
-        for (var _iterator43 = outputList[Symbol.iterator](), _step43; !(_iteratorNormalCompletion43 = (_step43 = _iterator43.next()).done); _iteratorNormalCompletion43 = true) {
-          var _row = _step43.value;
+        for (var _iterator43 = t.column[Symbol.iterator](), _step43; !(_iteratorNormalCompletion43 = (_step43 = _iterator43.next()).done); _iteratorNormalCompletion43 = true) {
+          var _column = _step43.value;
 
-          var outputRow = '<tr>';
-          var _iteratorNormalCompletion44 = true;
-          var _didIteratorError44 = false;
-          var _iteratorError44 = undefined;
-
-          try {
-            for (var _iterator44 = t.column[Symbol.iterator](), _step44; !(_iteratorNormalCompletion44 = (_step44 = _iterator44.next()).done); _iteratorNormalCompletion44 = true) {
-              var _column2 = _step44.value;
-
-              outputRow += '<td style=\'max-width: 390px;\'>' + _row[_column2.columnName] + '</td>';
-            }
-          } catch (err) {
-            _didIteratorError44 = true;
-            _iteratorError44 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion44 && _iterator44.return) {
-                _iterator44.return();
-              }
-            } finally {
-              if (_didIteratorError44) {
-                throw _iteratorError44;
-              }
-            }
-          }
-
-          outputRow += '</tr>';
-          $('tbody[name=\'outputTable\']').append(outputRow);
+          thead += '<th style=\'max-width: 390px;\'>' + _column.columnName + '</th>';
         }
       } catch (err) {
         _didIteratorError43 = true;
@@ -4890,6 +5045,60 @@ var SearchTables = function () {
         } finally {
           if (_didIteratorError43) {
             throw _iteratorError43;
+          }
+        }
+      }
+
+      var output = '\n        <table border=\'1\' name=\'outputTable\'>\n            <thead name=\'outputTable\'>\n                ' + thead + '\n            </thead>\n            <tbody name=\'outputTable\'>\n            </tbody>\n        </table>\n    ';
+      $('p[name=\'outputTable\']').append(output);
+      var _iteratorNormalCompletion44 = true;
+      var _didIteratorError44 = false;
+      var _iteratorError44 = undefined;
+
+      try {
+        for (var _iterator44 = outputList[Symbol.iterator](), _step44; !(_iteratorNormalCompletion44 = (_step44 = _iterator44.next()).done); _iteratorNormalCompletion44 = true) {
+          var _row = _step44.value;
+
+          var outputRow = '<tr>';
+          var _iteratorNormalCompletion45 = true;
+          var _didIteratorError45 = false;
+          var _iteratorError45 = undefined;
+
+          try {
+            for (var _iterator45 = t.column[Symbol.iterator](), _step45; !(_iteratorNormalCompletion45 = (_step45 = _iterator45.next()).done); _iteratorNormalCompletion45 = true) {
+              var _column2 = _step45.value;
+
+              outputRow += '<td style=\'max-width: 390px;\'>' + _row[_column2.columnName] + '</td>';
+            }
+          } catch (err) {
+            _didIteratorError45 = true;
+            _iteratorError45 = err;
+          } finally {
+            try {
+              if (!_iteratorNormalCompletion45 && _iterator45.return) {
+                _iterator45.return();
+              }
+            } finally {
+              if (_didIteratorError45) {
+                throw _iteratorError45;
+              }
+            }
+          }
+
+          outputRow += '</tr>';
+          $('tbody[name=\'outputTable\']').append(outputRow);
+        }
+      } catch (err) {
+        _didIteratorError44 = true;
+        _iteratorError44 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion44 && _iterator44.return) {
+            _iterator44.return();
+          }
+        } finally {
+          if (_didIteratorError44) {
+            throw _iteratorError44;
           }
         }
       }
@@ -4928,6 +5137,14 @@ var dict = {
       showMostStockholdingCompany: '列出最多持股公司',
 
       bigLog: '大量紀錄'
+    },
+    companyList: {
+      stockAsset: '持有總值',
+      estimatedProfit: '預估分紅',
+      estimatedManagerProfit: '預估經理分紅',
+      peRatio: '帳面本益比',
+      peRatioVip: '排他本益比',
+      peRatioUser: '我的本益比'
     },
     accountInfo: {
       estimatedTax: '預估稅金：',
@@ -4982,6 +5199,14 @@ var dict = {
       showMostStockholdingCompany: 'show most stocks company',
 
       bigLog: 'Big log'
+    },
+    companyList: {
+      stockAsset: 'Stock asset',
+      estimatedProfit: 'Estimated profit',
+      estimatedManagerProfit: 'Estimated manager profit',
+      peRatio: 'fake P/E Ratio',
+      peRatioVip: 'truly P/E Ratio',
+      peRatioUser: 'my P/E Ratio'
     },
     accountInfo: {
       estimatedTax: 'Estimated tax：',
