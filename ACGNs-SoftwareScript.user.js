@@ -2173,6 +2173,13 @@ class CompanyListController extends EventController {
   constructor(loginUser) {
     super('CompanyListController', loginUser);
 
+    this.companyListView = new CompanyListView(this.loginUser);
+
+    Template.companyListCard.onRendered(() => {
+      const instance = Template.instance();
+      this.companyListView.addCardInfo(instance);
+    });
+
     this.templateListener(Template.companyList, 'Template.companyList', () => {
       this.updateUserInfo();
       this.useCompaniesInfo();
@@ -2189,6 +2196,147 @@ class CompanyListController extends EventController {
     companies.companyPatch();
 
     companies.updateToLocalstorage();
+  }
+}
+
+/**
+ * CompanyList的View
+ */
+class CompanyListView extends View {
+  /**
+   * 建構CompanyListView
+   * @param {LoginUser} loginUser LoginUser
+   */
+  constructor(loginUser) {
+    super('CompanyListView');
+    this.loginUser = loginUser;
+  }
+
+  get localCompanies() {
+    const nowTime = new Date();
+    //避免在短時間內過於頻繁的存取 localStorage
+    if (! this.lastGetTime) {
+      this.lastGetTime = nowTime;
+      this._localCompanies = getLocalCompanies();
+    }
+    else if ((nowTime.getTime() - this.lastGetTime.getTime()) > 3000) {
+      this.lastGetTime = nowTime;
+      this._localCompanies = getLocalCompanies();
+    }
+
+    return this._localCompanies;
+  }
+
+  addCardInfo(instance) {
+    function insertAfterLastRow(row) {
+      instance.$('.row-info').last()
+        .after(row);
+    }
+
+    function hideRow(row) {
+      row.removeClass('d-flex').addClass('d-none');
+    }
+
+    function showRow(row) {
+      row.removeClass('d-none').addClass('d-flex');
+    }
+
+
+    const getStockAmount = Template.companyListCard.__helpers[' getStockAmount'];
+    const infoRowSample = instance.$('.row-info').last();
+
+    const ownValueRow = infoRowSample.clone();
+    ownValueRow.find('p:eq(0)').html(translation(['companyList', 'stockAsset']));
+    insertAfterLastRow(ownValueRow);
+
+    const profitRow = infoRowSample.clone();
+    profitRow.find('p:eq(0)').html(translation(['company', 'profit']));
+    insertAfterLastRow(profitRow);
+
+    const peRatioRow = infoRowSample.clone();
+    peRatioRow.find('p:eq(0)').html(translation(['companyList', 'peRatio']));
+    insertAfterLastRow(peRatioRow);
+
+    const peRatioVipRow = infoRowSample.clone();
+    peRatioVipRow.find('p:eq(0)').html(translation(['companyList', 'peRatioVip']));
+    insertAfterLastRow(peRatioVipRow);
+
+    const peRatioUserRow = infoRowSample.clone();
+    peRatioUserRow.find('p:eq(0)').html(translation(['companyList', 'peRatioUser']));
+    insertAfterLastRow(peRatioUserRow);
+
+    const userProfitRow = infoRowSample.clone();
+    userProfitRow.find('p:eq(0)').html(translation(['companyList', 'estimatedProfit']));
+    insertAfterLastRow(userProfitRow);
+
+    const managerSalaryRow = infoRowSample.clone();
+    managerSalaryRow.find('p:eq(0)').html(translation(['companyList', 'estimatedManagerProfit']));
+    insertAfterLastRow(managerSalaryRow);
+
+
+    instance.autorun(() => {
+      const serverCompany = Template.currentData();
+      const company = new Company(serverCompany);
+      const companyData = this.localCompanies.find((x) => {
+        return (x.companyId === company.companyId);
+      });
+      if (companyData !== undefined) {
+        company.updateWithLocalcompanies(companyData);
+      }
+
+      profitRow.find('p:eq(1)').html(`$ ${Math.round(company.profit)}`);
+
+      const vipBonusStocks = Number(company.vipBonusStocks);
+      company.vipBonusStocks = 0;
+      const peRatio = company.price / earnPerShare(company);
+      company.vipBonusStocks = vipBonusStocks;
+      peRatioRow.find('p:eq(1)').html(isFinite(peRatio) ? peRatio.toFixed(2) : '∞');
+
+      const peRatioVip = company.price / earnPerShare(company);
+      peRatioVipRow.find('p:eq(1)').html(isFinite(peRatioVip) ? peRatioVip.toFixed(2) : '∞');
+
+
+      if (Meteor.user()) {
+        const stockAmount = getStockAmount(company.companyId);
+        if (stockAmount > 0) {
+          const stockAmount = getStockAmount(company.companyId);
+          const ownValue = stockAmount * company.price;
+          ownValueRow.find('p:eq(1)').html(`$ ${ownValue}`);
+          showRow(ownValueRow);
+
+          const holdC = this.loginUser.holdStocks.find((x) => {
+            return (x.companyId === company.companyId);
+          }) || {vip: null};
+          const userProfit = Math.round(earnPerShare(company) * effectiveStocks(stockAmount, holdC.vip));
+          userProfitRow.find('p:eq(1)').html(`$ ${userProfit}`);
+          showRow(userProfitRow);
+
+          const peRatioUser = ownValue / userProfit;
+          peRatioUserRow.find('p:eq(1)').html(isFinite(peRatioUser) ? peRatioUser.toFixed(2) : '∞');
+          showRow(peRatioUserRow);
+        }
+        else {
+          hideRow(ownValueRow);
+          hideRow(userProfitRow);
+          hideRow(peRatioUserRow);
+        }
+
+        if (Meteor.userId() !== company.manager) {
+          hideRow(managerSalaryRow);
+        }
+        else {
+          const managerSalary = Math.round(company.profit * (company.managerBonusRatePercent / 100));
+          managerSalaryRow.find('p:eq(1)').html(`$ ${managerSalary}`);
+          showRow(managerSalaryRow);
+        }
+      }
+      else {
+        hideRow(ownValueRow);
+        hideRow(userProfitRow);
+        hideRow(managerSalaryRow);
+        hideRow(peRatioUserRow);
+      }
+    });
   }
 }
 
@@ -3821,6 +3969,14 @@ const dict = {
 
       bigLog: '大量紀錄'
     },
+    companyList: {
+      stockAsset: '持有總值',
+      estimatedProfit: '預估分紅',
+      estimatedManagerProfit: '預估經理分紅',
+      peRatio: '帳面本益比',
+      peRatioVip: '排他本益比',
+      peRatioUser: '我的本益比'
+    },
     accountInfo: {
       estimatedTax: '預估稅金：',
       holdingStockCompaniesNumber: '持股公司總數：',
@@ -3874,6 +4030,14 @@ const dict = {
       showMostStockholdingCompany: 'show most stocks company',
 
       bigLog: 'Big log'
+    },
+    companyList: {
+      stockAsset: 'Stock asset',
+      estimatedProfit: 'Estimated profit',
+      estimatedManagerProfit: 'Estimated manager profit',
+      peRatio: 'fake P/E Ratio',
+      peRatioVip: 'truly P/E Ratio',
+      peRatioUser: 'my P/E Ratio'
     },
     accountInfo: {
       estimatedTax: 'Estimated tax：',
