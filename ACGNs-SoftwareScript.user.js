@@ -249,6 +249,16 @@ function stripscript(s) {
   return rs;
 }
 
+/**
+ * 獲取在localStorage中的localCompanies
+ * @return {Array} localCompanies
+ */
+function getLocalCompanies() {
+  const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+
+  return localCompanies;
+}
+
 /**************function***************/
 /*************************************/
 /*************************************/
@@ -322,7 +332,7 @@ class MainController {
     const max = 30;
     const holdStocks = this.loginUser.findMostStockholdingCompany();
     const list = [];
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     let i = 0;
     for (const company of holdStocks) {
       i += 1;
@@ -1331,7 +1341,7 @@ class User {
     console.log(`---start computeAsset()`);
 
     let asset = 0;
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     for (const c of this.holdStocks) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -1352,7 +1362,7 @@ class User {
     console.log(`---start computeProfit()`);
 
     let profit = 0;
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     for (const c of this.holdStocks) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -1373,7 +1383,7 @@ class User {
     console.log(`---start computeManagersProfit()`);
 
     let managerProfit = 0;
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     for (const c of this.managers) {
       const companyData = localCompanies.find((x) => {
         return x.companyId === c.companyId;
@@ -1395,7 +1405,7 @@ class User {
 
     let bonus = 0;
     if (this.employee !== '') {
-      const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      const localCompanies = getLocalCompanies();
       const companyData = localCompanies.find((x) => {
         return x.companyId === this.employee;
       });
@@ -1426,7 +1436,7 @@ class User {
     //計算公司推薦票回饋
     if (this.employee !== '') {
       const { employeeProductVotingRewardRatePercent } = Meteor.settings.public.companyProfitDistribution;
-      const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+      const localCompanies = getLocalCompanies();
       const companyData = localCompanies.find((x) => {
         return x.companyId === this.employee;
       });
@@ -1498,7 +1508,7 @@ class User {
    * @return {Array} 列表
    */
   findMostStockholdingCompany() {
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     this.loadFromSessionstorage();
     const holdStocks = JSON.parse(JSON.stringify(this.holdStocks));
     holdStocks.sort((a, b) => {
@@ -1640,7 +1650,7 @@ class LoginUser extends User {
     console.log(`---start computeSellOrdersAsset()`);
 
     let asset = 0;
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     for (const order of this.sellOrders) {
       const companyData = localCompanies.find((x) => {
         return (x.companyId === order.companyId);
@@ -1809,7 +1819,7 @@ class Companies {
   }
 
   companyPatch() {
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     this.list.forEach((company, i, list) => {
       const companyData = localCompanies.find((x) => {
         return (x.companyId === company.companyId);
@@ -1859,7 +1869,7 @@ class Companies {
   }
 
   updateToLocalstorage() {
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     for (const company of this.list) {
       const i = localCompanies.findIndex((x) => {
         return (x.companyId === company.companyId);
@@ -2536,7 +2546,7 @@ class AccountInfoController extends EventController {
         }
       }
     }
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     const notFoundList = [];
     for (const holdC of holdStocks) {
       const companyData = localCompanies.find((x) => {
@@ -3458,7 +3468,7 @@ class SearchTables {
     const table = this.tables.find((t) => {
       return (t.tableName === tableName);
     });
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     let outputCompanies = [];
     try {
       if (table.filter) {
@@ -3689,7 +3699,7 @@ class SearchTables {
     const t = this.tables.find((x) => {
       return x.tableName === tableName;
     });
-    const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+    const localCompanies = getLocalCompanies();
     let outputCompanies = [];
     try {
       if (t.filter) {
