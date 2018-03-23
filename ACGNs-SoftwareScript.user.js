@@ -1709,8 +1709,8 @@ class Company {
     this.managerBonusRatePercent = serverCompany.managerBonusRatePercent;
     this.capitalIncreaseRatePercent = serverCompany.capitalIncreaseRatePercent;
 
-    this.salary = serverCompany.salary;
-    this.nextSeasonSalary = serverCompany.nextSeasonSalary;
+    this.salary = serverCompany.salary || 1000;
+    this.nextSeasonSalary = serverCompany.nextSeasonSalary || 1000;
     this.employeeBonusRatePercent = serverCompany.employeeBonusRatePercent;
     this.employeesNumber = 0;
     this.nextSeasonEmployeesNumber = 0;
@@ -1884,6 +1884,22 @@ class Companies {
     }
 
     window.localStorage.setItem('localCompanies', JSON.stringify(localCompanies));
+  }
+
+  /**
+   * 尋找特定公司
+   * 找不到時回傳undefined
+   * @param {String} companyId company的ID
+   * @return {Company} 找到的公司
+   */
+  find(companyId) {
+    for (const company of this.list) {
+      if (company.companyId === companyId) {
+        return company;
+      }
+    }
+
+    return undefined;
   }
 
 
