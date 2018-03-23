@@ -2210,6 +2210,9 @@ class CompanyListView extends View {
   constructor(loginUser) {
     super('CompanyListView');
     this.loginUser = loginUser;
+
+    //強制覆蓋
+    Template.companyListCard._callbacks.rendered = [];
   }
 
   get localCompanies() {
