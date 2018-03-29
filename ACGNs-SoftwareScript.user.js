@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.07.00
+// @version      5.08.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1304,6 +1304,7 @@ class User {
     const serverUser = serverUsers.find((x) => {
       return (x._id === this.userId);
     });
+    debugConsole(serverUser);
     if (serverUser !== undefined) {
       if ((this.name !== serverUser.username) ||
       (this.money !== serverUser.profile.money) ||
@@ -1314,10 +1315,16 @@ class User {
         this.ticket = serverUser.profile.voteTickets;
       }
     }
+    else {
+      console.log(`-----serverUser === undefined`);
+      debugConsole(serverUsers);
+    }
 
+    debugConsole(`-----isChange: ${isChange}`);
     if (isChange) {
       this.saveToSessionstorage();
     }
+    debugConsole(this);
 
     console.log(`---end updateUser()`);
   }
@@ -1430,7 +1437,7 @@ class User {
     const { systemProductVotingReward } = Meteor.settings.public;
     const totalReward = systemProductVotingReward;
     const initialVoteTicketCount = getInitialVoteTicketCount(getCurrentSeason());
-    const count = initialVoteTicketCount - this.ticket;
+    const count = initialVoteTicketCount - (this.ticket || 0);
     reward += (count >= initialVoteTicketCount) ? totalReward : Math.ceil(totalReward * count / 100);
 
     //計算公司推薦票回饋
@@ -1440,13 +1447,20 @@ class User {
       const companyData = localCompanies.find((x) => {
         return x.companyId === this.employee;
       });
+      debugConsole(companyData);
       if (companyData !== undefined) {
         if (companyData.employeesNumber !== 0) {
           const baseReward = (employeeProductVotingRewardRatePercent / 100) * companyData.profit;
           //因為沒辦法得知全部員工投票數，以其他所有員工都有投完票來計算
           const totalEmployeeVoteTickets = initialVoteTicketCount * (companyData.employeesNumber - 1) + count;
-          reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets);
+          reward += (Math.ceil(baseReward * count / totalEmployeeVoteTickets) || 0);
         }
+        else {
+          console.log(`-----companyData.employeesNumber === 0`);
+        }
+      }
+      else {
+        console.log(`-----companyData === undefined`);
       }
     }
 

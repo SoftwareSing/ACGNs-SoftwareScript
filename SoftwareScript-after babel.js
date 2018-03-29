@@ -15,7 +15,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.07.00
+// @version      5.08.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1660,6 +1660,7 @@ var User = function () {
       var serverUser = serverUsers.find(function (x) {
         return x._id === _this17.userId;
       });
+      debugConsole(serverUser);
       if (serverUser !== undefined) {
         if (this.name !== serverUser.username || this.money !== serverUser.profile.money || this.ticket !== serverUser.profile.voteTickets) {
           isChange = true;
@@ -1667,11 +1668,16 @@ var User = function () {
           this.money = serverUser.profile.money;
           this.ticket = serverUser.profile.voteTickets;
         }
+      } else {
+        console.log('-----serverUser === undefined');
+        debugConsole(serverUsers);
       }
 
+      debugConsole('-----isChange: ' + isChange);
       if (isChange) {
         this.saveToSessionstorage();
       }
+      debugConsole(this);
 
       console.log('---end updateUser()');
     }
@@ -1892,7 +1898,7 @@ var User = function () {
 
       var totalReward = systemProductVotingReward;
       var initialVoteTicketCount = getInitialVoteTicketCount(getCurrentSeason());
-      var count = initialVoteTicketCount - this.ticket;
+      var count = initialVoteTicketCount - (this.ticket || 0);
       reward += count >= initialVoteTicketCount ? totalReward : Math.ceil(totalReward * count / 100);
 
       //計算公司推薦票回饋
@@ -1903,13 +1909,18 @@ var User = function () {
         var _companyData2 = localCompanies.find(function (x) {
           return x.companyId === _this19.employee;
         });
+        debugConsole(_companyData2);
         if (_companyData2 !== undefined) {
           if (_companyData2.employeesNumber !== 0) {
             var baseReward = employeeProductVotingRewardRatePercent / 100 * _companyData2.profit;
             //因為沒辦法得知全部員工投票數，以其他所有員工都有投完票來計算
             var totalEmployeeVoteTickets = initialVoteTicketCount * (_companyData2.employeesNumber - 1) + count;
-            reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets);
+            reward += Math.ceil(baseReward * count / totalEmployeeVoteTickets) || 0;
+          } else {
+            console.log('-----companyData.employeesNumber === 0');
           }
+        } else {
+          console.log('-----companyData === undefined');
         }
       }
 
