@@ -1437,7 +1437,7 @@ class User {
     const { systemProductVotingReward } = Meteor.settings.public;
     const totalReward = systemProductVotingReward;
     const initialVoteTicketCount = getInitialVoteTicketCount(getCurrentSeason());
-    const count = initialVoteTicketCount - (this.ticket || 0);
+    const count = (initialVoteTicketCount - this.ticket) || 0;
     reward += (count >= initialVoteTicketCount) ? totalReward : Math.ceil(totalReward * count / 100);
 
     //計算公司推薦票回饋
