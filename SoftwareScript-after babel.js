@@ -15,7 +15,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.08.00
+// @version      5.08.01
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1898,7 +1898,11 @@ var User = function () {
 
       var totalReward = systemProductVotingReward;
       var initialVoteTicketCount = getInitialVoteTicketCount(getCurrentSeason());
-      var count = initialVoteTicketCount - (this.ticket || 0);
+      if (initialVoteTicketCount < 1) {
+        //當本季無推薦票可投時無獎勵
+        return 0;
+      }
+      var count = initialVoteTicketCount - this.ticket || 0;
       reward += count >= initialVoteTicketCount ? totalReward : Math.ceil(totalReward * count / 100);
 
       //計算公司推薦票回饋
