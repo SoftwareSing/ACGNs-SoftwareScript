@@ -1,11 +1,11 @@
 import re
 from os import walk
 
-outputFile = open("script.user.js", "w")
+outputFile = open("ACGNs-SoftwareScript.user.js", "w", encoding = 'utf8')
 requireList = []
 
 def copyJs(jsFile):
-    with open(jsFile, "r") as js:
+    with open(jsFile, "r", encoding = 'utf8') as js:
         outputFile.write("//start file: " + jsFile + "\n")
         for line in js:
             print(line, end="")
@@ -35,5 +35,4 @@ for root, dirs, files in walk("./src"):
         print(fileRoot)
         copyJs(fileRoot)
 
-outputFile.write("\n")
 outputFile.close()
