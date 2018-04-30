@@ -3,6 +3,7 @@
     "eslint:recommended"
   ],
   "parserOptions": {
+    "sourceType": "module",
     "ecmaVersion": 6,
     "ecmaFeatures": {
       "impliedStrict": true,
