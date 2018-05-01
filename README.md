@@ -2,11 +2,8 @@
 A script helps you play [acgn-stock.com](https://acgn-stock.com).
 
 一個幫助你在 [acgn-stock.com](https://acgn-stock.com) 獲得更豐富訊息的外掛
-### ( 本外掛中包含置底廣告訊息！ )
-
 
 ~~純粹因為中文太長，所以英文重新取名而不是照翻~~
-
 
 
 ## Install 安裝
@@ -14,12 +11,14 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 
 [GreasyFork發布頁](https://greasyfork.org/zh-TW/scripts/33542)
 
+### ( 安裝前請注意，本外掛中包含置底廣告訊息！ )
+
 
 ## 想寫更多功能?
 你可以將這個project fork回去寫更多功能
 
 * 在 [src](/src) 資料夾裡撰寫code
-* 記得讓 main.js 或其他檔案有import到你新增的檔案
+* 記得讓 main.js 或 其他檔案 有import你新增的檔案
 * 以 python3 執行 [MergeFile.py](/MergeFile.py)，一個合併好的檔案就會輸出到 [ACGNs-SoftwareScript.user.js](/ACGNs-SoftwareScript.user.js)
 
 ## 目前的功能
