@@ -1,8 +1,13 @@
-# ACGNs-SoftwareScript
+# ACGN-stock營利統計外掛 / SoftwareScript
 A script helps you play [acgn-stock.com](https://acgn-stock.com).
 
 一個幫助你在 [acgn-stock.com](https://acgn-stock.com) 獲得更豐富訊息的外掛
 ### ( 本外掛中包含置底廣告訊息！ )
+
+
+~~純粹因為中文太長，所以英文重新取名而不是照翻~~
+
+
 
 ## Install 安裝
 安裝方法請參考PTT教學文 [安裝外掛教學](https://www.ptt.cc/bbs/ACGN_stock/M.1516605924.A.516.html)
@@ -24,6 +29,7 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 * 帳面本益比 (未計算VIP加權股份時的本益比)
 * 排他本益比 (計算VIP加權股份後 真實的本益比)
 * 我的本益比 (依照使用者的VIP等級加權股份後得出的本益比)
+
 ![card-info](images/card.jpg)
 
 ### 帳號的更詳細資訊
@@ -38,10 +44,14 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 * 預估經理分紅
 * 預估員工分紅 (員工獎金 目前最高5%)
 * 預估推薦票獎勵 (包含系統獎金 與 員工1%獎勵)
+* 預估稅金 (以上方所有財產、預估獲益來預估下季稅金)
+
 ![account-info](images/accountInfo.jpg)
 
 ### 持股資訊總表
-在翻閱過帳號的相關訊息後，可以在底下查閱該帳號的持股總表 (欲更新資訊請重新打開該資料夾)
+在翻閱過帳號的相關訊息後，可以在底下查閱該帳號的持股總表 
+
+(欲更新資訊請重新打開該資料夾)
 * 股價
 * 營收
 * 持有股數 (賣單中的股份一併列出，以下同)
@@ -49,24 +59,31 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 * 股票總值
 * 預估分紅 (已計算VIP加權股份)
 * VIP等級
+
 ![hold-stocks-table](images/holdStocksTable.jpg)
 
 ### 一次查看更大量的紀錄
 在公司或帳號底下的 所以紀錄 翻閱過後，可以點選 大量紀錄 來一次顯示所有剛剛翻閱到的紀錄
 
 (頁面重新整理後紀錄不會留存)
+
 ![big-log](images/bigLog.jpg)
 
 ### 持有比例最多的公司
-在進入 股市總覽 過後，在外掛選單中點選 [列出最多持股公司] 依照持股比例由高到低列出所持股的公司 (重新整理列表請再點一次)
+在進入 股市總覽 過後，在外掛選單中點選 [列出最多持股公司] 依照持股比例由高到低列出所持股的公司 
+
+(重新整理列表請再點一次)
+
 ![most-stocks-company](images/mostStocksCompany.jpg)
 
 ### 資料搜尋
 透過指定的條件來搜尋存在外掛中股市資料
 
 (功能要求有外掛VIP資格才可使用)
+
 ![data-search](images/dataSearch.jpg)
 
 ### 廣告
 置底廣告
+
 ![ad](images/ad.jpg)
