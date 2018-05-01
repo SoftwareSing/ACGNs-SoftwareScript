@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.08.01
+// @version      5.08.02
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
