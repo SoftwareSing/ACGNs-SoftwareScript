@@ -1,3 +1,4 @@
+//start file: ./src/main.js
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
@@ -14,175 +15,158 @@
 //版本號為'主要版本號 + '.' + 次要版本號 + 錯誤修正版本號，ex 8.31.39
 //修復導致功能失效的錯誤或更新重大功能提升主要或次要版本號
 //優化UI，優化效能，優化小錯誤更新錯誤版本號
-//本腳本修改自 'ACGN股票系統每股營利外掛 2.200 by papago89'
 
 
-//這邊記一下每個storage的格式
-
-//localScriptAdUpdateTime       local
-//date
-
-//localScriptAd                  local
-//{adLinkType: ['_self', '_blank'],
-// adLink: ['/company/detail/NJbJuXaJxjJpzAJui', 'https://www.google.com.tw/'],
-// adData: ['&nbsp;message&nbsp;', 'miku'],
-// adFormat: ['a', 'aLink']}
-
-//localCompaniesUpdateTime        local
-//date
-
-//localCompanies規格               local
-//{companyID: String, name: String,
-// chairman: String, manager: String,
-// grade: String, capital: Number,
-// price: Number, release: Number, profit: Number,
-// vipBonusStocks: Number,
-// managerBonusRatePercent: Number,
-// capitalIncreaseRatePercent: Number,
-// salary: Number, nextSeasonSalary: Number, employeeBonusRatePercent: Number,
-// employeesNumber: Number, nextSeasonEmployeesNumber: Number
-// tags: Array,
-// createdAt: String
-//}
-
-//sessionUsers的格式         session
-//{userId: 'CWgfhqxbrJMxsknrb',
-// holdStocks: [{companyId: aaa, stocks: Number, vip: Number}, {}],
-// managers: [{companyId: aaa}, {}],
-// employee: 'aaa',
-// money: Number,
-// ticket: Number}
-
-//localScriptVipProductsUpdateTime        local
-//date
-
-//localScriptVipProducts
-// {
-//   userId: 'CWgfhqxbrJMxsknrb',
-//   products: [
-//     {
-//       productId: '5GEdNG5hjs85ahpxN',
-//       point: 100,
-//       amount: 0,
-//       companyId: 'NH2NhXHkpw8rTuQvx',
-//       description: 'ABC'
-//     }
-//   ]
-// }
-
-//localDisplayScriptAd    local
-// Boolean
-
+//-start file: ./src\Language/language.js
 /*************************************/
-/**************DebugMode**************/
+/**************Language***************/
 
-const debugMode = false;
-//debugMode == true 的時候，會console更多資訊供debug
+/**
+ * 語言翻譯
+ * @param {Array} target 目標語句
+ * @return {String} 回傳語句
+ */
+function translation(target) {
+  const language = 'tw';
 
-function debugConsole(msg) {
-  if (debugMode) {
-    console.log(msg);
-  }
+  return (dict[language][target[0]][target[1]]);
 }
 
+const dict = {
+  tw: {
+    script: {
+      name: 'SoftwareScript',
+      updateScript: '更新外掛',
+      vip: '外掛VIP',
+      showMostStockholdingCompany: '列出最多持股公司',
 
-/**************DebugMode**************/
-/*************************************/
-/*************************************/
-/*************StartScript*************/
+      bigLog: '大量紀錄'
+    },
+    companyList: {
+      stockAsset: '持有總值',
+      estimatedProfit: '預估分紅',
+      estimatedManagerProfit: '預估經理分紅',
+      peRatio: '帳面本益比',
+      peRatioVip: '排他本益比',
+      peRatioUser: '我的本益比'
+    },
+    accountInfo: {
+      estimatedTax: '預估稅金：',
+      holdingStockCompaniesNumber: '持股公司總數：',
+      stocksAsset: '股票總值：',
+      usedInSellOrdersStocksAsset: '賣單股票總值：',
+      usedInBuyOrdersMoney: '買單現金總值：',
+      estimatedStockProfit: '預估股票分紅：',
+      estimatedManagerProfit: '預估經理分紅：',
+      estimatedEmployeeBonus: '預估員工分紅：',
+      estimatedProductVotingRewards: '預估推薦票獎勵：',
 
-function checkSeriousError() {
-  //這個function將會清空所有由本插件控制的localStorage
-  //用於如果上一版發生嚴重錯誤導致localStorage錯亂，以致插件無法正常啟動時
-  //或是用於當插件更新時，需要重設localStorage
+      holdStocksTable: '持股資訊總表',
+      holdStocks: '持有股數',
+      holdPercentage: '持有比例',
+      stockAsset: '股票總值',
+      estimatedProfit: '預估分紅',
+      vipLevel: 'VIP等級',
+      notFoundCompany: 'not found company'
+    },
+    company: {
+      companyId: '公司ID',
+      name: '公司名稱',
+      chairman: '董事長',
+      manager: '經理人',
 
-  const seriousErrorVersion = 5.05;
-  //seriousErrorVersion會輸入有問題的版本號，當發生問題時我會增加本數字，或是於更新需要時亦會增加
-  //使用者本地的數字紀錄如果小於這個數字將會清空所有localStorage
+      grade: '公司評級',
+      capital: '資本額',
+      price: '股價',
+      release: '釋股數',
+      profit: '營收',
 
-  let lastErrorVersion = Number(window.localStorage.getItem('lastErrorVersion')) || 0;
-  //lastErrorVersion = 0;  //你如果覺得現在就有問題 可以把這行的註解取消掉來清空localStorage
+      vipBonusStocks: 'VIP加成股票數',
+      managerBonusRatePercent: '經理分紅百分比',
+      capitalIncreaseRatePercent: '資本額注入百分比',
 
-  if (Number.isNaN(lastErrorVersion)) {
-    lastErrorVersion = 0;
-    console.log('reset lastErrorVersion as 0');
-  }
-  else {
-    console.log('localStorage of lastErrorVersion is work');
-  }
+      salary: '員工日薪',
+      nextSeasonSalary: '下季員工日薪',
+      employeeBonusRatePercent: '員工分紅百分比',
+      employeesNumber: '員工數量',
+      nextSeasonEmployeesNumber: '下季員工數量',
 
-  if (lastErrorVersion < seriousErrorVersion) {
-    console.log('last version has serious error, start remove all localStorage');
-    window.localStorage.removeItem('localCompaniesUpdateTime');
-    window.localStorage.removeItem('localCompanies');
-    window.localStorage.removeItem('localScriptAdUpdateTime');
-    window.localStorage.removeItem('localScriptAd');
-    window.localStorage.removeItem('localScriptVipProductsUpdateTime');
-    window.localStorage.removeItem('localScriptVipProducts');
-    window.localStorage.removeItem('localDisplayScriptAd');
-    //window.localStorage.removeItem('localSearchTables');
-    window.sessionStorage.removeItem('sessionUsers');
-
-    // 舊資料
-    window.localStorage.removeItem('local_CsDatas_UpdateTime');
-    window.localStorage.removeItem('local_CsDatas');
-    window.localStorage.removeItem('local_scriptAD_UpdateTime');
-    window.localStorage.removeItem('local_scriptAD');
-    window.localStorage.removeItem('local_dataSearch');
-    window.localStorage.removeItem('local_scriptAD_use');
-    window.localStorage.removeItem('local_scriptVIP_UpdateTime');
-    window.localStorage.removeItem('local_scriptVIP');
-
-    window.localStorage.removeItem('lastErrorVersion');
-    lastErrorVersion = seriousErrorVersion;
-    window.localStorage.setItem('lastErrorVersion', JSON.stringify(lastErrorVersion));
-  }
-}
-
-function checkScriptUpdate() {
-  const oReq = new XMLHttpRequest();
-  const checkScriptVersion = (() => {
-    const obj = JSON.parse(oReq.responseText);
-    const myVersion = GM_info.script.version; // eslint-disable-line camelcase
-    console.log(obj.version.substr(0, 4) + ',' + myVersion.substr(0, 4) + ',' + (obj.version.substr(0, 4) > myVersion.substr(0, 4)));
-    if (obj.version.substr(0, 4) > myVersion.substr(0, 4)) {
-      const updateButton = $(`
-        <li class='nav-item'>
-          <a class='nav-link btn btn-primary'
-          href='https://greasyfork.org/zh-TW/scripts/33542'
-          name='updateSoftwareScript'
-          target='Blank'
-          >${translation(['script', 'updateScript'])}</a>
-        </li>
-      `);
-      updateButton.insertAfter($('.nav-item')[$('.nav-item').length - 1]);
+      tags: '標籤',
+      createdAt: '創立時間'
     }
-    else {
-      setTimeout(checkScriptUpdate, 600000);
+  },
+  en: {
+    script: {
+      name: 'SoftwareScript',
+      updateScript: 'update Script',
+      vip: 'script VIP',
+      showMostStockholdingCompany: 'show most stocks company',
+
+      bigLog: 'Big log'
+    },
+    companyList: {
+      stockAsset: 'Stock asset',
+      estimatedProfit: 'Estimated profit',
+      estimatedManagerProfit: 'Estimated manager profit',
+      peRatio: 'fake P/E Ratio',
+      peRatioVip: 'truly P/E Ratio',
+      peRatioUser: 'my P/E Ratio'
+    },
+    accountInfo: {
+      estimatedTax: 'Estimated tax：',
+      holdingStockCompaniesNumber: 'Holding stock companies number：',
+      stocksAsset: 'Stocks asset：',
+      usedInSellOrdersStocksAsset: 'Used in sell orders stocks asset：',
+      usedInBuyOrdersMoney: 'Used in buy orders money：',
+      estimatedStockProfit: 'Estimated stock profit：',
+      estimatedManagerProfit: 'Estimated manager profit：',
+      estimatedEmployeeBonus: 'Estimated employee profit：',
+      estimatedProductVotingRewards: 'Estimated Product Voting Rewards：',
+
+      holdStocksTable: 'Hold stocks info table',
+      holdStocks: 'Hold stock number',
+      holdPercentage: 'Hold percentage',
+      stockAsset: 'Stock asset',
+      estimatedProfit: 'Estimated profit',
+      vipLevel: 'VIP level',
+      notFoundCompany: 'not found company'
+    },
+    company: {
+      companyId: 'company\'s ID',
+      name: 'name',
+      chairman: 'chairman',
+      manager: 'manager',
+
+      grade: 'grade',
+      capital: 'capital',
+      price: 'price',
+      release: 'release',
+      profit: 'profit',
+
+      vipBonusStocks: 'Vip bonus stocks',
+      managerBonusRatePercent: 'Manager bonus rate percent',
+      capitalIncreaseRatePercent: 'Capital increase rate percent',
+
+      salary: 'Employees daily salary',
+      nextSeasonSalary: 'Employees daily salary for next season',
+      employeeBonusRatePercent: 'Employee bonus rate percent',
+      employeesNumber: 'Employees number',
+      nextSeasonEmployeesNumber: 'Employees number for next season',
+
+      tags: 'tags',
+      createdAt: 'Created time'
     }
-  });
-  oReq.addEventListener('load', checkScriptVersion);
-  oReq.open('GET', 'https://greasyfork.org/scripts/33542.json');
-  oReq.send();
-}
+  }
+};
 
-
-(function() {
-  checkSeriousError();
-  checkScriptUpdate();
-
-  setTimeout(startScript, 0);
-})();
-
-function startScript() {
-  const main = new MainController();
-  main.checkCloudUpdate();
-  main.showScriptAd();
-}
-
-
-/*************StartScript*************/
+/**************Language***************/
 /*************************************/
+//-end file: ./src\Language/language.js
+// ===========================
+//-start file: ./src\Global/MainController.js
+//--start file: ./src\User/LoginUser.js
+//---start file: ./src\User/User.js
+//----start file: ./src/require.js
 /*************************************/
 /***************import****************/
 
@@ -200,9 +184,39 @@ const { dbLog } = require('./db/dbLog.js');
 
 /***************import****************/
 /*************************************/
+//----end file: ./src/require.js
+//    ===========================
+//----start file: ./src\functions/debugConsole.js
 /*************************************/
-/**************function***************/
+/**************DebugMode**************/
 
+const debugMode = false;
+//debugMode == true 的時候，會console更多資訊供debug
+
+function debugConsole(msg) {
+  if (debugMode) {
+    console.log(msg);
+  }
+}
+
+
+/**************DebugMode**************/
+/*************************************/
+//----end file: ./src\functions/debugConsole.js
+//    ===========================
+//----start file: ./src\functions/getLocalCompanies.js
+/**
+ * 獲取在localStorage中的localCompanies
+ * @return {Array} localCompanies
+ */
+function getLocalCompanies() {
+  const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
+
+  return localCompanies;
+}
+//----end file: ./src\functions/getLocalCompanies.js
+//    ===========================
+//----start file: ./src\functions/earnPerShare.js
 /**
  * 計算每股盈餘(包含VIP排他)
  * @param {Company} company 公司物件
@@ -221,7 +235,9 @@ function earnPerShare(company) {
 
   return ((company.profit * stocksProfitPercent) / (company.release + company.vipBonusStocks));
 }
-
+//----end file: ./src\functions/earnPerShare.js
+//    ===========================
+//----start file: ./src\functions/effectiveStocks.js
 /**
  * 依照股票與vipLV計算有效分紅股票
  * @param {Number} stock 股票數
@@ -233,878 +249,8 @@ function effectiveStocks(stock, vipLevel) {
 
   return (stock * vipBonusFactor);
 }
-
-/**
- * 過濾字串
- * @param {String} s 被過濾的字串
- * @return {String} 過濾完的字串
- */
-function stripscript(s) {
-  const pattern = new RegExp(`[\`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]`);
-  let rs = '';
-  for (let i = 0; i < s.length; i += 1) {
-    rs = rs + s.substr(i, 1).replace(pattern, '');
-  }
-
-  return rs;
-}
-
-/**
- * 獲取在localStorage中的localCompanies
- * @return {Array} localCompanies
- */
-function getLocalCompanies() {
-  const localCompanies = JSON.parse(window.localStorage.getItem('localCompanies')) || [];
-
-  return localCompanies;
-}
-
-/**************function***************/
-/*************************************/
-/*************************************/
-/****************class****************/
-
-class MainController {
-  constructor() {
-    this.loginUser = new LoginUser();
-    this.serverType = 'normal';
-    const currentServer = document.location.href;
-    const serverTypeTable = [
-      { type: /museum.acgn-stock.com/, typeName: 'museum' },
-      { type: /test.acgn-stock.com/, typeName: 'test' }
-    ];
-    serverTypeTable.forEach(({ type, typeName }) => {
-      if (currentServer.match(type)) {
-        this.serverType = typeName;
-      }
-    });
-    this.othersScript = [];
-
-    const softwareScriptRoute = FlowRouter.group({
-      prefix: '/SoftwareScript',
-      name: 'softwareScriptRoute'
-    });
-    softwareScriptRoute.route('/', {
-      name: 'softwareScript',
-      action() {
-        DocHead.setTitle(`${Meteor.settings.public.websiteName} - ${translation(['script', 'name'])}`);
-      }
-    });
-    softwareScriptRoute.route('/scriptVIP', {
-      name: 'softwareScriptVip',
-      action() {
-        DocHead.setTitle(`${Meteor.settings.public.websiteName} - ${translation(['script', 'name'])} - ${translation(['script', 'vip'])}`);
-      }
-    });
-    softwareScriptRoute.route('/blankPage', {
-      name: 'blankPage',
-      action() {
-        DocHead.setTitle(`${Meteor.settings.public.websiteName} - blank page`);
-      }
-    });
-
-    this.scriptView = new ScriptView(this);
-    this.scriptView.displayDropDownMenu();
-    this.scriptView.displayScriptMenu();
-
-    this.companyListController = new CompanyListController(this.loginUser);
-    this.companyDetailController = new CompanyDetailController(this.loginUser);
-    this.accountInfoController = new AccountInfoController(this.loginUser);
-    this.scriptVipController = new ScriptVipController(this.loginUser);
-  }
-
-  checkCloudUpdate() {
-    const cloudUpdater = new CloudUpdater(this.serverType);
-    cloudUpdater.checkCompaniesUpdate();
-    cloudUpdater.checkScriptAdUpdate();
-    cloudUpdater.checkScriptVipProductsUpdate();
-  }
-
-  showScriptAd() {
-    const scriptAd = new ScriptAd();
-    scriptAd.removeScriptAd();
-    scriptAd.displayScriptAd();
-  }
-
-  showMostStockholdingCompany() {
-    console.log(`start showMostStockholdingCompany()`);
-
-    const max = 30;
-    const holdStocks = this.loginUser.findMostStockholdingCompany();
-    const list = [];
-    const localCompanies = getLocalCompanies();
-    let i = 0;
-    for (const company of holdStocks) {
-      i += 1;
-      if (i > max) {
-        break;
-      }
-
-      const companyData = localCompanies.find((x) => {
-        return (x.companyId === company.companyId);
-      });
-      list.push({
-        companyId: company.companyId,
-        name: companyData ? companyData.name : '[unknow]'
-      });
-    }
-
-    this.scriptView.displayMostStockholdingCompany(list);
-
-    console.log(`end showMostStockholdingCompany()`);
-  }
-}
-
-/**
- * 用來連線雲端以更新資料
- */
-class CloudUpdater {
-  /**
-   * 建構CloudUpdater
-   * @param {*} serverType 現在連的股市伺服器
-   */
-  constructor(serverType) {
-    this.serverType = serverType;
-
-    const myVersion = GM_info.script.version; // eslint-disable-line camelcase
-    this.version = Number(myVersion.substr(0, 4));
-  }
-
-  /**
-   * 以非同步方式取得另外整理過的公司資料 json
-   * @param {String} url 資料的網址
-   * @return {function} 可以用來更新資料的function
-   */
-  getWebData(url) {
-    let webObjCache = null;
-
-    const webUrl = String(url);
-    const request = new XMLHttpRequest();
-    request.open('GET', webUrl); // 非同步 GET
-    request.addEventListener('load', () => {
-      debugConsole('got webData');
-      try {
-        webObjCache = JSON.parse(request.responseText);
-      }
-      catch (err) {
-        webObjCache = request.responseText;
-      }
-    });
-    request.send();
-
-    return (callback) => {
-      // 若快取資料存在，則直接回傳快取
-      if (webObjCache !== null) {
-        callback(webObjCache);
-
-        return;
-      }
-
-      // 若無快取資料，則加入事件監聽，等載入後再回傳資料
-      request.addEventListener('load', function() {
-        callback(webObjCache);
-      });
-    };
-  }
-
-  checkUpdateTime(url, localUpdateTime, updater) {
-    const cloud = this.getWebData(url);
-    cloud((cloudInfo) => {
-      const cloudTime = cloudInfo.updateTime;
-      const conformedVersion = Number(cloudInfo.conformedVersion);
-      console.log(`cloud url: ${url}`);
-      console.log(`${localUpdateTime} === ${cloudTime}: ${localUpdateTime === cloudTime}`);
-      console.log(`${this.version} >= ${conformedVersion}: ${this.version >= conformedVersion}`);
-      if (cloudTime === localUpdateTime) {
-        console.log(`cloud don't have new data`);
-        console.log('');
-      }
-      else if (this.version >= conformedVersion) {
-        console.log(`cloud have new data`);
-        console.log('');
-        updater(cloudTime);
-      }
-      else {
-        console.log(`script version(${this.version}) is too old, can not update`);
-        console.log(`cloud data only supports version ${conformedVersion} or later`);
-        console.log('');
-      }
-    });
-  }
-
-  checkCompaniesUpdate() {
-    let timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/updateInfo.json';
-    let dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/companies.json';
-    if (this.serverType === 'museum') {
-      dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/companys.json';
-      timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/updateTime.json';
-    }
-
-    const updater = (cloudTime) => {
-      const cloud = this.getWebData(dataUrl);
-      cloud((cloudData) => {
-        const inputData = cloudData || [];
-        window.localStorage.setItem('localCompanies', JSON.stringify(inputData));
-        const inputTime = cloudTime || 'null';
-        window.localStorage.setItem('localCompaniesUpdateTime', JSON.stringify(inputTime));
-
-        console.log(`localCompanies update complete`);
-      });
-    };
-    const localCompaniesUpdateTime = JSON.parse(window.localStorage.getItem('localCompaniesUpdateTime')) || 'null';
-    this.checkUpdateTime(timeUrl, localCompaniesUpdateTime, updater);
-  }
-
-  checkScriptAdUpdate() {
-    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/updateInfo.json';
-    const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/AD.json';
-
-    const updater = (cloudTime) => {
-      const cloud = this.getWebData(dataUrl);
-      cloud((cloudData) => {
-        const inputData = cloudData || [];
-        window.localStorage.setItem('localScriptAd', JSON.stringify(inputData));
-        const inputTime = cloudTime || 'null';
-        window.localStorage.setItem('localScriptAdUpdateTime', JSON.stringify(inputTime));
-
-        const scriptAd = new ScriptAd();
-        scriptAd.removeScriptAd();
-        scriptAd.displayScriptAd();
-
-        console.log(`scriptAd update complete`);
-      });
-    };
-    const localScriptAdUpdateTime = JSON.parse(window.localStorage.getItem('localScriptAdUpdateTime')) || 'null';
-    this.checkUpdateTime(timeUrl, localScriptAdUpdateTime, updater);
-  }
-
-  checkScriptVipProductsUpdate() {
-    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/updateInfo.json';
-    const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/scriptVipProducts.json';
-
-    const updater = (cloudTime) => {
-      const cloud = this.getWebData(dataUrl);
-      cloud((cloudData) => {
-        const inputData = cloudData || [];
-        const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
-        const defaultUser = {
-          userId: 'default',
-          products: inputData
-        };
-        const j = localScriptVipProducts.findIndex((x) => {
-          return (x.userId === defaultUser.userId);
-        });
-        if (j === -1) {
-          localScriptVipProducts.push(defaultUser);
-        }
-        localScriptVipProducts.forEach((user, i, array) => {
-          array[i].products = inputData;
-        });
-
-        window.localStorage.setItem('localScriptVipProducts', JSON.stringify(localScriptVipProducts));
-
-
-        const inputTime = cloudTime || 'null';
-        window.localStorage.setItem('localScriptVipProductsUpdateTime', JSON.stringify(inputTime));
-
-        console.log(`scriptVipProducts update complete`);
-      });
-    };
-    const localScriptVipProductsUpdateTime = JSON.parse(window.localStorage.getItem('localScriptVipProductsUpdateTime')) || 'null';
-    this.checkUpdateTime(timeUrl, localScriptVipProductsUpdateTime, updater);
-  }
-}
-
-class ScriptVip {
-  constructor(user) {
-    this.user = user;
-    this.products = [];
-
-    const load = this.loadFromLocalstorage();
-    if (! load) {
-      this.updateToLocalstorage();
-    }
-  }
-
-  updateToLocalstorage() {
-    const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
-    const i = localScriptVipProducts.findIndex((x) => {
-      return (x.userId === this.user.userId);
-    });
-    if (i !== -1) {
-      localScriptVipProducts[i].products = this.products;
-    }
-    else {
-      localScriptVipProducts.push({
-        userId: this.user.userId,
-        products: this.products
-      });
-    }
-    window.localStorage.setItem('localScriptVipProducts', JSON.stringify(localScriptVipProducts));
-  }
-  loadFromLocalstorage() {
-    const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
-    const data = localScriptVipProducts.find((x) => {
-      return (x.userId === this.user.userId);
-    });
-    if (data !== undefined) {
-      this.products = data.products;
-
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-
-  vipLevel() {
-    let point = 0;
-    for (const product of this.products) {
-      point += product.point * product.amount;
-    }
-
-    const vipLevelTable = [
-      {level: 0, point: 390},
-      {level: 1, point: Infinity}
-    ];
-    const { level } = vipLevelTable.find((v) => {
-      return (point < v.point);
-    });
-
-    return level;
-  }
-
-  updateProducts() {
-    this.loadFromLocalstorage();
-
-    const serverUserOwnedProducts = dbUserOwnedProducts.find({ userId: this.user.userId}).fetch();
-    let isChange = false;
-    for (const p of serverUserOwnedProducts) {
-      const i = this.products.findIndex((x) => {
-        return (x.productId === p.productId);
-      });
-      if (i !== -1) {
-        isChange = true;
-        this.products[i].amount = p.amount;
-      }
-    }
-
-    if (isChange) {
-      this.updateToLocalstorage();
-    }
-  }
-}
-
-//監聽頁面，資料準備完成時執行event
-//不應該直接呼叫，他應該被繼承
-//使用例:
-// class CompanyDetailController extends EventController {
-//   constructor(user) {
-//     super('CompanyDetailController', user);
-//     this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', this.startEvent);
-//     this.templateListener(Template.companyDetail, 'Template.companyDetail', this.startEvent2);
-//   }
-//   startEvent() {
-//     console.log('companyDetailContentNormal success');
-//     console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
-//     console.log('');
-//   }
-//   startEvent2() {
-//     console.log('companyDetail success');
-//     console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
-//     console.log('');
-//   }
-// }
-
-/**
- * 頁面的Controller
- */
-class EventController {
-  /**
-   * 建構 EventController
-   * @param {String} controllerName 名字
-   * @param {LoginUser} loginUser 登入的使用者
-   */
-  constructor(controllerName, loginUser) {
-    console.log(`create controller: ${controllerName}`);
-    this.loginUser = loginUser;
-  }
-
-  /**
-   * 監聽是否載入完成，完成後呼叫callback
-   * @param {Template} template 監聽的Template
-   * @param {String} templateName 監聽的Template的名字，用於console
-   * @param {function} callback callbock
-   * @return {void}
-   */
-  templateListener(template, templateName, callback) {
-    template.onCreated(function() {
-      const rIsDataReady = new ReactiveVar(false);
-      this.autorun(() => {
-        rIsDataReady.set(this.subscriptionsReady());
-      });
-      this.autorun(() => {
-        if (rIsDataReady.get()) {
-          console.log(`${templateName} loaded`);
-          callback();
-        }
-        else {
-          console.log(`${templateName} is loading`);
-        }
-      });
-    });
-  }
-
-  /**
-   * 資料夾監聽器，監聽到點擊後呼叫callback
-   * @param {String} panelFolderName 資料夾的名稱
-   * @param {Function} callback callback
-   * @return {void}
-   */
-  panelFolderListener(panelFolderName, callback) {
-    Template.panelFolder.events({
-      'click [data-toggle-panel-folder]'(event, templateInstance) {
-        const { name } = templateInstance.data;
-        if (name === panelFolderName) {
-          setTimeout(() => {
-            callback();
-          }, 0);
-        }
-      }
-    });
-  }
-}
-
-/**
- * View
- */
-class View {
-  /**
-   * 建構 View
-   * @param {String} name View的name
-   */
-  constructor(name) {
-    console.log(`create View: ${name}`);
-  }
-
-  /**
-   * 創建內部用H2元素的資訊列
-   * @param {{name: String, leftText: String, rightText: String, customSetting: {left, right}, textOnly: Boolean}} options 設定
-   * @return {jquery.$div} HTML元素
-   */
-  createH2Info(options) {
-    const name = options.name || 'defaultName';
-    options.customSetting = (options.customSetting) || {};
-    const customSetting = {
-      left: options.customSetting.left || '',
-      right: options.customSetting.right || ''
-    };
-    const leftText = options.leftText || '';
-    const rightText = options.rightText || '';
-    const textOnly = options.textOnly || false;
-
-    let r = (`
-      <div class='media border-grid-body' name='${name}'>
-        <div class='col-6 text-right border-grid' name='${name}' id='h2Left'>
-          <h2 name='${name}' id='h2Left' ${customSetting.left}>${leftText}</h2>
-        </div>
-        <div class='col-6 text-right border-grid' name='${name}' id='h2Right'>
-          <h2 name='${name}' id='h2Right' ${customSetting.right}>${rightText}</h2>
-        </div>
-      </div>
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-
-  /**
-   * 創建table元素
-   * @param {{name: String, tHead: Array, tBody: Array, customSetting: {table: String, tHead: String, tBody: String}, textOnly: Boolean}} options 設定
-   * @return {jquery.$table} table元素
-   */
-  createTable(options) {
-    const name = options.name || 'defaultName';
-    options.customSetting = (options.customSetting) || {};
-    const customSetting = {
-      table: options.customSetting.table || '',
-      tHead: options.customSetting.tHead || '',
-      tBody: options.customSetting.tBody || ''
-    };
-    const tHead = options.tHead || [];
-    const tBody = options.tBody || [];
-    const textOnly = options.textOnly || false;
-
-    let head = '';
-    head += `<tr>`;
-    for (const h of tHead) {
-      head += `<th name=${name} ${customSetting.tHead}>${h}</th>`;
-    }
-    head += `</tr>`;
-
-    let body = '';
-    for (const row of tBody) {
-      body += `<tr>`;
-      for (const column of row) {
-        body += `<td name=${name} ${customSetting.tBody}>${column}</td>`;
-      }
-      body += `</tr>`;
-    }
-
-    let r = (`
-      <table border='1' name=${name} ${customSetting.table}>
-        <thead name=${name}>
-          ${head}
-        </thead>
-        <tbody name=${name}>
-          ${body}
-        </tbody>
-      </table>
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-
-  /**
-   * 創建button元素.
-   * size預設為'btn-sm', color預設為'btn-info'
-   * @param {{name: String, size: String, color: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
-   * @return {jquery.$button} button元素
-   */
-  createButton(options) {
-    const name = options.name || 'defaultName';
-    const customSetting = options.customSetting || '';
-    const size = options.size || 'btn-sm';
-    const color = options.color || 'btn-info';
-    const text = options.text || 'default';
-    const textOnly = options.textOnly || false;
-
-    let r = (`
-      <button class='btn ${color} ${size}' name='${name}' ${customSetting}>${text}</button>
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-
-  /**
-   * 創建select元素.
-   * @param {{name: String, customSetting: String, textOnly: Boolean}} options 設定
-   * @return {jquery.$select} select元素
-   */
-  createSelect(options) {
-    const name = options.name || 'defaultName';
-    const customSetting = options.customSetting || '';
-    const textOnly = options.textOnly || false;
-
-    let r = (`
-      <select class='form-control' name='${name}' ${customSetting}>
-      </select>
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-
-  /**
-   * 創建option元素.
-   * text同時用於 顯示文字 與 指定的value
-   * @param {{name: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
-   * @return {jquery.$option} select元素
-   */
-  createSelectOption(options) {
-    const name = options.name || 'defaultName';
-    const customSetting = options.customSetting || '';
-    const text = options.text || 'defaultText';
-    const textOnly = options.textOnly || false;
-
-    let r = (`
-      <option name='${name}' value='${text}' ${customSetting}>${text}</option>
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-
-  /**
-   * 創建input元素.
-   * @param {{name: String, defaultText: String, placeholder: String, type: String, customSetting: String, textOnly: Boolean}} options 設定
-   * @return {jquery.$input} input元素
-   */
-  createInput(options) {
-    const name = options.name || 'defaultName';
-    const customSetting = options.customSetting || '';
-    const defaultValue = options.defaultValue || '';
-    const placeholder = options.placeholder || '';
-    const type = options.type || 'text';
-    const textOnly = options.textOnly || false;
-
-    let r = (`
-      <input class='form-control'
-        name='${name}'
-        type='${type}'
-        placeholder='${placeholder}'
-        value='${defaultValue}'
-        ${customSetting}
-      />
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-
-  /**
-   * 創建a元素.
-   * 如不需要超連結 僅純顯示文字 請不要設定href,
-   * 如不需要新開頁面 則不用設定target
-   * @param {{name: String, href: String, target: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
-   * @return {jquery.$a} a元素
-   */
-  createA(options) {
-    const name = options.name || 'defaultName';
-    const customSetting = options.customSetting || '';
-    const href = options.href ? `href='${options.href}'` : '';
-    const target = options.target ? `target='${options.target}'` : '';
-    const text = options.text || '';
-    const textOnly = options.textOnly || false;
-
-    let r = (`
-      <a class='float-left'
-        name='${name}'
-        ${href}
-        ${target}
-        ${customSetting}
-      >${text}</a>
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-
-  /**
-   * 創建DropDownMenu
-   * @param {{name: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
-   * @return {jquery.$div} DropDownMenu
-   */
-  createDropDownMenu(options) {
-    const name = options.name || 'defaultName';
-    const customSetting = options.customSetting || '';
-    const text = options.text || '';
-    const textOnly = options.textOnly || false;
-
-    let r = (`
-      <div class='note' name='${name}'>
-        <li class='nav-item dropdown text-nowrap' name='${name}'>
-          <a class='nav-link dropdown-toggle' href='#' data-toggle='dropdown' name='${name}' ${customSetting}>${text}</a>
-          <div class='dropdown-menu px-3 nav-dropdown-menu'
-            aria-labelledby='navbarDropdownMenuLink'
-            name='${name}'>
-            <div name='${name}' id='afterThis'>
-            <div name='${name}' id='beforeThis'>
-            </div>
-          </div>
-        </li>
-      </div>
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-
-  /**
-   * 創建DropDownMenu的option
-   * @param {{name: String, text: String, href: String, target: String, customSetting: String, textOnly: Boolean}} options 設定
-   * @return {jquery.$li} DropDownMenu的option
-   */
-  createDropDownMenuOption(options) {
-    const name = options.name || 'defaultName';
-    const customSetting = options.customSetting || '';
-    const text = options.text || '';
-    const href = options.href ? `href='${options.href}'` : '';
-    const target = options.target ? `target='${options.target}'` : '';
-    const textOnly = options.textOnly || false;
-
-    let r = (`
-      <li class='nav-item' name='${name}'>
-        <a class='nav-link text-truncate'
-          name='${name}'
-          ${href}
-          ${target}
-          ${customSetting}
-        >${text}</a>
-      </li>
-    `);
-    if (! textOnly) {
-      r = $(r);
-    }
-
-    return r;
-  }
-}
-
-/**
- * 控制所有頁面都看的到的物件的View
- */
-class ScriptView extends View {
-  /**
-   * 建構 ScriptView
-   * @param {MainController} controller controller
-   */
-  constructor(controller) {
-    super('ScriptView');
-    this.controller = controller;
-  }
-
-  displayDropDownMenu() {
-    const displayObject = this.createDropDownMenu({
-      name: 'softwareScriptMenu',
-      text: (translation(['script', 'name']))
-    });
-
-    $(`div[name='softwareScriptMenu']`).remove();
-    const afterObject = $(`div[class='note']`)[2];
-    displayObject.insertAfter(afterObject);
-  }
-  /**
-   * 在外掛的下拉選單顯示輸入的物件
-   * @param {{name: String, text: String, href: String, target: String, customSetting: String}} options 顯示的物件
-   * @param {$jquerySelect} beforeObject insertBefore的物件
-   * @return {void}
-   */
-  displayDropDownMenuOption(options, beforeObject) {
-    const name = options.name;
-    const customSetting = options.customSetting;
-    const text = options.text;
-    const href = options.href;
-    const target = options.target;
-    const displayObject = this.createDropDownMenuOption({
-      name: name,
-      customSetting: customSetting,
-      text: text,
-      href: href,
-      target: target
-    });
-
-    displayObject.insertBefore(beforeObject);
-  }
-
-  displayScriptMenu() {
-    const beforeDiv = $(`div[id='beforeThis'][name='softwareScriptMenu']`)[0];
-    this.displayDropDownMenuOption(
-      {
-        name: 'scriptVipPage',
-        text: translation(['script', 'vip']),
-        href: '/SoftwareScript/scriptVIP'
-      },
-      beforeDiv
-    );
-
-    const hr = $(`<hr name='mostStocksCompany' />`);
-    hr.insertBefore(beforeDiv);
-    this.displayDropDownMenuOption(
-      {
-        name: 'showMostStockholdingCompany',
-        text: translation(['script', 'showMostStockholdingCompany']),
-        href: '#',
-        customSetting: `style='font-size: 13px;'`
-      },
-      beforeDiv
-    );
-    $(`a[name='showMostStockholdingCompany']`)[0].addEventListener('click', () => {
-      this.controller.showMostStockholdingCompany();
-    });
-  }
-  /**
-   * 顯示最多持股公司列表
-   * @param {Array} list 要顯示的列表
-   * @return {void}
-   */
-  displayMostStockholdingCompany(list) {
-    $(`li[class='nav-item'][name='mostStockholdingCompany']`).remove();
-
-    const beforeDiv = $(`div[id='beforeThis'][name='softwareScriptMenu']`)[0];
-    for (const company of list) {
-      this.displayDropDownMenuOption(
-        {
-          name: 'mostStockholdingCompany',
-          text: company.name,
-          href: `/company/detail/${company.companyId}`
-        },
-        beforeDiv
-      );
-    }
-  }
-}
-
-/**
- * 外掛廣告
- */
-class ScriptAd {
-  constructor() {
-    console.log('create: ScriptAd');
-  }
-
-  /**
-   * 回傳廣告顯示的文字
-   * @param {Boolean} demo 是否用於demo
-   * @return {String} HTML代碼
-   */
-  createAdMsg(demo) {
-    const demoType = demo ? `demo='true'` : `demo='false'`;
-    const localScriptAd = JSON.parse(window.localStorage.getItem('localScriptAd')) || {};
-    let msg = `<a class='float-left' name='scriptAd' id='0'>&nbsp;&nbsp;</a>`;
-    let linkNumber = 0;
-
-    if (localScriptAd.adFormat) {
-      for (let i = 0; i < localScriptAd.adFormat.length; i += 1) {
-        if (localScriptAd.adFormat[i] === 'a') {
-          msg += `<a class='float-left' name='scriptAd' id='${i + 1}' ${demoType}>${localScriptAd.adData[i]}</a>`;
-        }
-        else if (localScriptAd.adFormat[i] === 'aLink') {
-          const linkType = localScriptAd.adLinkType[linkNumber];
-          let type = '';
-          if ((linkType === '_blank') || (linkType === '_parent') || (linkType === '_top')) {
-            type = `target='${linkType}'`;
-          }
-          const href = `href='${localScriptAd.adLink[linkNumber]}'`;
-          msg += `<a class='float-left' name='scriptAd' id='${i + 1}' ${demoType} ${type} ${href}>${localScriptAd.adData[i]}</a>`;
-
-          linkNumber += 1;
-        }
-      }
-    }
-
-    return msg;
-  }
-
-  displayScriptAd() {
-    const msg = this.createAdMsg(false);
-    const afterObject = $(`a[class='text-danger float-left'][href='https://github.com/mrbigmouth/acgn-stock/issues']`)[0];
-    $(msg).insertAfter(afterObject);
-  }
-
-  removeScriptAd() {
-    $(`a[name='scriptAd'][demo='false']`).remove();
-  }
-}
-
+//----end file: ./src\functions/effectiveStocks.js
+//    ===========================
 
 /**
  * 用於存放AccountInfo頁面中的user資訊
@@ -1553,6 +699,95 @@ class User {
     return holdStocks;
   }
 }
+//---end file: ./src\User/User.js
+//   ===========================
+//---start file: ./src\User/ScriptVip.js
+
+class ScriptVip {
+  /**
+   * ScriptVip constructor
+   * @param {LoginUser} user LoginUser
+   */
+  constructor(user) {
+    this.user = user;
+    this.products = [];
+
+    const load = this.loadFromLocalstorage();
+    if (! load) {
+      this.updateToLocalstorage();
+    }
+  }
+
+  updateToLocalstorage() {
+    const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
+    const i = localScriptVipProducts.findIndex((x) => {
+      return (x.userId === this.user.userId);
+    });
+    if (i !== -1) {
+      localScriptVipProducts[i].products = this.products;
+    }
+    else {
+      localScriptVipProducts.push({
+        userId: this.user.userId,
+        products: this.products
+      });
+    }
+    window.localStorage.setItem('localScriptVipProducts', JSON.stringify(localScriptVipProducts));
+  }
+  loadFromLocalstorage() {
+    const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
+    const data = localScriptVipProducts.find((x) => {
+      return (x.userId === this.user.userId);
+    });
+    if (data !== undefined) {
+      this.products = data.products;
+
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  vipLevel() {
+    let point = 0;
+    for (const product of this.products) {
+      point += product.point * product.amount;
+    }
+
+    const vipLevelTable = [
+      {level: 0, point: 390},
+      {level: 1, point: Infinity}
+    ];
+    const { level } = vipLevelTable.find((v) => {
+      return (point < v.point);
+    });
+
+    return level;
+  }
+
+  updateProducts() {
+    this.loadFromLocalstorage();
+
+    const serverUserOwnedProducts = dbUserOwnedProducts.find({ userId: this.user.userId}).fetch();
+    let isChange = false;
+    for (const p of serverUserOwnedProducts) {
+      const i = this.products.findIndex((x) => {
+        return (x.productId === p.productId);
+      });
+      if (i !== -1) {
+        isChange = true;
+        this.products[i].amount = p.amount;
+      }
+    }
+
+    if (isChange) {
+      this.updateToLocalstorage();
+    }
+  }
+}
+//---end file: ./src\User/ScriptVip.js
+//   ===========================
 
 /**
  * 目前登入中的使用者
@@ -1700,8 +935,694 @@ class LoginUser extends User {
     this.scriptVip.updateProducts();
   }
 }
+//--end file: ./src\User/LoginUser.js
+//  ===========================
+//--start file: ./src\Global/ScriptView.js
+//---start file: ./src\Global/View.js
+/**
+ * View
+ */
+class View {
+  /**
+   * 建構 View
+   * @param {String} name View的name
+   */
+  constructor(name) {
+    console.log(`create View: ${name}`);
+  }
+
+  /**
+   * 創建內部用H2元素的資訊列
+   * @param {{name: String, leftText: String, rightText: String, customSetting: {left, right}, textOnly: Boolean}} options 設定
+   * @return {jquery.$div} HTML元素
+   */
+  createH2Info(options) {
+    const name = options.name || 'defaultName';
+    options.customSetting = (options.customSetting) || {};
+    const customSetting = {
+      left: options.customSetting.left || '',
+      right: options.customSetting.right || ''
+    };
+    const leftText = options.leftText || '';
+    const rightText = options.rightText || '';
+    const textOnly = options.textOnly || false;
+
+    let r = (`
+      <div class='media border-grid-body' name='${name}'>
+        <div class='col-6 text-right border-grid' name='${name}' id='h2Left'>
+          <h2 name='${name}' id='h2Left' ${customSetting.left}>${leftText}</h2>
+        </div>
+        <div class='col-6 text-right border-grid' name='${name}' id='h2Right'>
+          <h2 name='${name}' id='h2Right' ${customSetting.right}>${rightText}</h2>
+        </div>
+      </div>
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+
+  /**
+   * 創建table元素
+   * @param {{name: String, tHead: Array, tBody: Array, customSetting: {table: String, tHead: String, tBody: String}, textOnly: Boolean}} options 設定
+   * @return {jquery.$table} table元素
+   */
+  createTable(options) {
+    const name = options.name || 'defaultName';
+    options.customSetting = (options.customSetting) || {};
+    const customSetting = {
+      table: options.customSetting.table || '',
+      tHead: options.customSetting.tHead || '',
+      tBody: options.customSetting.tBody || ''
+    };
+    const tHead = options.tHead || [];
+    const tBody = options.tBody || [];
+    const textOnly = options.textOnly || false;
+
+    let head = '';
+    head += `<tr>`;
+    for (const h of tHead) {
+      head += `<th name=${name} ${customSetting.tHead}>${h}</th>`;
+    }
+    head += `</tr>`;
+
+    let body = '';
+    for (const row of tBody) {
+      body += `<tr>`;
+      for (const column of row) {
+        body += `<td name=${name} ${customSetting.tBody}>${column}</td>`;
+      }
+      body += `</tr>`;
+    }
+
+    let r = (`
+      <table border='1' name=${name} ${customSetting.table}>
+        <thead name=${name}>
+          ${head}
+        </thead>
+        <tbody name=${name}>
+          ${body}
+        </tbody>
+      </table>
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+
+  /**
+   * 創建button元素.
+   * size預設為'btn-sm', color預設為'btn-info'
+   * @param {{name: String, size: String, color: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
+   * @return {jquery.$button} button元素
+   */
+  createButton(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const size = options.size || 'btn-sm';
+    const color = options.color || 'btn-info';
+    const text = options.text || 'default';
+    const textOnly = options.textOnly || false;
+
+    let r = (`
+      <button class='btn ${color} ${size}' name='${name}' ${customSetting}>${text}</button>
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+
+  /**
+   * 創建select元素.
+   * @param {{name: String, customSetting: String, textOnly: Boolean}} options 設定
+   * @return {jquery.$select} select元素
+   */
+  createSelect(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const textOnly = options.textOnly || false;
+
+    let r = (`
+      <select class='form-control' name='${name}' ${customSetting}>
+      </select>
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+
+  /**
+   * 創建option元素.
+   * text同時用於 顯示文字 與 指定的value
+   * @param {{name: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
+   * @return {jquery.$option} select元素
+   */
+  createSelectOption(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const text = options.text || 'defaultText';
+    const textOnly = options.textOnly || false;
+
+    let r = (`
+      <option name='${name}' value='${text}' ${customSetting}>${text}</option>
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+
+  /**
+   * 創建input元素.
+   * @param {{name: String, defaultText: String, placeholder: String, type: String, customSetting: String, textOnly: Boolean}} options 設定
+   * @return {jquery.$input} input元素
+   */
+  createInput(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const defaultValue = options.defaultValue || '';
+    const placeholder = options.placeholder || '';
+    const type = options.type || 'text';
+    const textOnly = options.textOnly || false;
+
+    let r = (`
+      <input class='form-control'
+        name='${name}'
+        type='${type}'
+        placeholder='${placeholder}'
+        value='${defaultValue}'
+        ${customSetting}
+      />
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+
+  /**
+   * 創建a元素.
+   * 如不需要超連結 僅純顯示文字 請不要設定href,
+   * 如不需要新開頁面 則不用設定target
+   * @param {{name: String, href: String, target: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
+   * @return {jquery.$a} a元素
+   */
+  createA(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const href = options.href ? `href='${options.href}'` : '';
+    const target = options.target ? `target='${options.target}'` : '';
+    const text = options.text || '';
+    const textOnly = options.textOnly || false;
+
+    let r = (`
+      <a class='float-left'
+        name='${name}'
+        ${href}
+        ${target}
+        ${customSetting}
+      >${text}</a>
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+
+  /**
+   * 創建DropDownMenu
+   * @param {{name: String, text: String, customSetting: String, textOnly: Boolean}} options 設定
+   * @return {jquery.$div} DropDownMenu
+   */
+  createDropDownMenu(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const text = options.text || '';
+    const textOnly = options.textOnly || false;
+
+    let r = (`
+      <div class='note' name='${name}'>
+        <li class='nav-item dropdown text-nowrap' name='${name}'>
+          <a class='nav-link dropdown-toggle' href='#' data-toggle='dropdown' name='${name}' ${customSetting}>${text}</a>
+          <div class='dropdown-menu px-3 nav-dropdown-menu'
+            aria-labelledby='navbarDropdownMenuLink'
+            name='${name}'>
+            <div name='${name}' id='afterThis'>
+            <div name='${name}' id='beforeThis'>
+            </div>
+          </div>
+        </li>
+      </div>
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+
+  /**
+   * 創建DropDownMenu的option
+   * @param {{name: String, text: String, href: String, target: String, customSetting: String, textOnly: Boolean}} options 設定
+   * @return {jquery.$li} DropDownMenu的option
+   */
+  createDropDownMenuOption(options) {
+    const name = options.name || 'defaultName';
+    const customSetting = options.customSetting || '';
+    const text = options.text || '';
+    const href = options.href ? `href='${options.href}'` : '';
+    const target = options.target ? `target='${options.target}'` : '';
+    const textOnly = options.textOnly || false;
+
+    let r = (`
+      <li class='nav-item' name='${name}'>
+        <a class='nav-link text-truncate'
+          name='${name}'
+          ${href}
+          ${target}
+          ${customSetting}
+        >${text}</a>
+      </li>
+    `);
+    if (! textOnly) {
+      r = $(r);
+    }
+
+    return r;
+  }
+}
+//---end file: ./src\Global/View.js
+//   ===========================
+
+/**
+ * 控制所有頁面都看的到的物件的View
+ */
+class ScriptView extends View {
+  /**
+   * 建構 ScriptView
+   * @param {MainController} controller controller
+   */
+  constructor(controller) {
+    super('ScriptView');
+    this.controller = controller;
+  }
+
+  displayDropDownMenu() {
+    const displayObject = this.createDropDownMenu({
+      name: 'softwareScriptMenu',
+      text: (translation(['script', 'name']))
+    });
+
+    $(`div[name='softwareScriptMenu']`).remove();
+    const afterObject = $(`div[class='note']`)[2];
+    displayObject.insertAfter(afterObject);
+  }
+  /**
+   * 在外掛的下拉選單顯示輸入的物件
+   * @param {{name: String, text: String, href: String, target: String, customSetting: String}} options 顯示的物件
+   * @param {$jquerySelect} beforeObject insertBefore的物件
+   * @return {void}
+   */
+  displayDropDownMenuOption(options, beforeObject) {
+    const name = options.name;
+    const customSetting = options.customSetting;
+    const text = options.text;
+    const href = options.href;
+    const target = options.target;
+    const displayObject = this.createDropDownMenuOption({
+      name: name,
+      customSetting: customSetting,
+      text: text,
+      href: href,
+      target: target
+    });
+
+    displayObject.insertBefore(beforeObject);
+  }
+
+  displayScriptMenu() {
+    const beforeDiv = $(`div[id='beforeThis'][name='softwareScriptMenu']`)[0];
+    this.displayDropDownMenuOption(
+      {
+        name: 'scriptVipPage',
+        text: translation(['script', 'vip']),
+        href: '/SoftwareScript/scriptVIP'
+      },
+      beforeDiv
+    );
+
+    const hr = $(`<hr name='mostStocksCompany' />`);
+    hr.insertBefore(beforeDiv);
+    this.displayDropDownMenuOption(
+      {
+        name: 'showMostStockholdingCompany',
+        text: translation(['script', 'showMostStockholdingCompany']),
+        href: '#',
+        customSetting: `style='font-size: 13px;'`
+      },
+      beforeDiv
+    );
+    $(`a[name='showMostStockholdingCompany']`)[0].addEventListener('click', () => {
+      this.controller.showMostStockholdingCompany();
+    });
+  }
+  /**
+   * 顯示最多持股公司列表
+   * @param {Array} list 要顯示的列表
+   * @return {void}
+   */
+  displayMostStockholdingCompany(list) {
+    $(`li[class='nav-item'][name='mostStockholdingCompany']`).remove();
+
+    const beforeDiv = $(`div[id='beforeThis'][name='softwareScriptMenu']`)[0];
+    for (const company of list) {
+      this.displayDropDownMenuOption(
+        {
+          name: 'mostStockholdingCompany',
+          text: company.name,
+          href: `/company/detail/${company.companyId}`
+        },
+        beforeDiv
+      );
+    }
+  }
+}
+//--end file: ./src\Global/ScriptView.js
+//  ===========================
+//--start file: ./src\Global/CloudUpdater.js
+//---start file: ./src\Global/ScriptAd.js
+/**
+ * 外掛廣告
+ */
+class ScriptAd {
+  constructor() {
+    console.log('create: ScriptAd');
+  }
+
+  /**
+   * 回傳廣告顯示的文字
+   * @param {Boolean} demo 是否用於demo
+   * @return {String} HTML代碼
+   */
+  createAdMsg(demo) {
+    const demoType = demo ? `demo='true'` : `demo='false'`;
+    const localScriptAd = JSON.parse(window.localStorage.getItem('localScriptAd')) || {};
+    let msg = `<a class='float-left' name='scriptAd' id='0'>&nbsp;&nbsp;</a>`;
+    let linkNumber = 0;
+
+    if (localScriptAd.adFormat) {
+      for (let i = 0; i < localScriptAd.adFormat.length; i += 1) {
+        if (localScriptAd.adFormat[i] === 'a') {
+          msg += `<a class='float-left' name='scriptAd' id='${i + 1}' ${demoType}>${localScriptAd.adData[i]}</a>`;
+        }
+        else if (localScriptAd.adFormat[i] === 'aLink') {
+          const linkType = localScriptAd.adLinkType[linkNumber];
+          let type = '';
+          if ((linkType === '_blank') || (linkType === '_parent') || (linkType === '_top')) {
+            type = `target='${linkType}'`;
+          }
+          const href = `href='${localScriptAd.adLink[linkNumber]}'`;
+          msg += `<a class='float-left' name='scriptAd' id='${i + 1}' ${demoType} ${type} ${href}>${localScriptAd.adData[i]}</a>`;
+
+          linkNumber += 1;
+        }
+      }
+    }
+
+    return msg;
+  }
+
+  displayScriptAd() {
+    const msg = this.createAdMsg(false);
+    const afterObject = $(`a[class='text-danger float-left'][href='https://github.com/mrbigmouth/acgn-stock/issues']`)[0];
+    $(msg).insertAfter(afterObject);
+  }
+
+  removeScriptAd() {
+    $(`a[name='scriptAd'][demo='false']`).remove();
+  }
+}
+//---end file: ./src\Global/ScriptAd.js
+//   ===========================
+
+/**
+ * 用來連線雲端以更新資料
+ */
+class CloudUpdater {
+  /**
+   * 建構CloudUpdater
+   * @param {*} serverType 現在連的股市伺服器
+   */
+  constructor(serverType) {
+    this.serverType = serverType;
+
+    const myVersion = GM_info.script.version; // eslint-disable-line camelcase
+    this.version = Number(myVersion.substr(0, 4));
+  }
+
+  /**
+   * 以非同步方式取得另外整理過的公司資料 json
+   * @param {String} url 資料的網址
+   * @return {function} 可以用來更新資料的function
+   */
+  getWebData(url) {
+    let webObjCache = null;
+
+    const webUrl = String(url);
+    const request = new XMLHttpRequest();
+    request.open('GET', webUrl); // 非同步 GET
+    request.addEventListener('load', () => {
+      debugConsole('got webData');
+      try {
+        webObjCache = JSON.parse(request.responseText);
+      }
+      catch (err) {
+        webObjCache = request.responseText;
+      }
+    });
+    request.send();
+
+    return (callback) => {
+      // 若快取資料存在，則直接回傳快取
+      if (webObjCache !== null) {
+        callback(webObjCache);
+
+        return;
+      }
+
+      // 若無快取資料，則加入事件監聽，等載入後再回傳資料
+      request.addEventListener('load', function() {
+        callback(webObjCache);
+      });
+    };
+  }
+
+  checkUpdateTime(url, localUpdateTime, updater) {
+    const cloud = this.getWebData(url);
+    cloud((cloudInfo) => {
+      const cloudTime = cloudInfo.updateTime;
+      const conformedVersion = Number(cloudInfo.conformedVersion);
+      console.log(`cloud url: ${url}`);
+      console.log(`${localUpdateTime} === ${cloudTime}: ${localUpdateTime === cloudTime}`);
+      console.log(`${this.version} >= ${conformedVersion}: ${this.version >= conformedVersion}`);
+      if (cloudTime === localUpdateTime) {
+        console.log(`cloud don't have new data`);
+        console.log('');
+      }
+      else if (this.version >= conformedVersion) {
+        console.log(`cloud have new data`);
+        console.log('');
+        updater(cloudTime);
+      }
+      else {
+        console.log(`script version(${this.version}) is too old, can not update`);
+        console.log(`cloud data only supports version ${conformedVersion} or later`);
+        console.log('');
+      }
+    });
+  }
+
+  checkCompaniesUpdate() {
+    let timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/updateInfo.json';
+    let dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptCompany/companies.json';
+    if (this.serverType === 'museum') {
+      dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/companys.json';
+      timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-museum/script/company/updateTime.json';
+    }
+
+    const updater = (cloudTime) => {
+      const cloud = this.getWebData(dataUrl);
+      cloud((cloudData) => {
+        const inputData = cloudData || [];
+        window.localStorage.setItem('localCompanies', JSON.stringify(inputData));
+        const inputTime = cloudTime || 'null';
+        window.localStorage.setItem('localCompaniesUpdateTime', JSON.stringify(inputTime));
+
+        console.log(`localCompanies update complete`);
+      });
+    };
+    const localCompaniesUpdateTime = JSON.parse(window.localStorage.getItem('localCompaniesUpdateTime')) || 'null';
+    this.checkUpdateTime(timeUrl, localCompaniesUpdateTime, updater);
+  }
+
+  checkScriptAdUpdate() {
+    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/updateInfo.json';
+    const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/AD.json';
+
+    const updater = (cloudTime) => {
+      const cloud = this.getWebData(dataUrl);
+      cloud((cloudData) => {
+        const inputData = cloudData || [];
+        window.localStorage.setItem('localScriptAd', JSON.stringify(inputData));
+        const inputTime = cloudTime || 'null';
+        window.localStorage.setItem('localScriptAdUpdateTime', JSON.stringify(inputTime));
+
+        const scriptAd = new ScriptAd();
+        scriptAd.removeScriptAd();
+        scriptAd.displayScriptAd();
+
+        console.log(`scriptAd update complete`);
+      });
+    };
+    const localScriptAdUpdateTime = JSON.parse(window.localStorage.getItem('localScriptAdUpdateTime')) || 'null';
+    this.checkUpdateTime(timeUrl, localScriptAdUpdateTime, updater);
+  }
+
+  checkScriptVipProductsUpdate() {
+    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/updateInfo.json';
+    const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptVIP/scriptVipProducts.json';
+
+    const updater = (cloudTime) => {
+      const cloud = this.getWebData(dataUrl);
+      cloud((cloudData) => {
+        const inputData = cloudData || [];
+        const localScriptVipProducts = JSON.parse(window.localStorage.getItem('localScriptVipProducts')) || [];
+        const defaultUser = {
+          userId: 'default',
+          products: inputData
+        };
+        const j = localScriptVipProducts.findIndex((x) => {
+          return (x.userId === defaultUser.userId);
+        });
+        if (j === -1) {
+          localScriptVipProducts.push(defaultUser);
+        }
+        localScriptVipProducts.forEach((user, i, array) => {
+          array[i].products = inputData;
+        });
+
+        window.localStorage.setItem('localScriptVipProducts', JSON.stringify(localScriptVipProducts));
 
 
+        const inputTime = cloudTime || 'null';
+        window.localStorage.setItem('localScriptVipProductsUpdateTime', JSON.stringify(inputTime));
+
+        console.log(`scriptVipProducts update complete`);
+      });
+    };
+    const localScriptVipProductsUpdateTime = JSON.parse(window.localStorage.getItem('localScriptVipProductsUpdateTime')) || 'null';
+    this.checkUpdateTime(timeUrl, localScriptVipProductsUpdateTime, updater);
+  }
+}
+//--end file: ./src\Global/CloudUpdater.js
+//  ===========================
+//--start file: ./src\CompanyListPage/CompanyListController.js
+//---start file: ./src\Global/EventController.js
+
+//監聽頁面，資料準備完成時執行event
+//不應該直接呼叫，他應該被繼承
+//使用例:
+// class CompanyDetailController extends EventController {
+//   constructor(user) {
+//     super('CompanyDetailController', user);
+//     this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', this.startEvent);
+//     this.templateListener(Template.companyDetail, 'Template.companyDetail', this.startEvent2);
+//   }
+//   startEvent() {
+//     console.log('companyDetailContentNormal success');
+//     console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
+//     console.log('');
+//   }
+//   startEvent2() {
+//     console.log('companyDetail success');
+//     console.log(Meteor.connection._mongo_livedata_collections.companies.find().fetch());
+//     console.log('');
+//   }
+// }
+
+/**
+ * 頁面的Controller
+ */
+class EventController {
+  /**
+   * 建構 EventController
+   * @param {String} controllerName 名字
+   * @param {LoginUser} loginUser 登入的使用者
+   */
+  constructor(controllerName, loginUser) {
+    console.log(`create controller: ${controllerName}`);
+    this.loginUser = loginUser;
+  }
+
+  /**
+   * 監聽是否載入完成，完成後呼叫callback
+   * @param {Template} template 監聽的Template
+   * @param {String} templateName 監聽的Template的名字，用於console
+   * @param {function} callback callbock
+   * @return {void}
+   */
+  templateListener(template, templateName, callback) {
+    template.onCreated(function() {
+      const rIsDataReady = new ReactiveVar(false);
+      this.autorun(() => {
+        rIsDataReady.set(this.subscriptionsReady());
+      });
+      this.autorun(() => {
+        if (rIsDataReady.get()) {
+          console.log(`${templateName} loaded`);
+          callback();
+        }
+        else {
+          console.log(`${templateName} is loading`);
+        }
+      });
+    });
+  }
+
+  /**
+   * 資料夾監聽器，監聽到點擊後呼叫callback
+   * @param {String} panelFolderName 資料夾的名稱
+   * @param {Function} callback callback
+   * @return {void}
+   */
+  panelFolderListener(panelFolderName, callback) {
+    Template.panelFolder.events({
+      'click [data-toggle-panel-folder]'(event, templateInstance) {
+        const { name } = templateInstance.data;
+        if (name === panelFolderName) {
+          setTimeout(() => {
+            callback();
+          }, 0);
+        }
+      }
+    });
+  }
+}
+//---end file: ./src\Global/EventController.js
+//   ===========================
+//---start file: ./src\Company/Companies.js
+//----start file: ./src\Company/Company.js
 /**
  * CompanyObject
  */
@@ -1814,6 +1735,8 @@ class Company {
     };
   }
 }
+//----end file: ./src\Company/Company.js
+//    ===========================
 
 /**
  * Company的集合，會創建多個company放在裡面
@@ -1935,287 +1858,9 @@ class Companies {
     return userProfit;
   }
 }
-
-
-/****************class****************/
-/*************************************/
-/*************************************/
-/***************bigLog****************/
-
-/**
- * 用於紀錄所有log
- */
-class LogRecorder {
-  //Singleton
-  constructor() {
-    if (! LogRecorder.instance) {
-      LogRecorder.instance = this;
-      this.localLog = [];
-      this.meteorLog = Meteor.connection._mongo_livedata_collections.log;
-      console.log(`create LogRecorder`);
-    }
-
-    return LogRecorder.instance;
-  }
-  static get instance() {
-    return this._instance;
-  }
-  static set instance(input) {
-    this._instance = input;
-  }
-
-  isAlreadyExists(list, log) {
-    const old = list.find((x) => {
-      return (x._id._str === log._id._str);
-    });
-    if (old !== undefined) {
-      return true;
-    }
-    else {
-      return false;
-    }
-  }
-  /**
-   * 回傳過濾過的log
-   * @param {String} att 用於過濾的屬性
-   * @param {String} value 符合的值, 通常是字串
-   * @return {Array} 過濾後的log
-   */
-  find(att, value) {
-    let list = [];
-    if (att !== undefined && value !== undefined) {
-      list = this.localLog.filter((x) => {
-        return (x[att] === value);
-      });
-    }
-    else {
-      list = this.localLog;
-    }
-
-    return list;
-  }
-  /**
-   * 回傳過濾後的log
-   * @param {Funstion} fun 用於過濾的函式
-   * @return {Array} 過濾後的log
-   */
-  filter(fun) {
-    let list = [];
-    if (typeof fun === 'function') {
-      list = this.localLog.filter(fun);
-    }
-    else {
-      list = this.localLog;
-    }
-
-    return list;
-  }
-  push(serverLog) {
-    for (const log of serverLog) {
-      if (! this.isAlreadyExists(this.localLog, log)) {
-        log.softwareScriptStamp = true;
-        this.localLog.push(log);
-      }
-    }
-  }
-  recordServerLog() {
-    const serverLog = dbLog.find().fetch();
-    this.push(serverLog);
-  }
-
-  /**
-   * 依照時間排序並回傳, 未輸入陣列則以目前記錄的log去排序
-   * @param {Array} list 要排序的陣列
-   * @return {Array} 排序完的陣列
-   */
-  sort(list) {
-    if (! list) {
-      list = this.localLog;
-    }
-    list.sort((a, b) => {
-      return (b.createdAt.getTime() - a.createdAt.getTime());
-    });
-
-    return list;
-  }
-}
-
-/**
- * 大量紀錄 的View
- * 用於顯示 大量紀錄 資料夾, 以及顯示大量紀錄
- */
-class BigLogView extends View {
-  /**
-   * 建構 BigLogView
-   * @param {String} name 資料夾的名稱
-   */
-  constructor(name) {
-    super(`create BigLogView`);
-    this.getDescriptionHtml = Template.displayLog.__helpers[' getDescriptionHtml'];
-    this.name = String(name);
-  }
-
-  showBigLogFolder() {
-    const intoObject = $(`div[class='row border-grid-body']`);
-    if (intoObject.length > 0) {
-      const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`);
-      if (tmpInto.length < 1) {
-        this.displayBigLogFolder();
-      }
-    }
-    else {
-      setTimeout(() => {
-        this.showBigLogFolder();
-      }, 10);
-    }
-  }
-  displayBigLogFolder() {
-    const intoObject = $(`div[class='row border-grid-body']`).first();
-    const appendDiv = (`<div class='col-12 border-grid' name=${this.name}></div>`);
-    intoObject.append(appendDiv);
-    const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`)[0];
-    Blaze.renderWithData(
-      Template.panelFolder,
-      {name: this.name, title: `${translation(['script', 'bigLog'])}`},
-      tmpInto
-    );
-  }
-
-  /**
-   * 顯示大量紀錄
-   * @param {Array} localLog 要顯示的紀錄列表
-   * @return {void}
-   */
-  displayBigLog(localLog) {
-    const intoObject = ($(`a[data-toggle-panel-folder=${this.name}]`)
-      .closest(`div[class='col-12']`)
-      .next(`div[class='col-12']`)
-      .first());
-    for (const log of localLog) {
-      const displayObject = (`
-        <div class='logData' style='word-break: break-all;'>
-          <span class='text-info'>(${formatDateText(log.createdAt)})</span>
-          ${this.getDescriptionHtml(log)}
-        </div>
-      `);
-      intoObject.append(displayObject);
-    }
-    this.displayLogDetailInfo(intoObject);
-  }
-  displayLogDetailInfo(intoObject) {
-    // 由於試了幾次實在沒辦法直接從伺服器抓出來
-    // 本段直接複製自股市Github
-    // /client/utils/displayLog.js
-    intoObject.find('[data-user-link]').each((_, elem) => {
-      const $link = $(elem);
-      const userId = $link.attr('data-user-link');
-
-      // TODO write a helper
-      if (userId === '!system') {
-        $link.text('系統');
-      }
-      else if (userId === '!FSC') {
-        $link.text('金管會');
-      }
-      else {
-        $.ajax({
-          url: '/userInfo',
-          data: { id: userId },
-          dataType: 'json',
-          success: ({ name: userName, status }) => {
-            if (status === 'registered') {
-              const path = FlowRouter.path('accountInfo', { userId });
-              $link.html(`<a href='${path}'>${userName}</a>`);
-            }
-            else {
-              $link.text(userName);
-            }
-          }
-        });
-      }
-    });
-
-    intoObject.find('[data-company-link]').each((_, elem) => {
-      const $link = $(elem);
-      const companyId = $link.attr('data-company-link');
-      $.ajax({
-        url: '/companyInfo',
-        data: { id: companyId },
-        dataType: 'json',
-        success: ({ name: companyName, status }) => {
-          let path;
-          // TODO write a helper
-          switch (status) {
-            case 'foundation': {
-              path = FlowRouter.path('foundationDetail', { foundationId: companyId });
-              break;
-            }
-            case 'market': {
-              path = FlowRouter.path('companyDetail', { companyId });
-              break;
-            }
-          }
-          $link.html(`<a href='${path}'>${companyName}</a>`);
-        }
-      });
-    });
-
-    intoObject.find('[data-product-link]').each((_, elem) => {
-      const $link = $(elem);
-      const productId = $link.attr('data-product-link');
-      $.ajax({
-        url: '/productInfo',
-        data: { id: productId },
-        dataType: 'json',
-        success: ({ url, productName }) => {
-          $link.html(`<a href='${url}' target='_blank'>${productName}</a>`);
-        }
-      });
-    });
-  }
-}
-
-/***************bigLog****************/
-/*************************************/
-/*************************************/
-/*************companyList*************/
-
-/**
- * CompanyList的Controller
- */
-class CompanyListController extends EventController {
-  /**
-   * 建構 CompanyListController
-   * @param {LoginUser} loginUser 登入中的使用者
-   */
-  constructor(loginUser) {
-    super('CompanyListController', loginUser);
-
-    this.companyListView = new CompanyListView(this.loginUser);
-
-    Template.companyListCard.onRendered(() => {
-      const instance = Template.instance();
-      this.companyListView.addCardInfo(instance);
-    });
-
-    this.templateListener(Template.companyList, 'Template.companyList', () => {
-      this.updateUserInfo();
-      this.useCompaniesInfo();
-    });
-  }
-
-  updateUserInfo() {
-    this.loginUser.updateFullHoldStocks();
-    this.loginUser.updateOrders();
-  }
-
-  useCompaniesInfo() {
-    const companies = new Companies();
-    companies.companyPatch();
-
-    companies.updateToLocalstorage();
-  }
-}
+//---end file: ./src\Company/Companies.js
+//   ===========================
+//---start file: ./src\CompanyListPage/CompanyListView.js
 
 /**
  * CompanyList的View
@@ -2360,11 +2005,287 @@ class CompanyListView extends View {
     });
   }
 }
+//---end file: ./src\CompanyListPage/CompanyListView.js
+//   ===========================
 
-/*************companyList*************/
-/*************************************/
-/*************************************/
-/************companyDetail************/
+/**
+ * CompanyList的Controller
+ */
+class CompanyListController extends EventController {
+  /**
+   * 建構 CompanyListController
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
+  constructor(loginUser) {
+    super('CompanyListController', loginUser);
+
+    this.companyListView = new CompanyListView(this.loginUser);
+
+    Template.companyListCard.onRendered(() => {
+      const instance = Template.instance();
+      this.companyListView.addCardInfo(instance);
+    });
+
+    this.templateListener(Template.companyList, 'Template.companyList', () => {
+      this.updateUserInfo();
+      this.useCompaniesInfo();
+    });
+  }
+
+  updateUserInfo() {
+    this.loginUser.updateFullHoldStocks();
+    this.loginUser.updateOrders();
+  }
+
+  useCompaniesInfo() {
+    const companies = new Companies();
+    companies.companyPatch();
+
+    companies.updateToLocalstorage();
+  }
+}
+//--end file: ./src\CompanyListPage/CompanyListController.js
+//  ===========================
+//--start file: ./src\CompanyDetailPage/CompanyDetailController.js
+//---start file: ./src\BigLog/LogRecorder.js
+
+/**
+ * 用於紀錄所有log
+ */
+class LogRecorder {
+  //Singleton
+  constructor() {
+    if (! LogRecorder.instance) {
+      LogRecorder.instance = this;
+      this.localLog = [];
+      this.meteorLog = Meteor.connection._mongo_livedata_collections.log;
+      console.log(`create LogRecorder`);
+    }
+
+    return LogRecorder.instance;
+  }
+  static get instance() {
+    return this._instance;
+  }
+  static set instance(input) {
+    this._instance = input;
+  }
+
+  isAlreadyExists(list, log) {
+    const old = list.find((x) => {
+      return (x._id._str === log._id._str);
+    });
+    if (old !== undefined) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+  /**
+   * 回傳過濾過的log
+   * @param {String} att 用於過濾的屬性
+   * @param {String} value 符合的值, 通常是字串
+   * @return {Array} 過濾後的log
+   */
+  find(att, value) {
+    let list = [];
+    if (att !== undefined && value !== undefined) {
+      list = this.localLog.filter((x) => {
+        return (x[att] === value);
+      });
+    }
+    else {
+      list = this.localLog;
+    }
+
+    return list;
+  }
+  /**
+   * 回傳過濾後的log
+   * @param {Funstion} fun 用於過濾的函式
+   * @return {Array} 過濾後的log
+   */
+  filter(fun) {
+    let list = [];
+    if (typeof fun === 'function') {
+      list = this.localLog.filter(fun);
+    }
+    else {
+      list = this.localLog;
+    }
+
+    return list;
+  }
+  push(serverLog) {
+    for (const log of serverLog) {
+      if (! this.isAlreadyExists(this.localLog, log)) {
+        log.softwareScriptStamp = true;
+        this.localLog.push(log);
+      }
+    }
+  }
+  recordServerLog() {
+    const serverLog = dbLog.find().fetch();
+    this.push(serverLog);
+  }
+
+  /**
+   * 依照時間排序並回傳, 未輸入陣列則以目前記錄的log去排序
+   * @param {Array} list 要排序的陣列
+   * @return {Array} 排序完的陣列
+   */
+  sort(list) {
+    if (! list) {
+      list = this.localLog;
+    }
+    list.sort((a, b) => {
+      return (b.createdAt.getTime() - a.createdAt.getTime());
+    });
+
+    return list;
+  }
+}
+//---end file: ./src\BigLog/LogRecorder.js
+//   ===========================
+//---start file: ./src\BigLog/BigLogView.js
+
+/**
+ * 大量紀錄 的View
+ * 用於顯示 大量紀錄 資料夾, 以及顯示大量紀錄
+ */
+class BigLogView extends View {
+  /**
+   * 建構 BigLogView
+   * @param {String} name 資料夾的名稱
+   */
+  constructor(name) {
+    super(`create BigLogView`);
+    this.getDescriptionHtml = Template.displayLog.__helpers[' getDescriptionHtml'];
+    this.name = String(name);
+  }
+
+  showBigLogFolder() {
+    const intoObject = $(`div[class='row border-grid-body']`);
+    if (intoObject.length > 0) {
+      const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`);
+      if (tmpInto.length < 1) {
+        this.displayBigLogFolder();
+      }
+    }
+    else {
+      setTimeout(() => {
+        this.showBigLogFolder();
+      }, 10);
+    }
+  }
+  displayBigLogFolder() {
+    const intoObject = $(`div[class='row border-grid-body']`).first();
+    const appendDiv = (`<div class='col-12 border-grid' name=${this.name}></div>`);
+    intoObject.append(appendDiv);
+    const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`)[0];
+    Blaze.renderWithData(
+      Template.panelFolder,
+      {name: this.name, title: `${translation(['script', 'bigLog'])}`},
+      tmpInto
+    );
+  }
+
+  /**
+   * 顯示大量紀錄
+   * @param {Array} localLog 要顯示的紀錄列表
+   * @return {void}
+   */
+  displayBigLog(localLog) {
+    const intoObject = ($(`a[data-toggle-panel-folder=${this.name}]`)
+      .closest(`div[class='col-12']`)
+      .next(`div[class='col-12']`)
+      .first());
+    for (const log of localLog) {
+      const displayObject = (`
+        <div class='logData' style='word-break: break-all;'>
+          <span class='text-info'>(${formatDateText(log.createdAt)})</span>
+          ${this.getDescriptionHtml(log)}
+        </div>
+      `);
+      intoObject.append(displayObject);
+    }
+    this.displayLogDetailInfo(intoObject);
+  }
+  displayLogDetailInfo(intoObject) {
+    // 由於試了幾次實在沒辦法直接從伺服器抓出來
+    // 本段直接複製自股市Github
+    // /client/utils/displayLog.js
+    intoObject.find('[data-user-link]').each((_, elem) => {
+      const $link = $(elem);
+      const userId = $link.attr('data-user-link');
+
+      // TODO write a helper
+      if (userId === '!system') {
+        $link.text('系統');
+      }
+      else if (userId === '!FSC') {
+        $link.text('金管會');
+      }
+      else {
+        $.ajax({
+          url: '/userInfo',
+          data: { id: userId },
+          dataType: 'json',
+          success: ({ name: userName, status }) => {
+            if (status === 'registered') {
+              const path = FlowRouter.path('accountInfo', { userId });
+              $link.html(`<a href='${path}'>${userName}</a>`);
+            }
+            else {
+              $link.text(userName);
+            }
+          }
+        });
+      }
+    });
+
+    intoObject.find('[data-company-link]').each((_, elem) => {
+      const $link = $(elem);
+      const companyId = $link.attr('data-company-link');
+      $.ajax({
+        url: '/companyInfo',
+        data: { id: companyId },
+        dataType: 'json',
+        success: ({ name: companyName, status }) => {
+          let path;
+          // TODO write a helper
+          switch (status) {
+            case 'foundation': {
+              path = FlowRouter.path('foundationDetail', { foundationId: companyId });
+              break;
+            }
+            case 'market': {
+              path = FlowRouter.path('companyDetail', { companyId });
+              break;
+            }
+          }
+          $link.html(`<a href='${path}'>${companyName}</a>`);
+        }
+      });
+    });
+
+    intoObject.find('[data-product-link]').each((_, elem) => {
+      const $link = $(elem);
+      const productId = $link.attr('data-product-link');
+      $.ajax({
+        url: '/productInfo',
+        data: { id: productId },
+        dataType: 'json',
+        success: ({ url, productName }) => {
+          $link.html(`<a href='${url}' target='_blank'>${productName}</a>`);
+        }
+      });
+    });
+  }
+}
+//---end file: ./src\BigLog/BigLogView.js
+//   ===========================
 
 /**
  * CompanyDetail的Controller
@@ -2458,11 +2379,223 @@ class CompanyDetailController extends EventController {
     this.logRecorder.recordServerLog();
   }
 }
+//--end file: ./src\CompanyDetailPage/CompanyDetailController.js
+//  ===========================
+//--start file: ./src\AccountInfoPage/AccountInfoController.js
+//---start file: ./src\AccountInfoPage/AccountInfoView.js
 
-/************companyDetail************/
-/*************************************/
-/*************************************/
-/*************accountInfo*************/
+/**
+ * AccountInfo的View
+ */
+class AccountInfoView extends View {
+  constructor() {
+    super('AccountInfoView');
+
+    this.resetDisplayList();
+  }
+
+  resetDisplayList() {
+    this.displayList = {
+      companyNumber: false,
+      stocksAsset: false,
+      sellOrders: false,
+      buyOrders: false,
+      hrStocks: false, //分隔線
+      stocksProfit: false,
+      managersProfit: false,
+      employeeBonus: false,
+      votingReward: false,
+      hrProfit: false, //分隔線
+      tax: false
+    };
+  }
+
+  /**
+   * 將上方資訊列全部移除, 並顯示上方資訊列間的分隔線
+   * @return {void}
+   */
+  displayHrLine() {
+    if (($(`hr[name='stocksLine']`).length < 1) && ($(`hr[name='profitLine']`).length < 1)) {
+      $(`div[name='companyNumber']`).remove();
+      $(`div[name='stocksAsset']`).remove();
+      $(`div[name='sellOrders']`).remove();
+      $(`div[name='buyOrders']`).remove();
+
+      $(`div[name='stocksProfit']`).remove();
+      $(`div[name='managersProfit']`).remove();
+      $(`div[name='employeeBonus']`).remove();
+      $(`div[name='votingReward']`).remove();
+
+      $(`div[name='tax']`).remove();
+
+      this.resetDisplayList();
+    }
+
+    if ($(`hr[name='stocksLine']`).length < 1) {
+      const stocksLine = $(`<hr name='stocksLine' />`);
+      const afterObject = ($(`h1[class='card-title']`)[0]);
+      stocksLine.insertAfter(afterObject);
+      this.displayList.hrStocks = stocksLine;
+    }
+
+    if ($(`hr[name='profitLine']`).length < 1) {
+      const profitLine = $(`<hr name='profitLine' />`);
+      const afterObject = this.displayList.hrStocks || ($(`h1[class='card-title']`)[0]);
+      profitLine.insertAfter(afterObject);
+      this.displayList.hrProfit = profitLine;
+    }
+  }
+
+  displayCompanyNumber(companyNumber) {
+    const displayObject = this.createH2Info({
+      name: 'companyNumber',
+      leftText: translation(['accountInfo', 'holdingStockCompaniesNumber']),
+      rightText: `${companyNumber}`
+    });
+
+    $(`div[name='companyNumber']`).remove();
+    const afterObject = $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.companyNumber = displayObject;
+  }
+  displayStocksAsset(stocksAsset) {
+    const displayObject = this.createH2Info({
+      name: 'stocksAsset',
+      leftText: translation(['accountInfo', 'stocksAsset']),
+      rightText: `$ ${stocksAsset}`
+    });
+
+    $(`div[name='stocksAsset']`).remove();
+    const afterObject = this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.stocksAsset = displayObject;
+  }
+  displaySellOrders(sellOrders) {
+    const displayObject = this.createH2Info({
+      name: 'sellOrders',
+      leftText: translation(['accountInfo', 'usedInSellOrdersStocksAsset']),
+      rightText: `$ ${sellOrders}`
+    });
+
+    $(`div[name='sellOrders']`).remove();
+    const afterObject = this.displayList.stocksAsset || this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.sellOrders = displayObject;
+  }
+  displayBuyOrders(buyOrders) {
+    const displayObject = this.createH2Info({
+      name: 'buyOrders',
+      leftText: translation(['accountInfo', 'usedInBuyOrdersMoney']),
+      rightText: `$ ${buyOrders}`
+    });
+
+    $(`div[name='buyOrders']`).remove();
+    const afterObject = this.displayList.sellOrders || this.displayList.stocksAsset ||
+      this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.buyOrders = displayObject;
+  }
+
+  displayStocksProfit(stocksProfit) {
+    const displayObject = this.createH2Info({
+      name: 'stocksProfit',
+      leftText: translation(['accountInfo', 'estimatedStockProfit']),
+      rightText: `$ ${stocksProfit}`
+    });
+
+    $(`div[name='stocksProfit']`).remove();
+    const afterObject = this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.stocksProfit = displayObject;
+  }
+  displayManagersProfit(managersProfit) {
+    const displayObject = this.createH2Info({
+      name: 'managersProfit',
+      leftText: translation(['accountInfo', 'estimatedManagerProfit']),
+      rightText: `$ ${managersProfit}`
+    });
+
+    $(`div[name='managersProfit']`).remove();
+    const afterObject = this.displayList.stocksProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.managersProfit = displayObject;
+  }
+  displayEmployeeBonus(employeeBonus) {
+    const displayObject = this.createH2Info({
+      name: 'employeeBonus',
+      leftText: translation(['accountInfo', 'estimatedEmployeeBonus']),
+      rightText: `$ ${employeeBonus}`
+    });
+
+    $(`div[name='employeeBonus']`).remove();
+    const afterObject = this.displayList.managersProfit || this.displayList.stocksProfit ||
+      this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.employeeBonus = displayObject;
+  }
+  displayVotingReward(votingReward) {
+    const displayObject = this.createH2Info({
+      name: 'votingReward',
+      leftText: translation(['accountInfo', 'estimatedProductVotingRewards']),
+      rightText: `$ ${votingReward}`
+    });
+
+    $(`div[name='votingReward']`).remove();
+    const afterObject = this.displayList.employeeBonus || this.displayList.managersProfit ||
+      this.displayList.stocksProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.votingReward = displayObject;
+  }
+
+  displayTax(tax) {
+    const displayObject = this.createH2Info({
+      name: 'tax',
+      leftText: translation(['accountInfo', 'estimatedTax']),
+      rightText: `$ ${tax}`
+    });
+
+    $(`div[name='tax']`).remove();
+    const afterObject = this.displayList.hrProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.tax = displayObject;
+  }
+
+
+  displayHoldStocksTableFolder() {
+    const intoObject = $(`div[class='row border-grid-body']`).first();
+    const appendDiv = (`<div class='col-12 border-grid' name='holdStocksTable'></div>`);
+    intoObject.append(appendDiv);
+    const tmpInto = $(`div[class='col-12 border-grid'][name='holdStocksTable']`)[0];
+    Blaze.renderWithData(
+      Template.panelFolder,
+      {name: 'holdStocksTable', title: `${translation(['accountInfo', 'holdStocksTable'])}`},
+      tmpInto
+    );
+  }
+  displayHoldStocksTable(tableInfo) {
+    const oldTable = $(`table[name='holdStocksTable']`);
+    oldTable.remove();
+    //雖然通常來說 oldTable 應該不存在，不過...
+
+    const tHead = tableInfo.tHead || [];
+    const tBody = tableInfo.tBody || [];
+
+    const intoObject = ($(`a[data-toggle-panel-folder='holdStocksTable']`)
+      .closest(`div[class='col-12']`)
+      .next(`div[class='col-12']`)
+      .first());
+    const displayObject = this.createTable({
+      name: 'holdStocksTable',
+      tHead: tHead,
+      tBody: tBody,
+      customSetting: {tBody: `style='min-width: 75px; max-width: 390px;'`},
+      textOnly: true
+    });
+    intoObject.append(displayObject);
+  }
+}
+//---end file: ./src\AccountInfoPage/AccountInfoView.js
+//   ===========================
 
 /**
  * AccountInfo的Controller
@@ -2775,311 +2908,27 @@ class AccountInfoController extends EventController {
     return {tHead: tHead, tBody: tBody};
   }
 }
-
+//--end file: ./src\AccountInfoPage/AccountInfoController.js
+//  ===========================
+//--start file: ./src\ScriptVipPage/ScriptVipController.js
+//---start file: ./src\functions/stripscript.js
 /**
- * AccountInfo的View
+ * 過濾字串
+ * @param {String} s 被過濾的字串
+ * @return {String} 過濾完的字串
  */
-class AccountInfoView extends View {
-  constructor() {
-    super('AccountInfoView');
-
-    this.resetDisplayList();
+function stripscript(s) {
+  const pattern = new RegExp(`[\`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？]`);
+  let rs = '';
+  for (let i = 0; i < s.length; i += 1) {
+    rs = rs + s.substr(i, 1).replace(pattern, '');
   }
 
-  resetDisplayList() {
-    this.displayList = {
-      companyNumber: false,
-      stocksAsset: false,
-      sellOrders: false,
-      buyOrders: false,
-      hrStocks: false, //分隔線
-      stocksProfit: false,
-      managersProfit: false,
-      employeeBonus: false,
-      votingReward: false,
-      hrProfit: false, //分隔線
-      tax: false
-    };
-  }
-
-  /**
-   * 將上方資訊列全部移除, 並顯示上方資訊列間的分隔線
-   * @return {void}
-   */
-  displayHrLine() {
-    if (($(`hr[name='stocksLine']`).length < 1) && ($(`hr[name='profitLine']`).length < 1)) {
-      $(`div[name='companyNumber']`).remove();
-      $(`div[name='stocksAsset']`).remove();
-      $(`div[name='sellOrders']`).remove();
-      $(`div[name='buyOrders']`).remove();
-
-      $(`div[name='stocksProfit']`).remove();
-      $(`div[name='managersProfit']`).remove();
-      $(`div[name='employeeBonus']`).remove();
-      $(`div[name='votingReward']`).remove();
-
-      $(`div[name='tax']`).remove();
-
-      this.resetDisplayList();
-    }
-
-    if ($(`hr[name='stocksLine']`).length < 1) {
-      const stocksLine = $(`<hr name='stocksLine' />`);
-      const afterObject = ($(`h1[class='card-title']`)[0]);
-      stocksLine.insertAfter(afterObject);
-      this.displayList.hrStocks = stocksLine;
-    }
-
-    if ($(`hr[name='profitLine']`).length < 1) {
-      const profitLine = $(`<hr name='profitLine' />`);
-      const afterObject = this.displayList.hrStocks || ($(`h1[class='card-title']`)[0]);
-      profitLine.insertAfter(afterObject);
-      this.displayList.hrProfit = profitLine;
-    }
-  }
-
-  displayCompanyNumber(companyNumber) {
-    const displayObject = this.createH2Info({
-      name: 'companyNumber',
-      leftText: translation(['accountInfo', 'holdingStockCompaniesNumber']),
-      rightText: `${companyNumber}`
-    });
-
-    $(`div[name='companyNumber']`).remove();
-    const afterObject = $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.companyNumber = displayObject;
-  }
-  displayStocksAsset(stocksAsset) {
-    const displayObject = this.createH2Info({
-      name: 'stocksAsset',
-      leftText: translation(['accountInfo', 'stocksAsset']),
-      rightText: `$ ${stocksAsset}`
-    });
-
-    $(`div[name='stocksAsset']`).remove();
-    const afterObject = this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.stocksAsset = displayObject;
-  }
-  displaySellOrders(sellOrders) {
-    const displayObject = this.createH2Info({
-      name: 'sellOrders',
-      leftText: translation(['accountInfo', 'usedInSellOrdersStocksAsset']),
-      rightText: `$ ${sellOrders}`
-    });
-
-    $(`div[name='sellOrders']`).remove();
-    const afterObject = this.displayList.stocksAsset || this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.sellOrders = displayObject;
-  }
-  displayBuyOrders(buyOrders) {
-    const displayObject = this.createH2Info({
-      name: 'buyOrders',
-      leftText: translation(['accountInfo', 'usedInBuyOrdersMoney']),
-      rightText: `$ ${buyOrders}`
-    });
-
-    $(`div[name='buyOrders']`).remove();
-    const afterObject = this.displayList.sellOrders || this.displayList.stocksAsset ||
-      this.displayList.companyNumber || $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.buyOrders = displayObject;
-  }
-
-  displayStocksProfit(stocksProfit) {
-    const displayObject = this.createH2Info({
-      name: 'stocksProfit',
-      leftText: translation(['accountInfo', 'estimatedStockProfit']),
-      rightText: `$ ${stocksProfit}`
-    });
-
-    $(`div[name='stocksProfit']`).remove();
-    const afterObject = this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.stocksProfit = displayObject;
-  }
-  displayManagersProfit(managersProfit) {
-    const displayObject = this.createH2Info({
-      name: 'managersProfit',
-      leftText: translation(['accountInfo', 'estimatedManagerProfit']),
-      rightText: `$ ${managersProfit}`
-    });
-
-    $(`div[name='managersProfit']`).remove();
-    const afterObject = this.displayList.stocksProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.managersProfit = displayObject;
-  }
-  displayEmployeeBonus(employeeBonus) {
-    const displayObject = this.createH2Info({
-      name: 'employeeBonus',
-      leftText: translation(['accountInfo', 'estimatedEmployeeBonus']),
-      rightText: `$ ${employeeBonus}`
-    });
-
-    $(`div[name='employeeBonus']`).remove();
-    const afterObject = this.displayList.managersProfit || this.displayList.stocksProfit ||
-      this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.employeeBonus = displayObject;
-  }
-  displayVotingReward(votingReward) {
-    const displayObject = this.createH2Info({
-      name: 'votingReward',
-      leftText: translation(['accountInfo', 'estimatedProductVotingRewards']),
-      rightText: `$ ${votingReward}`
-    });
-
-    $(`div[name='votingReward']`).remove();
-    const afterObject = this.displayList.employeeBonus || this.displayList.managersProfit ||
-      this.displayList.stocksProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.votingReward = displayObject;
-  }
-
-  displayTax(tax) {
-    const displayObject = this.createH2Info({
-      name: 'tax',
-      leftText: translation(['accountInfo', 'estimatedTax']),
-      rightText: `$ ${tax}`
-    });
-
-    $(`div[name='tax']`).remove();
-    const afterObject = this.displayList.hrProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
-    displayObject.insertAfter(afterObject);
-    this.displayList.tax = displayObject;
-  }
-
-
-  displayHoldStocksTableFolder() {
-    const intoObject = $(`div[class='row border-grid-body']`).first();
-    const appendDiv = (`<div class='col-12 border-grid' name='holdStocksTable'></div>`);
-    intoObject.append(appendDiv);
-    const tmpInto = $(`div[class='col-12 border-grid'][name='holdStocksTable']`)[0];
-    Blaze.renderWithData(
-      Template.panelFolder,
-      {name: 'holdStocksTable', title: `${translation(['accountInfo', 'holdStocksTable'])}`},
-      tmpInto
-    );
-  }
-  displayHoldStocksTable(tableInfo) {
-    const oldTable = $(`table[name='holdStocksTable']`);
-    oldTable.remove();
-    //雖然通常來說 oldTable 應該不存在，不過...
-
-    const tHead = tableInfo.tHead || [];
-    const tBody = tableInfo.tBody || [];
-
-    const intoObject = ($(`a[data-toggle-panel-folder='holdStocksTable']`)
-      .closest(`div[class='col-12']`)
-      .next(`div[class='col-12']`)
-      .first());
-    const displayObject = this.createTable({
-      name: 'holdStocksTable',
-      tHead: tHead,
-      tBody: tBody,
-      customSetting: {tBody: `style='min-width: 75px; max-width: 390px;'`},
-      textOnly: true
-    });
-    intoObject.append(displayObject);
-  }
+  return rs;
 }
-
-/*************accountInfo*************/
-/*************************************/
-/*************************************/
-/**************scriptVIP**************/
-
-/**
- * ScriptVip頁面的Controller
- */
-class ScriptVipController extends EventController {
-  /**
-   * 建構ScriptVipController
-   * @param {LoginUser} loginUser 登入中的使用者
-   */
-  constructor(loginUser) {
-    super('ScriptVipController', loginUser);
-    this.searchTables = new SearchTables();
-    this.scriptVipView = new ScriptVipView(this);
-
-    Template.softwareScriptVip.onRendered(() => {
-      this.scriptVipView.displayScriptVipProducts(this.loginUser);
-      this.scriptVipView.displayScriptAdInfo(this.loginUser);
-      this.scriptVipView.displaySearchTables(this.loginUser);
-    });
-  }
-
-  deleteLocalSearchTables() {
-    this.searchTables.deleteAllTable();
-    this.searchTables.updateToLocalstorage();
-    //有些錯誤會造成addEventListener加入失敗，因此直接重載入網頁
-    setTimeout(() => {
-      FlowRouter.go('blankPage');
-      setTimeout(() => {
-        FlowRouter.go('softwareScriptVip');
-      }, 10);
-    }, 0);
-  }
-
-  createNewSearchTable(newTableName) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.addTable(newTableName);
-    this.searchTables.updateToLocalstorage();
-
-    this.scriptVipView.displaySearchTablesList();
-    $(`select[name='dataSearchList']`)[0].value = stripscript(newTableName);
-    this.scriptVipView.displaySearchTableInfo();
-  }
-  deleteSearchTable(tableName) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.deleteTable(tableName);
-    this.searchTables.updateToLocalstorage();
-
-    this.scriptVipView.displaySearchTablesList();
-    this.scriptVipView.displaySearchTableInfo();
-  }
-
-  addSearchTableFilter(tableName, filter) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.addTableFilter(tableName, filter);
-    this.searchTables.updateToLocalstorage();
-  }
-  deleteSearchTableFilter(tableName) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.deleteTableFilter(tableName);
-    this.searchTables.updateToLocalstorage();
-  }
-
-  addSearchTableSort(tableName, sort) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.addTableSort(tableName, sort);
-    this.searchTables.updateToLocalstorage();
-  }
-  deleteSearchTableSort(tableName) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.deleteTableSort(tableName);
-    this.searchTables.updateToLocalstorage();
-  }
-
-  addSearchTableColumn(tableName, newName, newRule) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.addTableColumn(tableName, newName, newRule);
-    this.searchTables.updateToLocalstorage();
-  }
-  changeSearchTableColumn(tableName, columnNames, newRule) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.changeTableColumn(tableName, columnNames, newRule);
-    this.searchTables.updateToLocalstorage();
-  }
-  deleteSearchTableColumn(tableName, columnName) {
-    this.searchTables.loadFromLocalstorage();
-    this.searchTables.deleteTableColumn(tableName, columnName);
-    this.searchTables.updateToLocalstorage();
-  }
-}
+//---end file: ./src\functions/stripscript.js
+//   ===========================
+//---start file: ./src\ScriptVipPage/ScriptVipView.js
 
 /**
  * ScriptVip頁面的View
@@ -3596,6 +3445,9 @@ class ScriptVipView extends View {
     this.controller.searchTables.outputTable(tableName);
   }
 }
+//---end file: ./src\ScriptVipPage/ScriptVipView.js
+//   ===========================
+//---start file: ./src\ScriptVipPage/SearchTables.js
 
 /**
  * 操縱搜尋表的物件
@@ -3963,146 +3815,344 @@ class SearchTables {
     console.log('end outputTable()');
   }
 }
-
-/**************scriptVIP**************/
-/*************************************/
-/*************************************/
-/**************Language***************/
+//---end file: ./src\ScriptVipPage/SearchTables.js
+//   ===========================
 
 /**
- * 語言翻譯
- * @param {Array} target 目標語句
- * @return {String} 回傳語句
+ * ScriptVip頁面的Controller
  */
-function translation(target) {
-  const language = 'tw';
+class ScriptVipController extends EventController {
+  /**
+   * 建構ScriptVipController
+   * @param {LoginUser} loginUser 登入中的使用者
+   */
+  constructor(loginUser) {
+    super('ScriptVipController', loginUser);
+    this.searchTables = new SearchTables();
+    this.scriptVipView = new ScriptVipView(this);
 
-  return (dict[language][target[0]][target[1]]);
+    Template.softwareScriptVip.onRendered(() => {
+      this.scriptVipView.displayScriptVipProducts(this.loginUser);
+      this.scriptVipView.displayScriptAdInfo(this.loginUser);
+      this.scriptVipView.displaySearchTables(this.loginUser);
+    });
+  }
+
+  deleteLocalSearchTables() {
+    this.searchTables.deleteAllTable();
+    this.searchTables.updateToLocalstorage();
+    //有些錯誤會造成addEventListener加入失敗，因此直接重載入網頁
+    setTimeout(() => {
+      FlowRouter.go('blankPage');
+      setTimeout(() => {
+        FlowRouter.go('softwareScriptVip');
+      }, 10);
+    }, 0);
+  }
+
+  createNewSearchTable(newTableName) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.addTable(newTableName);
+    this.searchTables.updateToLocalstorage();
+
+    this.scriptVipView.displaySearchTablesList();
+    $(`select[name='dataSearchList']`)[0].value = stripscript(newTableName);
+    this.scriptVipView.displaySearchTableInfo();
+  }
+  deleteSearchTable(tableName) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.deleteTable(tableName);
+    this.searchTables.updateToLocalstorage();
+
+    this.scriptVipView.displaySearchTablesList();
+    this.scriptVipView.displaySearchTableInfo();
+  }
+
+  addSearchTableFilter(tableName, filter) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.addTableFilter(tableName, filter);
+    this.searchTables.updateToLocalstorage();
+  }
+  deleteSearchTableFilter(tableName) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.deleteTableFilter(tableName);
+    this.searchTables.updateToLocalstorage();
+  }
+
+  addSearchTableSort(tableName, sort) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.addTableSort(tableName, sort);
+    this.searchTables.updateToLocalstorage();
+  }
+  deleteSearchTableSort(tableName) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.deleteTableSort(tableName);
+    this.searchTables.updateToLocalstorage();
+  }
+
+  addSearchTableColumn(tableName, newName, newRule) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.addTableColumn(tableName, newName, newRule);
+    this.searchTables.updateToLocalstorage();
+  }
+  changeSearchTableColumn(tableName, columnNames, newRule) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.changeTableColumn(tableName, columnNames, newRule);
+    this.searchTables.updateToLocalstorage();
+  }
+  deleteSearchTableColumn(tableName, columnName) {
+    this.searchTables.loadFromLocalstorage();
+    this.searchTables.deleteTableColumn(tableName, columnName);
+    this.searchTables.updateToLocalstorage();
+  }
+}
+//--end file: ./src\ScriptVipPage/ScriptVipController.js
+//  ===========================
+
+class MainController {
+  constructor() {
+    this.loginUser = new LoginUser();
+    this.serverType = 'normal';
+    const currentServer = document.location.href;
+    const serverTypeTable = [
+      { type: /museum.acgn-stock.com/, typeName: 'museum' },
+      { type: /test.acgn-stock.com/, typeName: 'test' }
+    ];
+    serverTypeTable.forEach(({ type, typeName }) => {
+      if (currentServer.match(type)) {
+        this.serverType = typeName;
+      }
+    });
+    this.othersScript = [];
+
+    const softwareScriptRoute = FlowRouter.group({
+      prefix: '/SoftwareScript',
+      name: 'softwareScriptRoute'
+    });
+    softwareScriptRoute.route('/', {
+      name: 'softwareScript',
+      action() {
+        DocHead.setTitle(`${Meteor.settings.public.websiteName} - ${translation(['script', 'name'])}`);
+      }
+    });
+    softwareScriptRoute.route('/scriptVIP', {
+      name: 'softwareScriptVip',
+      action() {
+        DocHead.setTitle(`${Meteor.settings.public.websiteName} - ${translation(['script', 'name'])} - ${translation(['script', 'vip'])}`);
+      }
+    });
+    softwareScriptRoute.route('/blankPage', {
+      name: 'blankPage',
+      action() {
+        DocHead.setTitle(`${Meteor.settings.public.websiteName} - blank page`);
+      }
+    });
+
+    this.scriptView = new ScriptView(this);
+    this.scriptView.displayDropDownMenu();
+    this.scriptView.displayScriptMenu();
+
+    this.companyListController = new CompanyListController(this.loginUser);
+    this.companyDetailController = new CompanyDetailController(this.loginUser);
+    this.accountInfoController = new AccountInfoController(this.loginUser);
+    this.scriptVipController = new ScriptVipController(this.loginUser);
+  }
+
+  checkCloudUpdate() {
+    const cloudUpdater = new CloudUpdater(this.serverType);
+    cloudUpdater.checkCompaniesUpdate();
+    cloudUpdater.checkScriptAdUpdate();
+    cloudUpdater.checkScriptVipProductsUpdate();
+  }
+
+  showScriptAd() {
+    const scriptAd = new ScriptAd();
+    scriptAd.removeScriptAd();
+    scriptAd.displayScriptAd();
+  }
+
+  showMostStockholdingCompany() {
+    console.log(`start showMostStockholdingCompany()`);
+
+    const max = 30;
+    const holdStocks = this.loginUser.findMostStockholdingCompany();
+    const list = [];
+    const localCompanies = getLocalCompanies();
+    let i = 0;
+    for (const company of holdStocks) {
+      i += 1;
+      if (i > max) {
+        break;
+      }
+
+      const companyData = localCompanies.find((x) => {
+        return (x.companyId === company.companyId);
+      });
+      list.push({
+        companyId: company.companyId,
+        name: companyData ? companyData.name : '[unknow]'
+      });
+    }
+
+    this.scriptView.displayMostStockholdingCompany(list);
+
+    console.log(`end showMostStockholdingCompany()`);
+  }
+}
+//-end file: ./src\Global/MainController.js
+// ===========================
+
+
+//這邊記一下每個storage的格式
+
+//localScriptAdUpdateTime       local
+//date
+
+//localScriptAd                  local
+//{adLinkType: ['_self', '_blank'],
+// adLink: ['/company/detail/NJbJuXaJxjJpzAJui', 'https://www.google.com.tw/'],
+// adData: ['&nbsp;message&nbsp;', 'miku'],
+// adFormat: ['a', 'aLink']}
+
+//localCompaniesUpdateTime        local
+//date
+
+//localCompanies規格               local
+//{companyID: String, name: String,
+// chairman: String, manager: String,
+// grade: String, capital: Number,
+// price: Number, release: Number, profit: Number,
+// vipBonusStocks: Number,
+// managerBonusRatePercent: Number,
+// capitalIncreaseRatePercent: Number,
+// salary: Number, nextSeasonSalary: Number, employeeBonusRatePercent: Number,
+// employeesNumber: Number, nextSeasonEmployeesNumber: Number
+// tags: Array,
+// createdAt: String
+//}
+
+//sessionUsers的格式         session
+//{userId: 'CWgfhqxbrJMxsknrb',
+// holdStocks: [{companyId: aaa, stocks: Number, vip: Number}, {}],
+// managers: [{companyId: aaa}, {}],
+// employee: 'aaa',
+// money: Number,
+// ticket: Number}
+
+//localScriptVipProductsUpdateTime        local
+//date
+
+//localScriptVipProducts
+// {
+//   userId: 'CWgfhqxbrJMxsknrb',
+//   products: [
+//     {
+//       productId: '5GEdNG5hjs85ahpxN',
+//       point: 100,
+//       amount: 0,
+//       companyId: 'NH2NhXHkpw8rTuQvx',
+//       description: 'ABC'
+//     }
+//   ]
+// }
+
+//localDisplayScriptAd    local
+// Boolean
+
+/*************************************/
+/*************StartScript*************/
+
+function checkSeriousError() {
+  //這個function將會清空所有由本插件控制的localStorage
+  //用於如果上一版發生嚴重錯誤導致localStorage錯亂，以致插件無法正常啟動時
+  //或是用於當插件更新時，需要重設localStorage
+
+  const seriousErrorVersion = 5.05;
+  //seriousErrorVersion會輸入有問題的版本號，當發生問題時我會增加本數字，或是於更新需要時亦會增加
+  //使用者本地的數字紀錄如果小於這個數字將會清空所有localStorage
+
+  let lastErrorVersion = Number(window.localStorage.getItem('lastErrorVersion')) || 0;
+  //lastErrorVersion = 0;  //你如果覺得現在就有問題 可以把這行的註解取消掉來清空localStorage
+
+  if (Number.isNaN(lastErrorVersion)) {
+    lastErrorVersion = 0;
+    console.log('reset lastErrorVersion as 0');
+  }
+  else {
+    console.log('localStorage of lastErrorVersion is work');
+  }
+
+  if (lastErrorVersion < seriousErrorVersion) {
+    console.log('last version has serious error, start remove all localStorage');
+    window.localStorage.removeItem('localCompaniesUpdateTime');
+    window.localStorage.removeItem('localCompanies');
+    window.localStorage.removeItem('localScriptAdUpdateTime');
+    window.localStorage.removeItem('localScriptAd');
+    window.localStorage.removeItem('localScriptVipProductsUpdateTime');
+    window.localStorage.removeItem('localScriptVipProducts');
+    window.localStorage.removeItem('localDisplayScriptAd');
+    //window.localStorage.removeItem('localSearchTables');
+    window.sessionStorage.removeItem('sessionUsers');
+
+    // 舊資料
+    window.localStorage.removeItem('local_CsDatas_UpdateTime');
+    window.localStorage.removeItem('local_CsDatas');
+    window.localStorage.removeItem('local_scriptAD_UpdateTime');
+    window.localStorage.removeItem('local_scriptAD');
+    window.localStorage.removeItem('local_dataSearch');
+    window.localStorage.removeItem('local_scriptAD_use');
+    window.localStorage.removeItem('local_scriptVIP_UpdateTime');
+    window.localStorage.removeItem('local_scriptVIP');
+
+    window.localStorage.removeItem('lastErrorVersion');
+    lastErrorVersion = seriousErrorVersion;
+    window.localStorage.setItem('lastErrorVersion', JSON.stringify(lastErrorVersion));
+  }
 }
 
-const dict = {
-  tw: {
-    script: {
-      name: 'SoftwareScript',
-      updateScript: '更新外掛',
-      vip: '外掛VIP',
-      showMostStockholdingCompany: '列出最多持股公司',
-
-      bigLog: '大量紀錄'
-    },
-    companyList: {
-      stockAsset: '持有總值',
-      estimatedProfit: '預估分紅',
-      estimatedManagerProfit: '預估經理分紅',
-      peRatio: '帳面本益比',
-      peRatioVip: '排他本益比',
-      peRatioUser: '我的本益比'
-    },
-    accountInfo: {
-      estimatedTax: '預估稅金：',
-      holdingStockCompaniesNumber: '持股公司總數：',
-      stocksAsset: '股票總值：',
-      usedInSellOrdersStocksAsset: '賣單股票總值：',
-      usedInBuyOrdersMoney: '買單現金總值：',
-      estimatedStockProfit: '預估股票分紅：',
-      estimatedManagerProfit: '預估經理分紅：',
-      estimatedEmployeeBonus: '預估員工分紅：',
-      estimatedProductVotingRewards: '預估推薦票獎勵：',
-
-      holdStocksTable: '持股資訊總表',
-      holdStocks: '持有股數',
-      holdPercentage: '持有比例',
-      stockAsset: '股票總值',
-      estimatedProfit: '預估分紅',
-      vipLevel: 'VIP等級',
-      notFoundCompany: 'not found company'
-    },
-    company: {
-      companyId: '公司ID',
-      name: '公司名稱',
-      chairman: '董事長',
-      manager: '經理人',
-
-      grade: '公司評級',
-      capital: '資本額',
-      price: '股價',
-      release: '釋股數',
-      profit: '營收',
-
-      vipBonusStocks: 'VIP加成股票數',
-      managerBonusRatePercent: '經理分紅百分比',
-      capitalIncreaseRatePercent: '資本額注入百分比',
-
-      salary: '員工日薪',
-      nextSeasonSalary: '下季員工日薪',
-      employeeBonusRatePercent: '員工分紅百分比',
-      employeesNumber: '員工數量',
-      nextSeasonEmployeesNumber: '下季員工數量',
-
-      tags: '標籤',
-      createdAt: '創立時間'
+function checkScriptUpdate() {
+  const oReq = new XMLHttpRequest();
+  const checkScriptVersion = (() => {
+    const obj = JSON.parse(oReq.responseText);
+    const myVersion = GM_info.script.version; // eslint-disable-line camelcase
+    console.log(obj.version.substr(0, 4) + ',' + myVersion.substr(0, 4) + ',' + (obj.version.substr(0, 4) > myVersion.substr(0, 4)));
+    if (obj.version.substr(0, 4) > myVersion.substr(0, 4)) {
+      const updateButton = $(`
+        <li class='nav-item'>
+          <a class='nav-link btn btn-primary'
+          href='https://greasyfork.org/zh-TW/scripts/33542'
+          name='updateSoftwareScript'
+          target='Blank'
+          >${translation(['script', 'updateScript'])}</a>
+        </li>
+      `);
+      updateButton.insertAfter($('.nav-item')[$('.nav-item').length - 1]);
     }
-  },
-  en: {
-    script: {
-      name: 'SoftwareScript',
-      updateScript: 'update Script',
-      vip: 'script VIP',
-      showMostStockholdingCompany: 'show most stocks company',
-
-      bigLog: 'Big log'
-    },
-    companyList: {
-      stockAsset: 'Stock asset',
-      estimatedProfit: 'Estimated profit',
-      estimatedManagerProfit: 'Estimated manager profit',
-      peRatio: 'fake P/E Ratio',
-      peRatioVip: 'truly P/E Ratio',
-      peRatioUser: 'my P/E Ratio'
-    },
-    accountInfo: {
-      estimatedTax: 'Estimated tax：',
-      holdingStockCompaniesNumber: 'Holding stock companies number：',
-      stocksAsset: 'Stocks asset：',
-      usedInSellOrdersStocksAsset: 'Used in sell orders stocks asset：',
-      usedInBuyOrdersMoney: 'Used in buy orders money：',
-      estimatedStockProfit: 'Estimated stock profit：',
-      estimatedManagerProfit: 'Estimated manager profit：',
-      estimatedEmployeeBonus: 'Estimated employee profit：',
-      estimatedProductVotingRewards: 'Estimated Product Voting Rewards：',
-
-      holdStocksTable: 'Hold stocks info table',
-      holdStocks: 'Hold stock number',
-      holdPercentage: 'Hold percentage',
-      stockAsset: 'Stock asset',
-      estimatedProfit: 'Estimated profit',
-      vipLevel: 'VIP level',
-      notFoundCompany: 'not found company'
-    },
-    company: {
-      companyId: 'company\'s ID',
-      name: 'name',
-      chairman: 'chairman',
-      manager: 'manager',
-
-      grade: 'grade',
-      capital: 'capital',
-      price: 'price',
-      release: 'release',
-      profit: 'profit',
-
-      vipBonusStocks: 'Vip bonus stocks',
-      managerBonusRatePercent: 'Manager bonus rate percent',
-      capitalIncreaseRatePercent: 'Capital increase rate percent',
-
-      salary: 'Employees daily salary',
-      nextSeasonSalary: 'Employees daily salary for next season',
-      employeeBonusRatePercent: 'Employee bonus rate percent',
-      employeesNumber: 'Employees number',
-      nextSeasonEmployeesNumber: 'Employees number for next season',
-
-      tags: 'tags',
-      createdAt: 'Created time'
+    else {
+      setTimeout(checkScriptUpdate, 600000);
     }
-  }
-};
+  });
+  oReq.addEventListener('load', checkScriptVersion);
+  oReq.open('GET', 'https://greasyfork.org/scripts/33542.json');
+  oReq.send();
+}
+
+
+(function() {
+  checkSeriousError();
+  checkScriptUpdate();
+
+  setTimeout(startScript, 0);
+})();
+
+function startScript() {
+  const main = new MainController();
+  main.checkCloudUpdate();
+  main.showScriptAd();
+}
+
+
+/*************StartScript*************/
+/*************************************/
+//end file: ./src/main.js
+//===========================

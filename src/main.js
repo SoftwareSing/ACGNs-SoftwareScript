@@ -1,6 +1,3 @@
-import { translation } from './Language/language';
-import { MainController } from './Global/MainController';
-
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
@@ -17,7 +14,10 @@ import { MainController } from './Global/MainController';
 //版本號為'主要版本號 + '.' + 次要版本號 + 錯誤修正版本號，ex 8.31.39
 //修復導致功能失效的錯誤或更新重大功能提升主要或次要版本號
 //優化UI，優化效能，優化小錯誤更新錯誤版本號
-//本腳本修改自 'ACGN股票系統每股營利外掛 2.200 by papago89'
+
+
+import { translation } from './Language/language';
+import { MainController } from './Global/MainController';
 
 
 //這邊記一下每個storage的格式
