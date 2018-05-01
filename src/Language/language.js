@@ -18,6 +18,7 @@ const dict = {
       name: 'SoftwareScript',
       updateScript: '更新外掛',
       vip: '外掛VIP',
+      about: '關於',
       showMostStockholdingCompany: '列出最多持股公司',
 
       bigLog: '大量紀錄'
@@ -80,6 +81,7 @@ const dict = {
       name: 'SoftwareScript',
       updateScript: 'update Script',
       vip: 'script VIP',
+      about: 'about',
       showMostStockholdingCompany: 'show most stocks company',
 
       bigLog: 'Big log'

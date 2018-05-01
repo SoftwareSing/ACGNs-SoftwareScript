@@ -51,6 +51,14 @@ export class ScriptView extends View {
     const beforeDiv = $(`div[id='beforeThis'][name='softwareScriptMenu']`)[0];
     this.displayDropDownMenuOption(
       {
+        name: 'aboutPage',
+        text: translation(['script', 'about']),
+        href: '/SoftwareScript/about'
+      },
+      beforeDiv
+    );
+    this.displayDropDownMenuOption(
+      {
         name: 'scriptVipPage',
         text: translation(['script', 'vip']),
         href: '/SoftwareScript/scriptVIP'

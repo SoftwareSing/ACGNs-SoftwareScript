@@ -8,6 +8,7 @@ import { ScriptVipController } from '../ScriptVipPage/ScriptVipController';
 import { ScriptAd } from './ScriptAd';
 import { getLocalCompanies } from '../functions/getLocalCompanies';
 import { translation } from '../Language/language';
+import { AboutController } from '../AboutPage/AboutController';
 
 export class MainController {
   constructor() {
@@ -41,6 +42,12 @@ export class MainController {
         DocHead.setTitle(`${Meteor.settings.public.websiteName} - ${translation(['script', 'name'])} - ${translation(['script', 'vip'])}`);
       }
     });
+    softwareScriptRoute.route('/about', {
+      name: 'softwareScriptAbout',
+      action() {
+        DocHead.setTitle(`${Meteor.settings.public.websiteName} - ${translation(['script', 'name'])} - ${translation(['script', 'about'])}`);
+      }
+    });
     softwareScriptRoute.route('/blankPage', {
       name: 'blankPage',
       action() {
@@ -56,6 +63,7 @@ export class MainController {
     this.companyDetailController = new CompanyDetailController(this.loginUser);
     this.accountInfoController = new AccountInfoController(this.loginUser);
     this.scriptVipController = new ScriptVipController(this.loginUser);
+    this.aboutController = new AboutController(this.loginUser);
   }
 
   checkCloudUpdate() {
