@@ -16,7 +16,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.08.02
+// @version      5.08.03
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -3731,7 +3731,7 @@ var AccountInfoController = function (_EventController3) {
   }, {
     key: 'holdStocksTableInfo',
     value: function holdStocksTableInfo() {
-      var tHead = [translation(['company', 'name']), translation(['company', 'price']), translation(['company', 'profit']), translation(['accountInfo', 'holdStocks']), translation(['accountInfo', 'holdPercentage']), translation(['accountInfo', 'stockAsset']), translation(['accountInfo', 'estimatedProfit']), translation(['accountInfo', 'vipLevel'])];
+      var tHead = [translation(['company', 'name']), translation(['company', 'price']), translation(['company', 'profit']), translation(['company', 'capital']), translation(['accountInfo', 'holdStocks']), translation(['accountInfo', 'holdPercentage']), translation(['accountInfo', 'stockAsset']), translation(['accountInfo', 'estimatedProfit']), translation(['accountInfo', 'vipLevel'])];
       var tBody = [];
 
       var holdStocks = JSON.parse(JSON.stringify(this.user.holdStocks));
@@ -3790,6 +3790,7 @@ var AccountInfoController = function (_EventController3) {
             row.push('<a href=\'/company/detail/' + companyData.companyId + '\'>' + companyData.name + '</a>');
             row.push(companyData.price);
             row.push(Math.ceil(companyData.profit));
+            row.push(companyData.capital);
             row.push(holdC.stocks);
             row.push((holdC.stocks / companyData.release * 100).toFixed(2) + '%');
             row.push(companyData.price * holdC.stocks);
@@ -3833,6 +3834,7 @@ var AccountInfoController = function (_EventController3) {
 
           var row = [];
           row.push('<a href=\'/company/detail/' + _holdC.companyId + '\'>' + translation(['accountInfo', 'notFoundCompany']) + '</a>');
+          row.push('???');
           row.push('???');
           row.push('???');
           row.push(_holdC.stocks);

@@ -28,6 +28,8 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 * 帳面本益比 (未計算VIP加權股份時的本益比)
 * 排他本益比 (計算VIP加權股份後 真實的本益比)
 * 我的本益比 (依照使用者的VIP等級加權股份後得出的本益比)
+* 預估分紅 (已依照使用者的VIP等級加權)
+* 預估經理分紅 (僅該公司經理顯示此欄位)
 
 ![card-info](images/card.jpg)
 
@@ -53,6 +55,7 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 (欲更新資訊請重新打開該資料夾)
 * 股價
 * 營收
+* 資本額
 * 持有股數 (賣單中的股份一併列出，以下同)
 * 持有比例
 * 股票總值

@@ -253,6 +253,7 @@ export class AccountInfoController extends EventController {
       translation(['company', 'name']),
       translation(['company', 'price']),
       translation(['company', 'profit']),
+      translation(['company', 'capital']),
       translation(['accountInfo', 'holdStocks']),
       translation(['accountInfo', 'holdPercentage']),
       translation(['accountInfo', 'stockAsset']),
@@ -286,6 +287,7 @@ export class AccountInfoController extends EventController {
         row.push(`<a href='/company/detail/${companyData.companyId}'>${companyData.name}</a>`);
         row.push(companyData.price);
         row.push(Math.ceil(companyData.profit));
+        row.push(companyData.capital);
         row.push(holdC.stocks);
         row.push(`${((holdC.stocks / companyData.release) * 100).toFixed(2)}%`);
         row.push(companyData.price * holdC.stocks);
@@ -304,6 +306,7 @@ export class AccountInfoController extends EventController {
     for (const holdC of notFoundList) {
       const row = [];
       row.push(`<a href='/company/detail/${holdC.companyId}'>${translation(['accountInfo', 'notFoundCompany'])}</a>`);
+      row.push('???');
       row.push('???');
       row.push('???');
       row.push(holdC.stocks);

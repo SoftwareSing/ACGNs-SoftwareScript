@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.08.02
+// @version      5.08.03
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -2852,6 +2852,7 @@ class AccountInfoController extends EventController {
       translation(['company', 'name']),
       translation(['company', 'price']),
       translation(['company', 'profit']),
+      translation(['company', 'capital']),
       translation(['accountInfo', 'holdStocks']),
       translation(['accountInfo', 'holdPercentage']),
       translation(['accountInfo', 'stockAsset']),
@@ -2885,6 +2886,7 @@ class AccountInfoController extends EventController {
         row.push(`<a href='/company/detail/${companyData.companyId}'>${companyData.name}</a>`);
         row.push(companyData.price);
         row.push(Math.ceil(companyData.profit));
+        row.push(companyData.capital);
         row.push(holdC.stocks);
         row.push(`${((holdC.stocks / companyData.release) * 100).toFixed(2)}%`);
         row.push(companyData.price * holdC.stocks);
@@ -2903,6 +2905,7 @@ class AccountInfoController extends EventController {
     for (const holdC of notFoundList) {
       const row = [];
       row.push(`<a href='/company/detail/${holdC.companyId}'>${translation(['accountInfo', 'notFoundCompany'])}</a>`);
+      row.push('???');
       row.push('???');
       row.push('???');
       row.push(holdC.stocks);
