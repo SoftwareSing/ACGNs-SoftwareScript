@@ -16,7 +16,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.08.03
+// @version      5.09.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -194,7 +194,7 @@ var _require2 = require('./client/layout/alertDialog.js'),
     alertDialog = _require2.alertDialog;
 
 var _require3 = require('./client/utils/helpers.js'),
-    formatDateText = _require3.formatDateText;
+    formatDateTimeText = _require3.formatDateTimeText;
 
 var _require4 = require('./db/dbCompanies.js'),
     dbCompanies = _require4.dbCompanies;
@@ -2986,7 +2986,7 @@ var BigLogView = function (_View3) {
         for (var _iterator26 = localLog[Symbol.iterator](), _step26; !(_iteratorNormalCompletion26 = (_step26 = _iterator26.next()).done); _iteratorNormalCompletion26 = true) {
           var log = _step26.value;
 
-          var displayObject = '\n        <div class=\'logData\' style=\'word-break: break-all;\'>\n          <span class=\'text-info\'>(' + formatDateText(log.createdAt) + ')</span>\n          ' + this.getDescriptionHtml(log) + '\n        </div>\n      ';
+          var displayObject = '\n        <div class=\'logData\' style=\'word-break: break-all;\'>\n          <span class=\'text-info\'>(' + formatDateTimeText(log.createdAt) + ')</span>\n          ' + this.getDescriptionHtml(log) + '\n        </div>\n      ';
           intoObject.append(displayObject);
         }
       } catch (err) {
@@ -3478,9 +3478,6 @@ var AccountInfoController = function (_EventController3) {
     });
     _this29.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', function () {
       _this29.ownProductsEvent();
-    });
-    _this29.templateListener(Template.accountAccuseLogList, 'Template.accountAccuseLogList', function () {
-      _this29.logEvent();
     });
     _this29.templateListener(Template.accountInfoLogList, 'Template.accountInfoLogList', function () {
       _this29.logEvent();
