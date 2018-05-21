@@ -41,9 +41,6 @@ export class AccountInfoController extends EventController {
     this.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', () => {
       this.ownProductsEvent();
     });
-    this.templateListener(Template.accountAccuseLogList, 'Template.accountAccuseLogList', () => {
-      this.logEvent();
-    });
     this.templateListener(Template.accountInfoLogList, 'Template.accountInfoLogList', () => {
       this.logEvent();
     });

@@ -174,7 +174,7 @@ const dict = {
 
 const { getCurrentSeason, getInitialVoteTicketCount } = require('./db/dbSeason');
 const { alertDialog } = require('./client/layout/alertDialog.js');
-const { formatDateText } = require('./client/utils/helpers.js');
+const { formatDateTimeText } = require('./client/utils/helpers.js');
 
 const { dbCompanies } = require('./db/dbCompanies.js');
 const { dbEmployees } = require('./db/dbEmployees.js');
@@ -2214,7 +2214,7 @@ class BigLogView extends View {
     for (const log of localLog) {
       const displayObject = (`
         <div class='logData' style='word-break: break-all;'>
-          <span class='text-info'>(${formatDateText(log.createdAt)})</span>
+          <span class='text-info'>(${formatDateTimeText(log.createdAt)})</span>
           ${this.getDescriptionHtml(log)}
         </div>
       `);
@@ -2639,9 +2639,6 @@ class AccountInfoController extends EventController {
     });
     this.templateListener(Template.accountInfoOwnedProductsPanel, 'Template.accountInfoOwnedProductsPanel', () => {
       this.ownProductsEvent();
-    });
-    this.templateListener(Template.accountAccuseLogList, 'Template.accountAccuseLogList', () => {
-      this.logEvent();
     });
     this.templateListener(Template.accountInfoLogList, 'Template.accountInfoLogList', () => {
       this.logEvent();

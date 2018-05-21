@@ -1,6 +1,6 @@
 import { View } from '../Global/View';
 import { translation } from '../Language/language';
-import { formatDateText } from '../require';
+import { formatDateTimeText } from '../require';
 
 /**
  * 大量紀錄 的View
@@ -56,7 +56,7 @@ export class BigLogView extends View {
     for (const log of localLog) {
       const displayObject = (`
         <div class='logData' style='word-break: break-all;'>
-          <span class='text-info'>(${formatDateText(log.createdAt)})</span>
+          <span class='text-info'>(${formatDateTimeText(log.createdAt)})</span>
           ${this.getDescriptionHtml(log)}
         </div>
       `);
