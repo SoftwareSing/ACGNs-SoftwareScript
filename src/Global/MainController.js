@@ -9,6 +9,7 @@ import { ScriptAd } from './ScriptAd';
 import { getLocalCompanies } from '../functions/getLocalCompanies';
 import { translation } from '../Language/language';
 import { AboutController } from '../AboutPage/AboutController';
+import { DisconnectReminderController } from '../DisconnectReminder/DisconnectReminderController';
 
 export class MainController {
   constructor() {
@@ -64,6 +65,8 @@ export class MainController {
     this.accountInfoController = new AccountInfoController(this.loginUser);
     this.scriptVipController = new ScriptVipController(this.loginUser);
     this.aboutController = new AboutController(this.loginUser);
+
+    this.disconnectReminderController = new DisconnectReminderController(this.loginUser);
   }
 
   checkCloudUpdate() {

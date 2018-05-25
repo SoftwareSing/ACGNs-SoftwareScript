@@ -15,7 +15,7 @@ export class AccessedRecorder {
       return (time.getTime() - t) < 60000;
     });
     this.records.sort((a, b) => {
-      return b - a;
+      return a - b; //由小至大
     });
 
     return {count: this.records.length, firstTime: this.records[0]};

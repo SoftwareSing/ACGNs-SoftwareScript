@@ -26,7 +26,7 @@ const dict = {
       disconnectWarningInfo: (dbName, count, stopTime) => {
         dbName = dbName || '某個資料';
         count = count || '多';
-        stopTime = stopTime || '60';
+        stopTime = stopTime || '數';
 
         return `您已訪問 ${dbName} 達 ${count} 次！建議休息 ${stopTime} 秒再繼續`;
       }
@@ -96,8 +96,8 @@ const dict = {
 
       disconnectWarningInfo: (dbName, count, stopTime) => {
         dbName = dbName || 'some data';
-        count = count || '多';
-        stopTime = stopTime || '60';
+        count = count || 'many';
+        stopTime = stopTime || 'few';
 
         return `You have accessed ${dbName} up to ${count} times! Recommended rest ${stopTime} seconds before continuing.`;
       }

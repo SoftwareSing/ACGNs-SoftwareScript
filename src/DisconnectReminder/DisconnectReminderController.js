@@ -6,16 +6,83 @@ export class DisconnectReminderController extends EventController {
   constructor(loginUser) {
     super('DisconnectReminderController', loginUser);
     this.disconnectReminderView = new DisconnectReminderView();
+
+    this.accountOwnStocksReminder();
+    this.companyProductCenterInfoReminder();
+    this.companyMarketingProductsReminder();
+    this.currentUserVoteRecordReminder();
+    this.companyCurrentUserOwnedProductsReminder();
+
+    this.accuseRecordReminder();
+    this.allRuleAgendaReminder();
+    this.onlinePeopleNumberReminder();
+    this.displayAdvertisingReminder();
+    this.lastImportantAccuseLogDateReminder();
+    this.currentUserUnreadAnnouncementCount();
+
+    this.accountInfoReminder();
+    this.employeeListByUserReminder();
+    this.accountChairmanTitleReminder();
+    this.accountManagerTitleReminder();
+    this.accounEmployeeTitleReminder();
+    this.accountVipTitleReminder();
+    this.accountInfoTaxReminder();
+    this.accountInfoLogReminder();
+    this.userPlacedStonesReminder();
+
+    this.companyDataForEditReminder();
+
+    this.ruleAgendaDetailReminder();
+    this.currentRoundReminder();
+    this.currentSeasonReminder();
+    this.userCreatedAtReminder();
+
+    this.userOwnedProductsReminder();
+    this.companyListReminder();
+    this.queryOwnStocksReminder();
+    this.queryMyOrderReminder();
+    this.companyOrderExcludeMeReminder();
+
+    this.adjacentSeasonReminder();
+    this.productListBySeasonIdReminder();
+    this.rankListBySeasonIdReminder();
+
+    this.companyVipsReminder();
+    this.currentUserCompanyVipReminder();
+
+    this.foundationListReminder();
+    this.foundationDetailReminder();
+    this.foundationDataForEditReminder();
+
+    this.companyMiningMachineInfoReminder();
+    this.companyStonesReminder();
+    this.companyCurrentUserPlacedStonesReminder();
+    this.companyLogReminder();
+    this.productListByCompanyReminder();
+    this.companyDetailReminder();
+    this.employeeListByCompanyReminder();
+    this.companyDirectorReminder();
+    this.companyArenaInfoReminder();
+
+    this.legacyAnnouncementDetailReminder();
+    this.validateUserReminder();
+
+    this.announcementListReminder();
+    this.allAdvertisingReminder();
+    this.arenaInfoReminder();
+    this.adjacentArenaReminder();
+    this.arenaLogReminder();
+    this.fscMembersReminder();
   }
 
   createReminder(recorder) {
     return () => {
       recorder.addRecord();
       const { count, firstTime } = recorder.checkAccessedCount();
-      if (count >= 19) {
-        const time = new Date();
+      if (count >= 18) {
+        const time = (new Date()).getTime();
         this.disconnectReminderView.displayWarningDialog(recorder.name, count,
-          Math.ceil(((60000 - firstTime) - time.getTime()) / 1000)
+          Math.ceil(((firstTime + 60000) - time) / 1000)
         );
       }
     };
