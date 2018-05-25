@@ -21,7 +21,15 @@ const dict = {
       about: '關於',
       showMostStockholdingCompany: '列出最多持股公司',
 
-      bigLog: '大量紀錄'
+      bigLog: '大量紀錄',
+
+      disconnectWarningInfo: (dbName, count, stopTime) => {
+        dbName = dbName || '某個資料';
+        count = count || '多';
+        stopTime = stopTime || '60';
+
+        return `您已訪問 ${dbName} 達 ${count} 次！建議休息 ${stopTime} 秒再繼續`;
+      }
     },
     companyList: {
       stockAsset: '持有總值',
@@ -84,7 +92,15 @@ const dict = {
       about: 'about',
       showMostStockholdingCompany: 'show most stocks company',
 
-      bigLog: 'Big log'
+      bigLog: 'Big log',
+
+      disconnectWarningInfo: (dbName, count, stopTime) => {
+        dbName = dbName || 'some data';
+        count = count || '多';
+        stopTime = stopTime || '60';
+
+        return `You have accessed ${dbName} up to ${count} times! Recommended rest ${stopTime} seconds before continuing.`;
+      }
     },
     companyList: {
       stockAsset: 'Stock asset',
