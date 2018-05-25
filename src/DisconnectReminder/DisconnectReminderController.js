@@ -79,7 +79,7 @@ export class DisconnectReminderController extends EventController {
     return () => {
       recorder.addRecord();
       const { count, firstTime } = recorder.checkAccessedCount();
-      if (count >= 18) {
+      if (count >= 15) {
         const time = (new Date()).getTime();
         this.disconnectReminderView.displayWarningDialog(recorder.name, count,
           Math.ceil(((firstTime + 60000) - time) / 1000)
