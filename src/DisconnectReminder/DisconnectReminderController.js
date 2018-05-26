@@ -35,7 +35,9 @@ export class DisconnectReminderController extends EventController {
     this.ruleAgendaDetailReminder();
     this.currentRoundReminder();
     this.currentSeasonReminder();
+    this.currentArenaReminder();
     this.userCreatedAtReminder();
+    this.userFavoriteReminder();
 
     this.userOwnedProductsReminder();
     this.companyListReminder();
@@ -108,7 +110,7 @@ export class DisconnectReminderController extends EventController {
   }
   currentUserVoteRecordReminder() {
     //this.subscribe('currentUserVoteRecord'
-    this.currentUserVoteRecord = new AccessedRecorder('currentUserVoteRecord');
+    this.currentUserVoteRecord = new AccessedRecorder('currentUserVoteRecord', 30, 10000);
     const reminder = this.createReminder(this.currentUserVoteRecord);
     this.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', reminder);
     this.templateListener(Template.productInfoBySeasonTable, 'Template.productInfoBySeasonTable', reminder);
@@ -123,25 +125,25 @@ export class DisconnectReminderController extends EventController {
 
   accuseRecordReminder() {
     //this.subscribe('accuseRecord'
-    this.accuseRecord = new AccessedRecorder('accuseRecord');
+    this.accuseRecord = new AccessedRecorder('accuseRecord', 10);
     const reminder = this.createReminder(this.accuseRecord);
     this.templateListener(Template.accuseRecord, 'Template.accuseRecord', reminder);
   }
   allRuleAgendaReminder() {
     //this.subscribe('allRuleAgenda'
-    this.allRuleAgenda = new AccessedRecorder('allRuleAgenda');
+    this.allRuleAgenda = new AccessedRecorder('allRuleAgenda', 5);
     const reminder = this.createReminder(this.allRuleAgenda);
     this.templateListener(Template.ruleAgendaList, 'Template.ruleAgendaList', reminder);
   }
   onlinePeopleNumberReminder() {
     //this.subscribe('onlinePeopleNumber'
-    this.onlinePeopleNumber = new AccessedRecorder('onlinePeopleNumber');
+    this.onlinePeopleNumber = new AccessedRecorder('onlinePeopleNumber', 5);
     const reminder = this.createReminder(this.onlinePeopleNumber);
     this.templateListener(Template.footer, 'Template.footer', reminder);
   }
   displayAdvertisingReminder() {
     //this.subscribe('displayAdvertising'
-    this.displayAdvertising = new AccessedRecorder('displayAdvertising');
+    this.displayAdvertising = new AccessedRecorder('displayAdvertising', 5);
     const reminder = this.createReminder(this.displayAdvertising);
     this.templateListener(Template.footer, 'Template.footer', reminder);
   }
@@ -215,21 +217,21 @@ export class DisconnectReminderController extends EventController {
 
   companyDataForEditReminder() {
     //this.subscribe('companyDataForEdit'
-    this.companyDataForEdit = new AccessedRecorder('companyDataForEdit');
+    this.companyDataForEdit = new AccessedRecorder('companyDataForEdit', 10);
     const reminder = this.createReminder(this.companyDataForEdit);
     this.templateListener(Template.editCompany, 'Template.editCompany', reminder);
   }
 
   ruleAgendaDetailReminder() {
     //this.subscribe('ruleAgendaDetail'
-    this.ruleAgendaDetail = new AccessedRecorder('ruleAgendaDetail');
+    this.ruleAgendaDetail = new AccessedRecorder('ruleAgendaDetail', 5);
     const reminder = this.createReminder(this.ruleAgendaDetail);
     this.templateListener(Template.ruleAgendaVote, 'Template.ruleAgendaVote', reminder);
     this.templateListener(Template.ruleAgendaDetail, 'Template.ruleAgendaDetail', reminder);
   }
   currentRoundReminder() {
     //this.subscribe('currentRound'
-    this.currentRound = new AccessedRecorder('currentRound');
+    this.currentRound = new AccessedRecorder('currentRound', 5);
     const reminder = this.createReminder(this.currentRound);
     this.templateListener(Template.ruleAgendaVote, 'Template.ruleAgendaVote', reminder);
     this.templateListener(Template.legacyAnnouncement, 'Template.legacyAnnouncement', reminder);
@@ -237,9 +239,16 @@ export class DisconnectReminderController extends EventController {
   }
   currentSeasonReminder() {
     //this.subscribe('currentSeason'
-    this.currentSeason = new AccessedRecorder('currentSeason');
+    this.currentSeason = new AccessedRecorder('currentSeason', 5);
     const reminder = this.createReminder(this.currentSeason);
+    this.templateListener(Template.nav, 'Template.nav', reminder);
     this.templateListener(Template.legacyAnnouncement, 'Template.legacyAnnouncement', reminder);
+  }
+  currentArenaReminder() {
+    //this.subscribe('currentArena'
+    this.currentArena = new AccessedRecorder('currentArena', 5);
+    const reminder = this.createReminder(this.currentArena);
+    this.templateListener(Template.nav, 'Template.nav', reminder);
   }
   userCreatedAtReminder() {
     //this.subscribe('userCreatedAt'
@@ -247,6 +256,12 @@ export class DisconnectReminderController extends EventController {
     const reminder = this.createReminder(this.userCreatedAt);
     this.templateListener(Template.ruleAgendaVote, 'Template.ruleAgendaVote', reminder);
     this.templateListener(Template.ruleAgendaDetail, 'Template.ruleAgendaDetail', reminder);
+  }
+  userFavoriteReminder() {
+    //this.subscribe('userFavorite'
+    this.userFavorite = new AccessedRecorder('userFavorite');
+    const reminder = this.createReminder(this.userFavorite);
+    this.templateListener(Template.nav, 'Template.nav', reminder);
   }
 
   userOwnedProductsReminder() {
@@ -271,7 +286,7 @@ export class DisconnectReminderController extends EventController {
   }
   queryMyOrderReminder() {
     //this.subscribe('queryMyOrder'
-    this.queryMyOrder = new AccessedRecorder('queryMyOrder');
+    this.queryMyOrder = new AccessedRecorder('queryMyOrder', 30);
     const reminder = this.createReminder(this.queryMyOrder);
     this.templateListener(Template.companyList, 'Template.companyList', reminder);
     this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
@@ -298,7 +313,7 @@ export class DisconnectReminderController extends EventController {
   }
   rankListBySeasonIdReminder() {
     //this.subscribe('rankListBySeasonId'
-    this.rankListBySeasonId = new AccessedRecorder('rankListBySeasonId');
+    this.rankListBySeasonId = new AccessedRecorder('rankListBySeasonId', 30);
     const reminder = this.createReminder(this.rankListBySeasonId);
     this.templateListener(Template.seasonalReport, 'Template.seasonalReport', reminder);
   }
@@ -324,13 +339,13 @@ export class DisconnectReminderController extends EventController {
   }
   foundationDetailReminder() {
     //this.subscribe('foundationDetail'
-    this.foundationDetail = new AccessedRecorder('foundationDetail');
+    this.foundationDetail = new AccessedRecorder('foundationDetail', 10);
     const reminder = this.createReminder(this.foundationDetail);
     this.templateListener(Template.foundationDetail, 'Template.foundationDetail', reminder);
   }
   foundationDataForEditReminder() {
     //this.subscribe('foundationDataForEdit'
-    this.foundationDataForEdit = new AccessedRecorder('foundationDataForEdit');
+    this.foundationDataForEdit = new AccessedRecorder('foundationDataForEdit', 10);
     const reminder = this.createReminder(this.foundationDataForEdit);
     this.templateListener(Template.editFoundationPlan, 'Template.editFoundationPlan', reminder);
   }
@@ -393,7 +408,7 @@ export class DisconnectReminderController extends EventController {
 
   legacyAnnouncementDetailReminder() {
     //this.subscribe('legacyAnnouncementDetail'
-    this.legacyAnnouncementDetail = new AccessedRecorder('legacyAnnouncementDetail');
+    this.legacyAnnouncementDetail = new AccessedRecorder('legacyAnnouncementDetail', 5);
     const reminder = this.createReminder(this.legacyAnnouncementDetail);
     this.templateListener(Template.legacyAnnouncement, 'Template.legacyAnnouncement', reminder);
   }
@@ -412,7 +427,7 @@ export class DisconnectReminderController extends EventController {
   }
   allAdvertisingReminder() {
     //this.subscribe('allAdvertising'
-    this.allAdvertising = new AccessedRecorder('allAdvertising');
+    this.allAdvertising = new AccessedRecorder('allAdvertising', 10);
     const reminder = this.createReminder(this.allAdvertising);
     this.templateListener(Template.advertising, 'Template.advertising', reminder);
   }
