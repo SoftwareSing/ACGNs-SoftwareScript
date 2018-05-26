@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.11.00
+// @version      5.12.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1617,7 +1617,7 @@ class EventController {
       this.autorun(() => {
         if (rIsDataReady.get()) {
           console.log(`${templateName} loaded`);
-          callback();
+          callback(templateName);
         }
         else {
           console.log(`${templateName} is loading`);
@@ -4114,18 +4114,18 @@ class DisconnectReminderController extends EventController {
     super('DisconnectReminderController', loginUser);
     this.disconnectReminderView = new DisconnectReminderView();
 
-    this.accountOwnStocksReminder();
+    // this.accountOwnStocksReminder();
     this.companyProductCenterInfoReminder();
     this.companyMarketingProductsReminder();
-    this.currentUserVoteRecordReminder();
-    this.companyCurrentUserOwnedProductsReminder();
+    // this.currentUserVoteRecordReminder();
+    // this.companyCurrentUserOwnedProductsReminder();
 
-    this.accuseRecordReminder();
-    this.allRuleAgendaReminder();
-    this.onlinePeopleNumberReminder();
-    this.displayAdvertisingReminder();
-    this.lastImportantAccuseLogDateReminder();
-    this.currentUserUnreadAnnouncementCount();
+    // this.accuseRecordReminder();
+    // this.allRuleAgendaReminder();
+    // this.onlinePeopleNumberReminder();
+    // this.displayAdvertisingReminder();
+    // this.lastImportantAccuseLogDateReminder();
+    // this.currentUserUnreadAnnouncementCount();
 
     this.accountInfoReminder();
     this.employeeListByUserReminder();
@@ -4139,12 +4139,12 @@ class DisconnectReminderController extends EventController {
 
     this.companyDataForEditReminder();
 
-    this.ruleAgendaDetailReminder();
-    this.currentRoundReminder();
-    this.currentSeasonReminder();
-    this.currentArenaReminder();
-    this.userCreatedAtReminder();
-    this.userFavoriteReminder();
+    // this.ruleAgendaDetailReminder();
+    // this.currentRoundReminder();
+    // this.currentSeasonReminder();
+    // this.currentArenaReminder();
+    // this.userCreatedAtReminder();
+    // this.userFavoriteReminder();
 
     this.userOwnedProductsReminder();
     this.companyListReminder();
@@ -4152,12 +4152,12 @@ class DisconnectReminderController extends EventController {
     this.queryMyOrderReminder();
     this.companyOrderExcludeMeReminder();
 
-    this.adjacentSeasonReminder();
-    this.productListBySeasonIdReminder();
-    this.rankListBySeasonIdReminder();
+    // this.adjacentSeasonReminder();
+    // this.productListBySeasonIdReminder(); //未限制
+    // this.rankListBySeasonIdReminder();
 
     this.companyVipsReminder();
-    this.currentUserCompanyVipReminder();
+    // this.currentUserCompanyVipReminder();
 
     this.foundationListReminder();
     this.foundationDetailReminder();
@@ -4173,15 +4173,15 @@ class DisconnectReminderController extends EventController {
     this.companyDirectorReminder();
     this.companyArenaInfoReminder();
 
-    this.legacyAnnouncementDetailReminder();
-    this.validateUserReminder();
+    // this.legacyAnnouncementDetailReminder();
+    // this.validateUserReminder();
 
-    this.announcementListReminder();
-    this.allAdvertisingReminder();
+    // this.announcementListReminder();
+    // this.allAdvertisingReminder();
     this.arenaInfoReminder();
-    this.adjacentArenaReminder();
+    // this.adjacentArenaReminder();
     this.arenaLogReminder();
-    this.fscMembersReminder();
+    // this.fscMembersReminder();
   }
 
   createReminder(recorder) {
@@ -4190,7 +4190,7 @@ class DisconnectReminderController extends EventController {
       const { shouldWarning, count, firstTime } = recorder.getWarningInfo();
       if (shouldWarning) {
         this.disconnectReminderView.displayWarningDialog(recorder.name, count,
-          Math.ceil(((firstTime + 60000) - Date.now()) / 1000)
+          Math.ceil(((firstTime + recorder.interval) - Date.now()) / 1000)
         );
       }
     };

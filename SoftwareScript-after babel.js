@@ -16,7 +16,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.11.00
+// @version      5.12.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -2168,7 +2168,7 @@ var EventController = function () {
         this.autorun(function () {
           if (rIsDataReady.get()) {
             console.log(templateName + ' loaded');
-            callback();
+            callback(templateName);
           } else {
             console.log(templateName + ' is loading');
           }
@@ -5214,18 +5214,18 @@ var DisconnectReminderController = function (_EventController6) {
 
     _this43.disconnectReminderView = new DisconnectReminderView();
 
-    _this43.accountOwnStocksReminder();
+    // this.accountOwnStocksReminder();
     _this43.companyProductCenterInfoReminder();
     _this43.companyMarketingProductsReminder();
-    _this43.currentUserVoteRecordReminder();
-    _this43.companyCurrentUserOwnedProductsReminder();
+    // this.currentUserVoteRecordReminder();
+    // this.companyCurrentUserOwnedProductsReminder();
 
-    _this43.accuseRecordReminder();
-    _this43.allRuleAgendaReminder();
-    _this43.onlinePeopleNumberReminder();
-    _this43.displayAdvertisingReminder();
-    _this43.lastImportantAccuseLogDateReminder();
-    _this43.currentUserUnreadAnnouncementCount();
+    // this.accuseRecordReminder();
+    // this.allRuleAgendaReminder();
+    // this.onlinePeopleNumberReminder();
+    // this.displayAdvertisingReminder();
+    // this.lastImportantAccuseLogDateReminder();
+    // this.currentUserUnreadAnnouncementCount();
 
     _this43.accountInfoReminder();
     _this43.employeeListByUserReminder();
@@ -5239,12 +5239,12 @@ var DisconnectReminderController = function (_EventController6) {
 
     _this43.companyDataForEditReminder();
 
-    _this43.ruleAgendaDetailReminder();
-    _this43.currentRoundReminder();
-    _this43.currentSeasonReminder();
-    _this43.currentArenaReminder();
-    _this43.userCreatedAtReminder();
-    _this43.userFavoriteReminder();
+    // this.ruleAgendaDetailReminder();
+    // this.currentRoundReminder();
+    // this.currentSeasonReminder();
+    // this.currentArenaReminder();
+    // this.userCreatedAtReminder();
+    // this.userFavoriteReminder();
 
     _this43.userOwnedProductsReminder();
     _this43.companyListReminder();
@@ -5252,12 +5252,12 @@ var DisconnectReminderController = function (_EventController6) {
     _this43.queryMyOrderReminder();
     _this43.companyOrderExcludeMeReminder();
 
-    _this43.adjacentSeasonReminder();
-    _this43.productListBySeasonIdReminder();
-    _this43.rankListBySeasonIdReminder();
+    // this.adjacentSeasonReminder();
+    // this.productListBySeasonIdReminder(); //未限制
+    // this.rankListBySeasonIdReminder();
 
     _this43.companyVipsReminder();
-    _this43.currentUserCompanyVipReminder();
+    // this.currentUserCompanyVipReminder();
 
     _this43.foundationListReminder();
     _this43.foundationDetailReminder();
@@ -5273,15 +5273,15 @@ var DisconnectReminderController = function (_EventController6) {
     _this43.companyDirectorReminder();
     _this43.companyArenaInfoReminder();
 
-    _this43.legacyAnnouncementDetailReminder();
-    _this43.validateUserReminder();
+    // this.legacyAnnouncementDetailReminder();
+    // this.validateUserReminder();
 
-    _this43.announcementListReminder();
-    _this43.allAdvertisingReminder();
+    // this.announcementListReminder();
+    // this.allAdvertisingReminder();
     _this43.arenaInfoReminder();
-    _this43.adjacentArenaReminder();
+    // this.adjacentArenaReminder();
     _this43.arenaLogReminder();
-    _this43.fscMembersReminder();
+    // this.fscMembersReminder();
     return _this43;
   }
 
@@ -5299,7 +5299,7 @@ var DisconnectReminderController = function (_EventController6) {
             firstTime = _recorder$getWarningI.firstTime;
 
         if (shouldWarning) {
-          _this44.disconnectReminderView.displayWarningDialog(recorder.name, count, Math.ceil((firstTime + 60000 - Date.now()) / 1000));
+          _this44.disconnectReminderView.displayWarningDialog(recorder.name, count, Math.ceil((firstTime + recorder.interval - Date.now()) / 1000));
         }
       };
     }
