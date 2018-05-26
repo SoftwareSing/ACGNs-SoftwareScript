@@ -50,7 +50,7 @@ export class EventController {
       this.autorun(() => {
         if (rIsDataReady.get()) {
           console.log(`${templateName} loaded`);
-          callback();
+          callback(templateName);
         }
         else {
           console.log(`${templateName} is loading`);
