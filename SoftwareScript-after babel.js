@@ -16,7 +16,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.10.00
+// @version      5.11.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -5120,30 +5120,56 @@ var AboutController = function (_EventController5) {
 
 var AccessedRecorder = function () {
   function AccessedRecorder(dbName) {
+    var number = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 20;
+    var interval = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 60000;
+
     _classCallCheck(this, AccessedRecorder);
 
     this.name = dbName;
+    this.number = number;
+    this.interval = interval;
     this.records = [];
   }
 
   _createClass(AccessedRecorder, [{
     key: 'addRecord',
     value: function addRecord() {
-      var time = new Date();
-      this.records.push(time.getTime());
+      this.records.push(Date.now());
     }
   }, {
-    key: 'checkAccessedCount',
-    value: function checkAccessedCount() {
-      var time = new Date();
+    key: 'getAccessedCount',
+    value: function getAccessedCount() {
+      var _this41 = this;
+
       this.records = this.records.filter(function (t) {
-        return time.getTime() - t < 60000;
+        return Date.now() - t < _this41.interval;
       });
       this.records.sort(function (a, b) {
         return a - b; //由小至大
       });
 
       return { count: this.records.length, firstTime: this.records[0] };
+    }
+  }, {
+    key: 'getWarningInfo',
+    value: function getWarningInfo() {
+      var shouldWarning = false;
+
+      var _getAccessedCount = this.getAccessedCount(),
+          count = _getAccessedCount.count,
+          firstTime = _getAccessedCount.firstTime;
+
+      var warningNumber = this.number - 5 > 5 ? this.number - 5 : this.number - 1;
+      if (warningNumber < 3) {
+        //只能操作不到3次的動作不提醒
+        return { shouldWarning: false, count: count, firstTime: firstTime };
+      }
+
+      if (count >= warningNumber) {
+        shouldWarning = true;
+      }
+
+      return { shouldWarning: shouldWarning, count: count, firstTime: firstTime };
     }
   }]);
 
@@ -5166,7 +5192,10 @@ var DisconnectReminderView = function (_View7) {
     key: 'displayWarningDialog',
     value: function displayWarningDialog(dbName, count, stopTime) {
       var info = translation(['script', 'disconnectWarningInfo'])(dbName, count, stopTime);
-      alertDialog.alert(info);
+      alertDialog.alert({
+        title: translation(['script', 'name']),
+        message: info
+      });
     }
   }]);
 
@@ -5181,94 +5210,96 @@ var DisconnectReminderController = function (_EventController6) {
   function DisconnectReminderController(loginUser) {
     _classCallCheck(this, DisconnectReminderController);
 
-    var _this42 = _possibleConstructorReturn(this, (DisconnectReminderController.__proto__ || Object.getPrototypeOf(DisconnectReminderController)).call(this, 'DisconnectReminderController', loginUser));
+    var _this43 = _possibleConstructorReturn(this, (DisconnectReminderController.__proto__ || Object.getPrototypeOf(DisconnectReminderController)).call(this, 'DisconnectReminderController', loginUser));
 
-    _this42.disconnectReminderView = new DisconnectReminderView();
+    _this43.disconnectReminderView = new DisconnectReminderView();
 
-    _this42.accountOwnStocksReminder();
-    _this42.companyProductCenterInfoReminder();
-    _this42.companyMarketingProductsReminder();
-    _this42.currentUserVoteRecordReminder();
-    _this42.companyCurrentUserOwnedProductsReminder();
+    _this43.accountOwnStocksReminder();
+    _this43.companyProductCenterInfoReminder();
+    _this43.companyMarketingProductsReminder();
+    _this43.currentUserVoteRecordReminder();
+    _this43.companyCurrentUserOwnedProductsReminder();
 
-    _this42.accuseRecordReminder();
-    _this42.allRuleAgendaReminder();
-    _this42.onlinePeopleNumberReminder();
-    _this42.displayAdvertisingReminder();
-    _this42.lastImportantAccuseLogDateReminder();
-    _this42.currentUserUnreadAnnouncementCount();
+    _this43.accuseRecordReminder();
+    _this43.allRuleAgendaReminder();
+    _this43.onlinePeopleNumberReminder();
+    _this43.displayAdvertisingReminder();
+    _this43.lastImportantAccuseLogDateReminder();
+    _this43.currentUserUnreadAnnouncementCount();
 
-    _this42.accountInfoReminder();
-    _this42.employeeListByUserReminder();
-    _this42.accountChairmanTitleReminder();
-    _this42.accountManagerTitleReminder();
-    _this42.accounEmployeeTitleReminder();
-    _this42.accountVipTitleReminder();
-    _this42.accountInfoTaxReminder();
-    _this42.accountInfoLogReminder();
-    _this42.userPlacedStonesReminder();
+    _this43.accountInfoReminder();
+    _this43.employeeListByUserReminder();
+    _this43.accountChairmanTitleReminder();
+    _this43.accountManagerTitleReminder();
+    _this43.accounEmployeeTitleReminder();
+    _this43.accountVipTitleReminder();
+    _this43.accountInfoTaxReminder();
+    _this43.accountInfoLogReminder();
+    _this43.userPlacedStonesReminder();
 
-    _this42.companyDataForEditReminder();
+    _this43.companyDataForEditReminder();
 
-    _this42.ruleAgendaDetailReminder();
-    _this42.currentRoundReminder();
-    _this42.currentSeasonReminder();
-    _this42.userCreatedAtReminder();
+    _this43.ruleAgendaDetailReminder();
+    _this43.currentRoundReminder();
+    _this43.currentSeasonReminder();
+    _this43.currentArenaReminder();
+    _this43.userCreatedAtReminder();
+    _this43.userFavoriteReminder();
 
-    _this42.userOwnedProductsReminder();
-    _this42.companyListReminder();
-    _this42.queryOwnStocksReminder();
-    _this42.queryMyOrderReminder();
-    _this42.companyOrderExcludeMeReminder();
+    _this43.userOwnedProductsReminder();
+    _this43.companyListReminder();
+    _this43.queryOwnStocksReminder();
+    _this43.queryMyOrderReminder();
+    _this43.companyOrderExcludeMeReminder();
 
-    _this42.adjacentSeasonReminder();
-    _this42.productListBySeasonIdReminder();
-    _this42.rankListBySeasonIdReminder();
+    _this43.adjacentSeasonReminder();
+    _this43.productListBySeasonIdReminder();
+    _this43.rankListBySeasonIdReminder();
 
-    _this42.companyVipsReminder();
-    _this42.currentUserCompanyVipReminder();
+    _this43.companyVipsReminder();
+    _this43.currentUserCompanyVipReminder();
 
-    _this42.foundationListReminder();
-    _this42.foundationDetailReminder();
-    _this42.foundationDataForEditReminder();
+    _this43.foundationListReminder();
+    _this43.foundationDetailReminder();
+    _this43.foundationDataForEditReminder();
 
-    _this42.companyMiningMachineInfoReminder();
-    _this42.companyStonesReminder();
-    _this42.companyCurrentUserPlacedStonesReminder();
-    _this42.companyLogReminder();
-    _this42.productListByCompanyReminder();
-    _this42.companyDetailReminder();
-    _this42.employeeListByCompanyReminder();
-    _this42.companyDirectorReminder();
-    _this42.companyArenaInfoReminder();
+    _this43.companyMiningMachineInfoReminder();
+    _this43.companyStonesReminder();
+    _this43.companyCurrentUserPlacedStonesReminder();
+    _this43.companyLogReminder();
+    _this43.productListByCompanyReminder();
+    _this43.companyDetailReminder();
+    _this43.employeeListByCompanyReminder();
+    _this43.companyDirectorReminder();
+    _this43.companyArenaInfoReminder();
 
-    _this42.legacyAnnouncementDetailReminder();
-    _this42.validateUserReminder();
+    _this43.legacyAnnouncementDetailReminder();
+    _this43.validateUserReminder();
 
-    _this42.announcementListReminder();
-    _this42.allAdvertisingReminder();
-    _this42.arenaInfoReminder();
-    _this42.adjacentArenaReminder();
-    _this42.arenaLogReminder();
-    _this42.fscMembersReminder();
-    return _this42;
+    _this43.announcementListReminder();
+    _this43.allAdvertisingReminder();
+    _this43.arenaInfoReminder();
+    _this43.adjacentArenaReminder();
+    _this43.arenaLogReminder();
+    _this43.fscMembersReminder();
+    return _this43;
   }
 
   _createClass(DisconnectReminderController, [{
     key: 'createReminder',
     value: function createReminder(recorder) {
-      var _this43 = this;
+      var _this44 = this;
 
       return function () {
         recorder.addRecord();
 
-        var _recorder$checkAccess = recorder.checkAccessedCount(),
-            count = _recorder$checkAccess.count,
-            firstTime = _recorder$checkAccess.firstTime;
+        var _recorder$getWarningI = recorder.getWarningInfo(),
+            shouldWarning = _recorder$getWarningI.shouldWarning,
+            count = _recorder$getWarningI.count,
+            firstTime = _recorder$getWarningI.firstTime;
 
-        if (count >= 15) {
-          var time = new Date().getTime();
-          _this43.disconnectReminderView.displayWarningDialog(recorder.name, count, Math.ceil((firstTime + 60000 - time) / 1000));
+        if (shouldWarning) {
+          _this44.disconnectReminderView.displayWarningDialog(recorder.name, count, Math.ceil((firstTime + 60000 - Date.now()) / 1000));
         }
       };
     }
@@ -5301,7 +5332,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'currentUserVoteRecordReminder',
     value: function currentUserVoteRecordReminder() {
       //this.subscribe('currentUserVoteRecord'
-      this.currentUserVoteRecord = new AccessedRecorder('currentUserVoteRecord');
+      this.currentUserVoteRecord = new AccessedRecorder('currentUserVoteRecord', 30, 10000);
       var reminder = this.createReminder(this.currentUserVoteRecord);
       this.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', reminder);
       this.templateListener(Template.productInfoBySeasonTable, 'Template.productInfoBySeasonTable', reminder);
@@ -5319,7 +5350,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'accuseRecordReminder',
     value: function accuseRecordReminder() {
       //this.subscribe('accuseRecord'
-      this.accuseRecord = new AccessedRecorder('accuseRecord');
+      this.accuseRecord = new AccessedRecorder('accuseRecord', 10);
       var reminder = this.createReminder(this.accuseRecord);
       this.templateListener(Template.accuseRecord, 'Template.accuseRecord', reminder);
     }
@@ -5327,7 +5358,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'allRuleAgendaReminder',
     value: function allRuleAgendaReminder() {
       //this.subscribe('allRuleAgenda'
-      this.allRuleAgenda = new AccessedRecorder('allRuleAgenda');
+      this.allRuleAgenda = new AccessedRecorder('allRuleAgenda', 5);
       var reminder = this.createReminder(this.allRuleAgenda);
       this.templateListener(Template.ruleAgendaList, 'Template.ruleAgendaList', reminder);
     }
@@ -5335,7 +5366,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'onlinePeopleNumberReminder',
     value: function onlinePeopleNumberReminder() {
       //this.subscribe('onlinePeopleNumber'
-      this.onlinePeopleNumber = new AccessedRecorder('onlinePeopleNumber');
+      this.onlinePeopleNumber = new AccessedRecorder('onlinePeopleNumber', 5);
       var reminder = this.createReminder(this.onlinePeopleNumber);
       this.templateListener(Template.footer, 'Template.footer', reminder);
     }
@@ -5343,7 +5374,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'displayAdvertisingReminder',
     value: function displayAdvertisingReminder() {
       //this.subscribe('displayAdvertising'
-      this.displayAdvertising = new AccessedRecorder('displayAdvertising');
+      this.displayAdvertising = new AccessedRecorder('displayAdvertising', 5);
       var reminder = this.createReminder(this.displayAdvertising);
       this.templateListener(Template.footer, 'Template.footer', reminder);
     }
@@ -5439,7 +5470,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'companyDataForEditReminder',
     value: function companyDataForEditReminder() {
       //this.subscribe('companyDataForEdit'
-      this.companyDataForEdit = new AccessedRecorder('companyDataForEdit');
+      this.companyDataForEdit = new AccessedRecorder('companyDataForEdit', 10);
       var reminder = this.createReminder(this.companyDataForEdit);
       this.templateListener(Template.editCompany, 'Template.editCompany', reminder);
     }
@@ -5447,7 +5478,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'ruleAgendaDetailReminder',
     value: function ruleAgendaDetailReminder() {
       //this.subscribe('ruleAgendaDetail'
-      this.ruleAgendaDetail = new AccessedRecorder('ruleAgendaDetail');
+      this.ruleAgendaDetail = new AccessedRecorder('ruleAgendaDetail', 5);
       var reminder = this.createReminder(this.ruleAgendaDetail);
       this.templateListener(Template.ruleAgendaVote, 'Template.ruleAgendaVote', reminder);
       this.templateListener(Template.ruleAgendaDetail, 'Template.ruleAgendaDetail', reminder);
@@ -5456,7 +5487,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'currentRoundReminder',
     value: function currentRoundReminder() {
       //this.subscribe('currentRound'
-      this.currentRound = new AccessedRecorder('currentRound');
+      this.currentRound = new AccessedRecorder('currentRound', 5);
       var reminder = this.createReminder(this.currentRound);
       this.templateListener(Template.ruleAgendaVote, 'Template.ruleAgendaVote', reminder);
       this.templateListener(Template.legacyAnnouncement, 'Template.legacyAnnouncement', reminder);
@@ -5466,9 +5497,18 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'currentSeasonReminder',
     value: function currentSeasonReminder() {
       //this.subscribe('currentSeason'
-      this.currentSeason = new AccessedRecorder('currentSeason');
+      this.currentSeason = new AccessedRecorder('currentSeason', 5);
       var reminder = this.createReminder(this.currentSeason);
+      this.templateListener(Template.nav, 'Template.nav', reminder);
       this.templateListener(Template.legacyAnnouncement, 'Template.legacyAnnouncement', reminder);
+    }
+  }, {
+    key: 'currentArenaReminder',
+    value: function currentArenaReminder() {
+      //this.subscribe('currentArena'
+      this.currentArena = new AccessedRecorder('currentArena', 5);
+      var reminder = this.createReminder(this.currentArena);
+      this.templateListener(Template.nav, 'Template.nav', reminder);
     }
   }, {
     key: 'userCreatedAtReminder',
@@ -5478,6 +5518,14 @@ var DisconnectReminderController = function (_EventController6) {
       var reminder = this.createReminder(this.userCreatedAt);
       this.templateListener(Template.ruleAgendaVote, 'Template.ruleAgendaVote', reminder);
       this.templateListener(Template.ruleAgendaDetail, 'Template.ruleAgendaDetail', reminder);
+    }
+  }, {
+    key: 'userFavoriteReminder',
+    value: function userFavoriteReminder() {
+      //this.subscribe('userFavorite'
+      this.userFavorite = new AccessedRecorder('userFavorite');
+      var reminder = this.createReminder(this.userFavorite);
+      this.templateListener(Template.nav, 'Template.nav', reminder);
     }
   }, {
     key: 'userOwnedProductsReminder',
@@ -5509,7 +5557,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'queryMyOrderReminder',
     value: function queryMyOrderReminder() {
       //this.subscribe('queryMyOrder'
-      this.queryMyOrder = new AccessedRecorder('queryMyOrder');
+      this.queryMyOrder = new AccessedRecorder('queryMyOrder', 30);
       var reminder = this.createReminder(this.queryMyOrder);
       this.templateListener(Template.companyList, 'Template.companyList', reminder);
       this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
@@ -5543,7 +5591,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'rankListBySeasonIdReminder',
     value: function rankListBySeasonIdReminder() {
       //this.subscribe('rankListBySeasonId'
-      this.rankListBySeasonId = new AccessedRecorder('rankListBySeasonId');
+      this.rankListBySeasonId = new AccessedRecorder('rankListBySeasonId', 30);
       var reminder = this.createReminder(this.rankListBySeasonId);
       this.templateListener(Template.seasonalReport, 'Template.seasonalReport', reminder);
     }
@@ -5575,7 +5623,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'foundationDetailReminder',
     value: function foundationDetailReminder() {
       //this.subscribe('foundationDetail'
-      this.foundationDetail = new AccessedRecorder('foundationDetail');
+      this.foundationDetail = new AccessedRecorder('foundationDetail', 10);
       var reminder = this.createReminder(this.foundationDetail);
       this.templateListener(Template.foundationDetail, 'Template.foundationDetail', reminder);
     }
@@ -5583,7 +5631,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'foundationDataForEditReminder',
     value: function foundationDataForEditReminder() {
       //this.subscribe('foundationDataForEdit'
-      this.foundationDataForEdit = new AccessedRecorder('foundationDataForEdit');
+      this.foundationDataForEdit = new AccessedRecorder('foundationDataForEdit', 10);
       var reminder = this.createReminder(this.foundationDataForEdit);
       this.templateListener(Template.editFoundationPlan, 'Template.editFoundationPlan', reminder);
     }
@@ -5664,7 +5712,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'legacyAnnouncementDetailReminder',
     value: function legacyAnnouncementDetailReminder() {
       //this.subscribe('legacyAnnouncementDetail'
-      this.legacyAnnouncementDetail = new AccessedRecorder('legacyAnnouncementDetail');
+      this.legacyAnnouncementDetail = new AccessedRecorder('legacyAnnouncementDetail', 5);
       var reminder = this.createReminder(this.legacyAnnouncementDetail);
       this.templateListener(Template.legacyAnnouncement, 'Template.legacyAnnouncement', reminder);
     }
@@ -5688,7 +5736,7 @@ var DisconnectReminderController = function (_EventController6) {
     key: 'allAdvertisingReminder',
     value: function allAdvertisingReminder() {
       //this.subscribe('allAdvertising'
-      this.allAdvertising = new AccessedRecorder('allAdvertising');
+      this.allAdvertising = new AccessedRecorder('allAdvertising', 10);
       var reminder = this.createReminder(this.allAdvertising);
       this.templateListener(Template.advertising, 'Template.advertising', reminder);
     }
@@ -5741,7 +5789,7 @@ var DisconnectReminderController = function (_EventController6) {
 
 var MainController = function () {
   function MainController() {
-    var _this44 = this;
+    var _this45 = this;
 
     _classCallCheck(this, MainController);
 
@@ -5754,7 +5802,7 @@ var MainController = function () {
           typeName = _ref4.typeName;
 
       if (currentServer.match(type)) {
-        _this44.serverType = typeName;
+        _this45.serverType = typeName;
       }
     });
     this.othersScript = [];
