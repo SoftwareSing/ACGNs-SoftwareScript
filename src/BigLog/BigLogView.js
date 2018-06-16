@@ -18,7 +18,7 @@ export class BigLogView extends View {
   }
 
   showBigLogFolder() {
-    const intoObject = $(`div[class='row border-grid-body']`);
+    const intoObject = $(`div[class='row border-grid-body mt-2']`);
     if (intoObject.length > 0) {
       const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`);
       if (tmpInto.length < 1) {
@@ -32,7 +32,7 @@ export class BigLogView extends View {
     }
   }
   displayBigLogFolder() {
-    const intoObject = $(`div[class='row border-grid-body']`).first();
+    const intoObject = $(`div[class='row border-grid-body mt-2']`).first();
     const appendDiv = (`<div class='col-12 border-grid' name=${this.name}></div>`);
     intoObject.append(appendDiv);
     const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`)[0];
