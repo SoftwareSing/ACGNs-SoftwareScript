@@ -4,6 +4,7 @@ import { translation } from '../Language/language';
 import { earnPerShare } from '../functions/earnPerShare';
 import { effectiveStocks } from '../functions/effectiveStocks';
 import { Company } from '../Company/Company';
+import { getCurrentUserOwnedStockAmount } from '../require';
 
 /**
  * CompanyList的View
@@ -51,7 +52,6 @@ export class CompanyListView extends View {
     }
 
 
-    const getStockAmount = Template.companyListCard.__helpers[' getStockAmount'];
     const infoRowSample = instance.$('.row-info').last();
 
     const ownValueRow = infoRowSample.clone();
@@ -106,9 +106,9 @@ export class CompanyListView extends View {
 
 
       if (Meteor.user()) {
-        const stockAmount = getStockAmount(company.companyId);
+        const stockAmount = getCurrentUserOwnedStockAmount(company.companyId);
         if (stockAmount > 0) {
-          const stockAmount = getStockAmount(company.companyId);
+          const stockAmount = getCurrentUserOwnedStockAmount(company.companyId);
           const ownValue = stockAmount * company.price;
           ownValueRow.find('p:eq(1)').html(`$ ${ownValue}`);
           showRow(ownValueRow);
