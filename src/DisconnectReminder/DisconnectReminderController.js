@@ -41,9 +41,6 @@ export class DisconnectReminderController extends EventController {
 
     this.userOwnedProductsReminder();
     this.companyListReminder();
-    this.queryOwnStocksReminder();
-    this.queryMyOrderReminder();
-    this.companyOrderExcludeMeReminder();
 
     // this.adjacentSeasonReminder();
     // this.productListBySeasonIdReminder(); //未限制
@@ -75,6 +72,10 @@ export class DisconnectReminderController extends EventController {
     // this.adjacentArenaReminder();
     this.arenaLogReminder();
     // this.fscMembersReminder();
+
+    this.currentUserOrdersReminder();
+    this.currentUserDirectorsReminder();
+    this.companyOrdersReminder();
   }
 
   createReminder(recorder) {
@@ -276,27 +277,6 @@ export class DisconnectReminderController extends EventController {
     const reminder = this.createReminder(this.companyList);
     this.templateListener(Template.companyList, 'Template.companyList', reminder);
   }
-  queryOwnStocksReminder() {
-    //this.subscribe('queryOwnStocks'
-    this.queryOwnStocks = new AccessedRecorder('queryOwnStocks');
-    const reminder = this.createReminder(this.queryOwnStocks);
-    this.templateListener(Template.companyList, 'Template.companyList', reminder);
-    this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-    this.templateListener(Template.companyDirectorList, 'Template.companyDirectorList', reminder);
-  }
-  queryMyOrderReminder() {
-    //this.subscribe('queryMyOrder'
-    this.queryMyOrder = new AccessedRecorder('queryMyOrder', 30);
-    const reminder = this.createReminder(this.queryMyOrder);
-    this.templateListener(Template.companyList, 'Template.companyList', reminder);
-    this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-  }
-  companyOrderExcludeMeReminder() {
-    //this.subscribe('companyOrderExcludeMe'
-    this.companyOrderExcludeMe = new AccessedRecorder('companyOrderExcludeMe');
-    const reminder = this.createReminder(this.companyOrderExcludeMe);
-    this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-  }
 
   adjacentSeasonReminder() {
     //this.subscribe('adjacentSeason'
@@ -391,7 +371,7 @@ export class DisconnectReminderController extends EventController {
     //this.subscribe('employeeListByCompany'
     this.employeeListByCompany = new AccessedRecorder('employeeListByCompany');
     const reminder = this.createReminder(this.employeeListByCompany);
-    this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', reminder);
+    this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', reminder);
   }
   companyDirectorReminder() {
     //this.subscribe('companyDirector'
@@ -456,6 +436,25 @@ export class DisconnectReminderController extends EventController {
     this.fscMembers = new AccessedRecorder('fscMembers');
     const reminder = this.createReminder(this.fscMembers);
     this.templateListener(Template.tutorial, 'Template.tutorial', reminder);
+  }
+
+  currentUserOrdersReminder() {
+    //this.subscribe('currentUserOrders'
+    this.currentUserOrders = new AccessedRecorder('currentUserOrders');
+    const reminder = this.createReminder(this.currentUserOrders);
+    this.templateListener(Template.companyOrderBook, 'Template.companyOrderBook', reminder);
+  }
+  currentUserDirectorsReminder() {
+    //this.subscribe('currentUserDirectors'
+    this.currentUserDirectors = new AccessedRecorder('currentUserDirectors');
+    const reminder = this.createReminder(this.currentUserDirectors);
+    this.templateListener(Template.companyOrderBook, 'Template.companyOrderBook', reminder);
+  }
+  companyOrdersReminder() {
+    //this.subscribe('companyOrders'
+    this.companyOrders = new AccessedRecorder('companyOrders');
+    const reminder = this.createReminder(this.companyOrders);
+    this.templateListener(Template.companyOrderList, 'Template.companyOrderList', reminder);
   }
 
 

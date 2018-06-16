@@ -5,11 +5,11 @@
 // class CompanyDetailController extends EventController {
 //   constructor(user) {
 //     super('CompanyDetailController', user);
-//     this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', this.startEvent);
+//     this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', this.startEvent);
 //     this.templateListener(Template.companyDetail, 'Template.companyDetail', this.startEvent2);
 //   }
 //   startEvent() {
-//     console.log('companyDetailContentNormal success');
+//     console.log('companyDetailNormalContent success');
 //     console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
 //     console.log('');
 //   }
