@@ -1,3 +1,4 @@
+/* 本檔由 MergeFile.py 自動產生, 欲修改code請至src資料夾 */
 //start file: ./src/main.js
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
@@ -3751,7 +3752,6 @@ class SearchTables {
     debugConsole('=====do=' + fun);
 
     return eval(fun);
-    /* eslint-enable no-eval, no-unused-vars */
   }
 
   outputTable(tableName) {
@@ -4025,7 +4025,6 @@ class AboutView extends View {
       </div>
     </div>    
       `);
-      /* eslint-enable max-len */
 
       return page;
     });

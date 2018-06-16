@@ -2,6 +2,7 @@ import re
 from os import walk
 
 outputFile = open("ACGNs-SoftwareScript.user.js", "w", encoding = 'utf8')
+outputFile.write("/* 本檔由 MergeFile.py 自動產生, 欲修改code請至src資料夾 */" + "\n")
 
 def findFileName(line):
     a = re.search("[A-Za-z0-9_]*[\"\'];$", line).group()
@@ -21,7 +22,6 @@ def writeIntoFile(line):
 
 requireList = []
 def copyJs(jsFile):
-
     global writeCount
     writeCount += 1
     dash = ""
@@ -47,6 +47,8 @@ def copyJs(jsFile):
                     writeIntoFile(line)
                 else:
                     print("//require already exists")
+            elif (re.search("eslint-enable", line)):
+                print("//skip eslint-enable")
             else:
                 writeIntoFile(line)
     outputFile.write("//" + dash + "end file: " + jsFile + "\n")
