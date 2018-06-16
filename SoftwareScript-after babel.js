@@ -12,11 +12,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/* 本檔由 MergeFile.py 自動產生, 欲修改code請至src資料夾 */
 //start file: ./src/main.js
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.12.00
+// @version      5.13.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -212,26 +213,29 @@ var _require2 = require('./client/layout/alertDialog.js'),
 var _require3 = require('./client/utils/helpers.js'),
     formatDateTimeText = _require3.formatDateTimeText;
 
-var _require4 = require('./db/dbCompanies.js'),
-    dbCompanies = _require4.dbCompanies;
+var _require4 = require('./client/company/helpers.js'),
+    getCurrentUserOwnedStockAmount = _require4.getCurrentUserOwnedStockAmount;
 
-var _require5 = require('./db/dbEmployees.js'),
-    dbEmployees = _require5.dbEmployees;
+var _require5 = require('./db/dbCompanies.js'),
+    dbCompanies = _require5.dbCompanies;
 
-var _require6 = require('./db/dbVips.js'),
-    dbVips = _require6.dbVips;
+var _require6 = require('./db/dbEmployees.js'),
+    dbEmployees = _require6.dbEmployees;
 
-var _require7 = require('./db/dbDirectors.js'),
-    dbDirectors = _require7.dbDirectors;
+var _require7 = require('./db/dbVips.js'),
+    dbVips = _require7.dbVips;
 
-var _require8 = require('./db/dbOrders.js'),
-    dbOrders = _require8.dbOrders;
+var _require8 = require('./db/dbDirectors.js'),
+    dbDirectors = _require8.dbDirectors;
 
-var _require9 = require('./db/dbUserOwnedProducts.js'),
-    dbUserOwnedProducts = _require9.dbUserOwnedProducts;
+var _require9 = require('./db/dbOrders.js'),
+    dbOrders = _require9.dbOrders;
 
-var _require10 = require('./db/dbLog.js'),
-    dbLog = _require10.dbLog;
+var _require10 = require('./db/dbUserOwnedProducts.js'),
+    dbUserOwnedProducts = _require10.dbUserOwnedProducts;
+
+var _require11 = require('./db/dbLog.js'),
+    dbLog = _require11.dbLog;
 
 /***************import****************/
 /*************************************/
@@ -2113,11 +2117,11 @@ var CloudUpdater = function () {
 // class CompanyDetailController extends EventController {
 //   constructor(user) {
 //     super('CompanyDetailController', user);
-//     this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', this.startEvent);
+//     this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', this.startEvent);
 //     this.templateListener(Template.companyDetail, 'Template.companyDetail', this.startEvent2);
 //   }
 //   startEvent() {
-//     console.log('companyDetailContentNormal success');
+//     console.log('companyDetailNormalContent success');
 //     console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
 //     console.log('');
 //   }
@@ -2624,7 +2628,6 @@ var CompanyListView = function (_View2) {
         row.removeClass('d-none').addClass('d-flex');
       }
 
-      var getStockAmount = Template.companyListCard.__helpers[' getStockAmount'];
       var infoRowSample = instance.$('.row-info').last();
 
       var ownValueRow = infoRowSample.clone();
@@ -2677,9 +2680,9 @@ var CompanyListView = function (_View2) {
         peRatioVipRow.find('p:eq(1)').html(isFinite(peRatioVip) ? peRatioVip.toFixed(2) : '∞');
 
         if (Meteor.user()) {
-          var stockAmount = getStockAmount(company.companyId);
+          var stockAmount = getCurrentUserOwnedStockAmount(company.companyId);
           if (stockAmount > 0) {
-            var _stockAmount = getStockAmount(company.companyId);
+            var _stockAmount = getCurrentUserOwnedStockAmount(company.companyId);
             var ownValue = _stockAmount * company.price;
             ownValueRow.find('p:eq(1)').html('$ ' + ownValue);
             showRow(ownValueRow);
@@ -2962,8 +2965,9 @@ var BigLogView = function (_View3) {
     value: function showBigLogFolder() {
       var _this26 = this;
 
-      var intoObject = $('div[class=\'row border-grid-body\']');
-      if (intoObject.length > 0) {
+      var intoObject = $('div[class=\'row border-grid-body mt-2\']');
+      var intoObject2 = $('div[class=\'row border-grid-body\']');
+      if (intoObject.length > 0 || intoObject2.length > 0) {
         var tmpInto = $('div[class=\'col-12 border-grid\'][name=' + this.name + ']');
         if (tmpInto.length < 1) {
           this.displayBigLogFolder();
@@ -2977,7 +2981,7 @@ var BigLogView = function (_View3) {
   }, {
     key: 'displayBigLogFolder',
     value: function displayBigLogFolder() {
-      var intoObject = $('div[class=\'row border-grid-body\']').first();
+      var intoObject = $('div[class=\'row border-grid-body mt-2\']').length > 0 ? $('div[class=\'row border-grid-body mt-2\']').first() : $('div[class=\'row border-grid-body\']').first();
       var appendDiv = '<div class=\'col-12 border-grid\' name=' + this.name + '></div>';
       intoObject.append(appendDiv);
       var tmpInto = $('div[class=\'col-12 border-grid\'][name=' + this.name + ']')[0];
@@ -3135,7 +3139,7 @@ var CompanyDetailController = function (_EventController2) {
     _this27.templateListener(Template.companyDetail, 'Template.companyDetail', function () {
       _this27.useCompaniesInfo();
     });
-    _this27.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', function () {
+    _this27.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', function () {
       _this27.useEmployeesInfo();
     });
     _this27.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', function () {
@@ -3145,7 +3149,7 @@ var CompanyDetailController = function (_EventController2) {
       _this27.useLogInfo();
     });
 
-    Template.companyDetailContentNormal.onRendered(function () {
+    Template.companyDetailTable.onRendered(function () {
       _this27.bigLogView.showBigLogFolder();
     });
     _this27.panelFolderListener('companyBigLog', function () {
@@ -4734,7 +4738,6 @@ var SearchTables = function () {
       debugConsole('=====do=' + fun);
 
       return eval(fun);
-      /* eslint-enable no-eval, no-unused-vars */
     }
   }, {
     key: 'outputTable',
@@ -5081,7 +5084,6 @@ var AboutView = function (_View6) {
       /* eslint-disable max-len */
       // eslint-disable-next-line new-cap
       var page = HTML.Raw('\n      <div class=\'card\' name=\'about\'>\n      <div class=\'card-block\' name=\'about\'>\n    \n        <div id="readme" class="readme blob instapaper_body">\n          <article class="markdown-body entry-content" itemprop="text">\n            <h1>ACGN-stock\u71DF\u5229\u7D71\u8A08\u5916\u639B / SoftwareScript</h1>\n            <p>A script helps you play\n              <a href="https://acgn-stock.com" rel="nofollow">acgn-stock.com</a>.</p>\n            <p>\u4E00\u500B\u5E6B\u52A9\u4F60\u5728\n              <a href="https://acgn-stock.com" rel="nofollow">acgn-stock.com</a> \u7372\u5F97\u66F4\u8C50\u5BCC\u8A0A\u606F\u7684\u5916\u639B</p>\n            <p>\n              <del>\u7D14\u7CB9\u56E0\u70BA\u4E2D\u6587\u592A\u9577\uFF0C\u6240\u4EE5\u82F1\u6587\u91CD\u65B0\u53D6\u540D\u800C\u4E0D\u662F\u7167\u7FFB</del>\n            </p>\n            <h2>\u767C\u5E03\u9801\u9762</h2>\n            <p>\n              <a href="https://github.com/SoftwareSing/ACGNs-SoftwareScript" rel="nofollow" target="_blank">GitHub</a>\n              <del>( \u5167\u542B\u6C92\u4EC0\u9EBC\u7528\u7684\u5716\u6587\u7248\u529F\u80FD\u8AAA\u660E )</del>\n            </p>\n            <p>\n              <a href="https://greasyfork.org/zh-TW/scripts/33542" rel="nofollow" target="_blank">GreasyFork</a>\n            </p>\n            <p></p>\n            <h2>\u76EE\u524D\u7684\u529F\u80FD</h2>\n    \n            <h3>\u66F4\u8C50\u5BCC\u7684\u5361\u9762\u8A0A\u606F</h3>\n            <ul>\n              <li>\u6301\u6709\u7E3D\u503C</li>\n              <li>\u71DF\u6536</li>\n              <li>\u5E33\u9762\u672C\u76CA\u6BD4 (\u672A\u8A08\u7B97VIP\u52A0\u6B0A\u80A1\u4EFD\u6642\u7684\u672C\u76CA\u6BD4)</li>\n              <li>\u6392\u4ED6\u672C\u76CA\u6BD4 (\u8A08\u7B97VIP\u52A0\u6B0A\u80A1\u4EFD\u5F8C \u771F\u5BE6\u7684\u672C\u76CA\u6BD4)</li>\n              <li>\u6211\u7684\u672C\u76CA\u6BD4 (\u4F9D\u7167\u4F7F\u7528\u8005\u7684VIP\u7B49\u7D1A\u52A0\u6B0A\u80A1\u4EFD\u5F8C\u5F97\u51FA\u7684\u672C\u76CA\u6BD4)</li>\n            </ul>\n    \n            <h3>\u5E33\u865F\u7684\u66F4\u8A73\u7D30\u8CC7\u8A0A</h3>\n            <p>\u5728\u7FFB\u95B1\u904E\u5E33\u865F\u7684\u6301\u6709\u80A1\u4EFD\u3001\u7D93\u7406\u8CC7\u8A0A\u3001VIP\u8CC7\u8A0A\u5F8C\uFF0C\u53EF\u4EE5\u5728\u9801\u9762\u4E0A\u5F97\u5230\u8A73\u7D30\u7684\u7D71\u8A08\u8CC7\u8A0A</p>\n            <p>(\u767B\u5165\u4E2D\u7684\u4F7F\u7528\u8005\u5728\u9032\u5165\u904E \u80A1\u5E02\u7E3D\u89BD \u5F8C\u4FBF\u53EF\u5F97\u5230\u8A73\u7D30\u7684\u6301\u80A1\u8CC7\u8A0A)</p>\n            <ul>\n              <li>\u6301\u6709\u516C\u53F8\u7E3D\u6578</li>\n              <li>\u80A1\u7968\u7E3D\u503C (\u672A\u8A08\u7B97\u8CE3\u55AE\u4E2D\u7684\u80A1\u7968)</li>\n              <li>\u8CE3\u55AE\u80A1\u7968\u7E3D\u503C (\u50C5\u7576\u524D\u767B\u5165\u4E2D\u7684\u5E33\u865F\u53EF\u67E5\u770B)</li>\n              <li>\u8CB7\u55AE\u73FE\u91D1\u7E3D\u503C (\u50C5\u7576\u524D\u767B\u5165\u4E2D\u7684\u5E33\u865F\u53EF\u67E5\u770B)</li>\n              <li>\u9810\u4F30\u80A1\u7968\u5206\u7D05 (\u5DF2\u8A08\u7B97VIP\u52A0\u6B0A\u80A1\u4EFD)</li>\n              <li>\u9810\u4F30\u7D93\u7406\u5206\u7D05</li>\n              <li>\u9810\u4F30\u54E1\u5DE5\u5206\u7D05 (\u54E1\u5DE5\u734E\u91D1 \u76EE\u524D\u6700\u9AD85%)</li>\n              <li>\u9810\u4F30\u63A8\u85A6\u7968\u734E\u52F5 (\u5305\u542B\u7CFB\u7D71\u734E\u91D1 \u8207 \u54E1\u5DE51%\u734E\u52F5)</li>\n              <li>\u9810\u4F30\u7A05\u91D1 (\u4EE5\u4E0A\u65B9\u6240\u6709\u8CA1\u7522\u3001\u9810\u4F30\u7372\u76CA\u4F86\u9810\u4F30\u4E0B\u5B63\u7A05\u91D1)</li>\n            </ul>\n    \n            <h3>\u6301\u80A1\u8CC7\u8A0A\u7E3D\u8868</h3>\n            <p>\u5728\u7FFB\u95B1\u904E\u5E33\u865F\u7684\u76F8\u95DC\u8A0A\u606F\u5F8C\uFF0C\u53EF\u4EE5\u5728\u5E95\u4E0B\u67E5\u95B1\u8A72\u5E33\u865F\u7684\u6301\u80A1\u7E3D\u8868</p>\n            <p>(\u6B32\u66F4\u65B0\u8CC7\u8A0A\u8ACB\u91CD\u65B0\u6253\u958B\u8A72\u8CC7\u6599\u593E)</p>\n            <ul>\n              <li>\u80A1\u50F9</li>\n              <li>\u71DF\u6536</li>\n              <li>\u6301\u6709\u80A1\u6578 (\u8CE3\u55AE\u4E2D\u7684\u80A1\u4EFD\u4E00\u4F75\u5217\u51FA\uFF0C\u4EE5\u4E0B\u540C)</li>\n              <li>\u6301\u6709\u6BD4\u4F8B</li>\n              <li>\u80A1\u7968\u7E3D\u503C</li>\n              <li>\u9810\u4F30\u5206\u7D05 (\u5DF2\u8A08\u7B97VIP\u52A0\u6B0A\u80A1\u4EFD)</li>\n              <li>VIP\u7B49\u7D1A</li>\n            </ul>\n    \n            <h3>\u4E00\u6B21\u67E5\u770B\u66F4\u5927\u91CF\u7684\u7D00\u9304</h3>\n            <p>\u5728\u516C\u53F8\u6216\u5E33\u865F\u5E95\u4E0B\u7684 \u6240\u4EE5\u7D00\u9304 \u7FFB\u95B1\u904E\u5F8C\uFF0C\u53EF\u4EE5\u9EDE\u9078 \u5927\u91CF\u7D00\u9304 \u4F86\u4E00\u6B21\u986F\u793A\u6240\u6709\u525B\u525B\u7FFB\u95B1\u5230\u7684\u7D00\u9304</p>\n            <p>(\u9801\u9762\u91CD\u65B0\u6574\u7406\u5F8C\u7D00\u9304\u4E0D\u6703\u7559\u5B58)</p>\n    \n            <h3>\u6301\u6709\u6BD4\u4F8B\u6700\u591A\u7684\u516C\u53F8</h3>\n            <p>\u5728\u9032\u5165 \u80A1\u5E02\u7E3D\u89BD \u904E\u5F8C\uFF0C\u5728\u5916\u639B\u9078\u55AE\u4E2D\u9EDE\u9078 [\u5217\u51FA\u6700\u591A\u6301\u80A1\u516C\u53F8] \u4F9D\u7167\u6301\u80A1\u6BD4\u4F8B\u7531\u9AD8\u5230\u4F4E\u5217\u51FA\u6240\u6301\u80A1\u7684\u516C\u53F8</p>\n            <p>(\u91CD\u65B0\u6574\u7406\u5217\u8868\u8ACB\u518D\u9EDE\u4E00\u6B21)</p>\n    \n            <h3>\u8CC7\u6599\u641C\u5C0B</h3>\n            <p>\u900F\u904E\u6307\u5B9A\u7684\u689D\u4EF6\u4F86\u641C\u5C0B\u5B58\u5728\u5916\u639B\u4E2D\u80A1\u5E02\u8CC7\u6599</p>\n            <p>(\u529F\u80FD\u8981\u6C42\u6709\u5916\u639BVIP\u8CC7\u683C\u624D\u53EF\u4F7F\u7528)</p>\n    \n            <h3>\u5EE3\u544A</h3>\n            <p>\u7F6E\u5E95\u6709\u5EE3\u544A</p>\n          </article>\n        </div>\n      </div>\n    </div>    \n      ');
-      /* eslint-enable max-len */
 
       return page;
     });
@@ -5248,9 +5250,6 @@ var DisconnectReminderController = function (_EventController6) {
 
     _this43.userOwnedProductsReminder();
     _this43.companyListReminder();
-    _this43.queryOwnStocksReminder();
-    _this43.queryMyOrderReminder();
-    _this43.companyOrderExcludeMeReminder();
 
     // this.adjacentSeasonReminder();
     // this.productListBySeasonIdReminder(); //未限制
@@ -5282,6 +5281,10 @@ var DisconnectReminderController = function (_EventController6) {
     // this.adjacentArenaReminder();
     _this43.arenaLogReminder();
     // this.fscMembersReminder();
+
+    _this43.currentUserOrdersReminder();
+    _this43.currentUserDirectorsReminder();
+    _this43.companyOrdersReminder();
     return _this43;
   }
 
@@ -5544,33 +5547,6 @@ var DisconnectReminderController = function (_EventController6) {
       this.templateListener(Template.companyList, 'Template.companyList', reminder);
     }
   }, {
-    key: 'queryOwnStocksReminder',
-    value: function queryOwnStocksReminder() {
-      //this.subscribe('queryOwnStocks'
-      this.queryOwnStocks = new AccessedRecorder('queryOwnStocks');
-      var reminder = this.createReminder(this.queryOwnStocks);
-      this.templateListener(Template.companyList, 'Template.companyList', reminder);
-      this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-      this.templateListener(Template.companyDirectorList, 'Template.companyDirectorList', reminder);
-    }
-  }, {
-    key: 'queryMyOrderReminder',
-    value: function queryMyOrderReminder() {
-      //this.subscribe('queryMyOrder'
-      this.queryMyOrder = new AccessedRecorder('queryMyOrder', 30);
-      var reminder = this.createReminder(this.queryMyOrder);
-      this.templateListener(Template.companyList, 'Template.companyList', reminder);
-      this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-    }
-  }, {
-    key: 'companyOrderExcludeMeReminder',
-    value: function companyOrderExcludeMeReminder() {
-      //this.subscribe('companyOrderExcludeMe'
-      this.companyOrderExcludeMe = new AccessedRecorder('companyOrderExcludeMe');
-      var reminder = this.createReminder(this.companyOrderExcludeMe);
-      this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-    }
-  }, {
     key: 'adjacentSeasonReminder',
     value: function adjacentSeasonReminder() {
       //this.subscribe('adjacentSeason'
@@ -5690,7 +5666,7 @@ var DisconnectReminderController = function (_EventController6) {
       //this.subscribe('employeeListByCompany'
       this.employeeListByCompany = new AccessedRecorder('employeeListByCompany');
       var reminder = this.createReminder(this.employeeListByCompany);
-      this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', reminder);
+      this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', reminder);
     }
   }, {
     key: 'companyDirectorReminder',
@@ -5771,6 +5747,30 @@ var DisconnectReminderController = function (_EventController6) {
       this.fscMembers = new AccessedRecorder('fscMembers');
       var reminder = this.createReminder(this.fscMembers);
       this.templateListener(Template.tutorial, 'Template.tutorial', reminder);
+    }
+  }, {
+    key: 'currentUserOrdersReminder',
+    value: function currentUserOrdersReminder() {
+      //this.subscribe('currentUserOrders'
+      this.currentUserOrders = new AccessedRecorder('currentUserOrders');
+      var reminder = this.createReminder(this.currentUserOrders);
+      this.templateListener(Template.companyOrderBook, 'Template.companyOrderBook', reminder);
+    }
+  }, {
+    key: 'currentUserDirectorsReminder',
+    value: function currentUserDirectorsReminder() {
+      //this.subscribe('currentUserDirectors'
+      this.currentUserDirectors = new AccessedRecorder('currentUserDirectors');
+      var reminder = this.createReminder(this.currentUserDirectors);
+      this.templateListener(Template.companyOrderBook, 'Template.companyOrderBook', reminder);
+    }
+  }, {
+    key: 'companyOrdersReminder',
+    value: function companyOrdersReminder() {
+      //this.subscribe('companyOrders'
+      this.companyOrders = new AccessedRecorder('companyOrders');
+      var reminder = this.createReminder(this.companyOrders);
+      this.templateListener(Template.companyOrderList, 'Template.companyOrderList', reminder);
     }
   }, {
     key: 'newReminder',

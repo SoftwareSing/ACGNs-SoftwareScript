@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.12.00
+// @version      5.13.00
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -192,6 +192,7 @@ const dict = {
 const { getCurrentSeason, getInitialVoteTicketCount } = require('./db/dbSeason');
 const { alertDialog } = require('./client/layout/alertDialog.js');
 const { formatDateTimeText } = require('./client/utils/helpers.js');
+const { getCurrentUserOwnedStockAmount } = require('./client/company/helpers.js');
 
 const { dbCompanies } = require('./db/dbCompanies.js');
 const { dbEmployees } = require('./db/dbEmployees.js');
@@ -1573,11 +1574,11 @@ class CloudUpdater {
 // class CompanyDetailController extends EventController {
 //   constructor(user) {
 //     super('CompanyDetailController', user);
-//     this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', this.startEvent);
+//     this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', this.startEvent);
 //     this.templateListener(Template.companyDetail, 'Template.companyDetail', this.startEvent2);
 //   }
 //   startEvent() {
-//     console.log('companyDetailContentNormal success');
+//     console.log('companyDetailNormalContent success');
 //     console.log(Meteor.connection._mongo_livedata_collections.employees.find().fetch());
 //     console.log('');
 //   }
@@ -1935,7 +1936,6 @@ class CompanyListView extends View {
     }
 
 
-    const getStockAmount = Template.companyListCard.__helpers[' getStockAmount'];
     const infoRowSample = instance.$('.row-info').last();
 
     const ownValueRow = infoRowSample.clone();
@@ -1990,9 +1990,9 @@ class CompanyListView extends View {
 
 
       if (Meteor.user()) {
-        const stockAmount = getStockAmount(company.companyId);
+        const stockAmount = getCurrentUserOwnedStockAmount(company.companyId);
         if (stockAmount > 0) {
-          const stockAmount = getStockAmount(company.companyId);
+          const stockAmount = getCurrentUserOwnedStockAmount(company.companyId);
           const ownValue = stockAmount * company.price;
           ownValueRow.find('p:eq(1)').html(`$ ${ownValue}`);
           showRow(ownValueRow);
@@ -2193,8 +2193,9 @@ class BigLogView extends View {
   }
 
   showBigLogFolder() {
-    const intoObject = $(`div[class='row border-grid-body']`);
-    if (intoObject.length > 0) {
+    const intoObject = $(`div[class='row border-grid-body mt-2']`);
+    const intoObject2 = $(`div[class='row border-grid-body']`);
+    if (intoObject.length > 0 || intoObject2.length > 0) {
       const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`);
       if (tmpInto.length < 1) {
         this.displayBigLogFolder();
@@ -2207,7 +2208,7 @@ class BigLogView extends View {
     }
   }
   displayBigLogFolder() {
-    const intoObject = $(`div[class='row border-grid-body']`).first();
+    const intoObject = $(`div[class='row border-grid-body mt-2']`).length > 0 ? $(`div[class='row border-grid-body mt-2']`).first() : $(`div[class='row border-grid-body']`).first();
     const appendDiv = (`<div class='col-12 border-grid' name=${this.name}></div>`);
     intoObject.append(appendDiv);
     const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`)[0];
@@ -2333,7 +2334,7 @@ class CompanyDetailController extends EventController {
     this.templateListener(Template.companyDetail, 'Template.companyDetail', () => {
       this.useCompaniesInfo();
     });
-    this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', () => {
+    this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', () => {
       this.useEmployeesInfo();
     });
     this.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', () => {
@@ -2343,7 +2344,7 @@ class CompanyDetailController extends EventController {
       this.useLogInfo();
     });
 
-    Template.companyDetailContentNormal.onRendered(() => {
+    Template.companyDetailTable.onRendered(() => {
       this.bigLogView.showBigLogFolder();
     });
     this.panelFolderListener('companyBigLog', () => {
@@ -4147,9 +4148,6 @@ class DisconnectReminderController extends EventController {
 
     this.userOwnedProductsReminder();
     this.companyListReminder();
-    this.queryOwnStocksReminder();
-    this.queryMyOrderReminder();
-    this.companyOrderExcludeMeReminder();
 
     // this.adjacentSeasonReminder();
     // this.productListBySeasonIdReminder(); //未限制
@@ -4181,6 +4179,10 @@ class DisconnectReminderController extends EventController {
     // this.adjacentArenaReminder();
     this.arenaLogReminder();
     // this.fscMembersReminder();
+
+    this.currentUserOrdersReminder();
+    this.currentUserDirectorsReminder();
+    this.companyOrdersReminder();
   }
 
   createReminder(recorder) {
@@ -4382,27 +4384,6 @@ class DisconnectReminderController extends EventController {
     const reminder = this.createReminder(this.companyList);
     this.templateListener(Template.companyList, 'Template.companyList', reminder);
   }
-  queryOwnStocksReminder() {
-    //this.subscribe('queryOwnStocks'
-    this.queryOwnStocks = new AccessedRecorder('queryOwnStocks');
-    const reminder = this.createReminder(this.queryOwnStocks);
-    this.templateListener(Template.companyList, 'Template.companyList', reminder);
-    this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-    this.templateListener(Template.companyDirectorList, 'Template.companyDirectorList', reminder);
-  }
-  queryMyOrderReminder() {
-    //this.subscribe('queryMyOrder'
-    this.queryMyOrder = new AccessedRecorder('queryMyOrder', 30);
-    const reminder = this.createReminder(this.queryMyOrder);
-    this.templateListener(Template.companyList, 'Template.companyList', reminder);
-    this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-  }
-  companyOrderExcludeMeReminder() {
-    //this.subscribe('companyOrderExcludeMe'
-    this.companyOrderExcludeMe = new AccessedRecorder('companyOrderExcludeMe');
-    const reminder = this.createReminder(this.companyOrderExcludeMe);
-    this.templateListener(Template.companyBuyOrderList, 'Template.companyBuyOrderList', reminder);
-  }
 
   adjacentSeasonReminder() {
     //this.subscribe('adjacentSeason'
@@ -4497,7 +4478,7 @@ class DisconnectReminderController extends EventController {
     //this.subscribe('employeeListByCompany'
     this.employeeListByCompany = new AccessedRecorder('employeeListByCompany');
     const reminder = this.createReminder(this.employeeListByCompany);
-    this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', reminder);
+    this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', reminder);
   }
   companyDirectorReminder() {
     //this.subscribe('companyDirector'
@@ -4562,6 +4543,25 @@ class DisconnectReminderController extends EventController {
     this.fscMembers = new AccessedRecorder('fscMembers');
     const reminder = this.createReminder(this.fscMembers);
     this.templateListener(Template.tutorial, 'Template.tutorial', reminder);
+  }
+
+  currentUserOrdersReminder() {
+    //this.subscribe('currentUserOrders'
+    this.currentUserOrders = new AccessedRecorder('currentUserOrders');
+    const reminder = this.createReminder(this.currentUserOrders);
+    this.templateListener(Template.companyOrderBook, 'Template.companyOrderBook', reminder);
+  }
+  currentUserDirectorsReminder() {
+    //this.subscribe('currentUserDirectors'
+    this.currentUserDirectors = new AccessedRecorder('currentUserDirectors');
+    const reminder = this.createReminder(this.currentUserDirectors);
+    this.templateListener(Template.companyOrderBook, 'Template.companyOrderBook', reminder);
+  }
+  companyOrdersReminder() {
+    //this.subscribe('companyOrders'
+    this.companyOrders = new AccessedRecorder('companyOrders');
+    const reminder = this.createReminder(this.companyOrders);
+    this.templateListener(Template.companyOrderList, 'Template.companyOrderList', reminder);
   }
 
 
