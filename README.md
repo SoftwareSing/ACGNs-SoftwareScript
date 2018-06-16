@@ -78,6 +78,11 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 
 ![most-stocks-company](images/mostStocksCompany.jpg)
 
+### 斷線提醒
+在訪問特定資料達數次後，會在被伺服器斷線前提醒
+
+![DisconnectReminder](images/DisconnectReminder.jpg)
+
 ### 資料搜尋
 透過指定的條件來搜尋存在外掛中股市資料
 
