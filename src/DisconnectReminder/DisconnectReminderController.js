@@ -391,7 +391,7 @@ export class DisconnectReminderController extends EventController {
     //this.subscribe('employeeListByCompany'
     this.employeeListByCompany = new AccessedRecorder('employeeListByCompany');
     const reminder = this.createReminder(this.employeeListByCompany);
-    this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', reminder);
+    this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', reminder);
   }
   companyDirectorReminder() {
     //this.subscribe('companyDirector'

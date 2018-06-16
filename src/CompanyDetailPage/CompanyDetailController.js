@@ -22,7 +22,7 @@ export class CompanyDetailController extends EventController {
     this.templateListener(Template.companyDetail, 'Template.companyDetail', () => {
       this.useCompaniesInfo();
     });
-    this.templateListener(Template.companyDetailContentNormal, 'Template.companyDetailContentNormal', () => {
+    this.templateListener(Template.companyDetailNormalContent, 'Template.companyDetailNormalContent', () => {
       this.useEmployeesInfo();
     });
     this.templateListener(Template.companyProductCenterPanel, 'Template.companyProductCenterPanel', () => {
@@ -32,7 +32,7 @@ export class CompanyDetailController extends EventController {
       this.useLogInfo();
     });
 
-    Template.companyDetailContentNormal.onRendered(() => {
+    Template.companyDetailTable.onRendered(() => {
       this.bigLogView.showBigLogFolder();
     });
     this.panelFolderListener('companyBigLog', () => {
