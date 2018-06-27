@@ -3,7 +3,7 @@
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.13.00
+// @version      5.13.01
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1366,7 +1366,7 @@ class ScriptAd {
   createAdMsg(demo) {
     const demoType = demo ? `demo='true'` : `demo='false'`;
     const localScriptAd = JSON.parse(window.localStorage.getItem('localScriptAd')) || {};
-    let msg = `<a class='float-left' name='scriptAd' id='0'>&nbsp;&nbsp;</a>`;
+    let msg = `<a class='float-left' name='scriptAd' id='0' ${demoType}>&nbsp;&nbsp;</a>`;
     let linkNumber = 0;
 
     if (localScriptAd.adFormat) {
@@ -1392,9 +1392,21 @@ class ScriptAd {
   }
 
   displayScriptAd() {
-    const msg = this.createAdMsg(false);
-    const afterObject = $(`a[class='text-danger float-left'][href='https://github.com/mrbigmouth/acgn-stock/issues']`)[0];
-    $(msg).insertAfter(afterObject);
+    const msg = $(this.createAdMsg(false));
+    const locationPoint = $(`a[class='text-danger float-left'][href='https://github.com/mrbigmouth/acgn-stock/issues']`);
+    const maxWidth = locationPoint.parent().width() - 260;
+    const afterObject = locationPoint[0];
+    msg.insertAfter(afterObject);
+
+    let msgWidth = 0;
+    for (let i = 0; i < msg.length; i += 1) {
+      msgWidth += $(`a[name='scriptAd'][demo='false'][id='${i}'`).width();
+    }
+    if (maxWidth < msgWidth) {
+      console.log(`ScriptAd: Not enough length`);
+      console.log(`max width: ${maxWidth} / msg width: ${msgWidth}`);
+      this.removeScriptAd();
+    }
   }
 
   removeScriptAd() {

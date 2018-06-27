@@ -17,7 +17,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ==UserScript==
 // @name         ACGN-stock營利統計外掛
 // @namespace    http://tampermonkey.net/
-// @version      5.13.00
+// @version      5.13.01
 // @description  隱藏著排他力量的分紅啊，請在我面前顯示你真正的面貌，與你締結契約的VIP命令你，封印解除！
 // @author       SoftwareSing
 // @match        http://acgn-stock.com/*
@@ -1886,7 +1886,7 @@ var ScriptAd = function () {
     value: function createAdMsg(demo) {
       var demoType = demo ? 'demo=\'true\'' : 'demo=\'false\'';
       var localScriptAd = JSON.parse(window.localStorage.getItem('localScriptAd')) || {};
-      var msg = '<a class=\'float-left\' name=\'scriptAd\' id=\'0\'>&nbsp;&nbsp;</a>';
+      var msg = '<a class=\'float-left\' name=\'scriptAd\' id=\'0\' ' + demoType + '>&nbsp;&nbsp;</a>';
       var linkNumber = 0;
 
       if (localScriptAd.adFormat) {
@@ -1912,9 +1912,21 @@ var ScriptAd = function () {
   }, {
     key: 'displayScriptAd',
     value: function displayScriptAd() {
-      var msg = this.createAdMsg(false);
-      var afterObject = $('a[class=\'text-danger float-left\'][href=\'https://github.com/mrbigmouth/acgn-stock/issues\']')[0];
-      $(msg).insertAfter(afterObject);
+      var msg = $(this.createAdMsg(false));
+      var locationPoint = $('a[class=\'text-danger float-left\'][href=\'https://github.com/mrbigmouth/acgn-stock/issues\']');
+      var maxWidth = locationPoint.parent().width() - 260;
+      var afterObject = locationPoint[0];
+      msg.insertAfter(afterObject);
+
+      var msgWidth = 0;
+      for (var _i2 = 0; _i2 < msg.length; _i2 += 1) {
+        msgWidth += $('a[name=\'scriptAd\'][demo=\'false\'][id=\'' + _i2 + '\'').width();
+      }
+      if (maxWidth < msgWidth) {
+        console.log('ScriptAd: Not enough length');
+        console.log('max width: ' + maxWidth + ' / msg width: ' + msgWidth);
+        this.removeScriptAd();
+      }
     }
   }, {
     key: 'removeScriptAd',
@@ -3898,8 +3910,8 @@ var AccountInfoController = function (_EventController3) {
 function stripscript(s) {
   var pattern = new RegExp('[`~!@#$^&*()=|{}\':;\',\\[\\].<>/?~\uFF01@#\uFFE5\u2026\u2026&*\uFF08\uFF09\u2014\u2014|{}\u3010\u3011\u2018\uFF1B\uFF1A\u201D\u201C\'\u3002\uFF0C\u3001\uFF1F]');
   var rs = '';
-  for (var _i2 = 0; _i2 < s.length; _i2 += 1) {
-    rs = rs + s.substr(_i2, 1).replace(pattern, '');
+  for (var _i3 = 0; _i3 < s.length; _i3 += 1) {
+    rs = rs + s.substr(_i3, 1).replace(pattern, '');
   }
 
   return rs;
