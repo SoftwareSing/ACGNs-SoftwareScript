@@ -23,7 +23,8 @@ export class AccountInfoView extends View {
       employeeBonus: false,
       votingReward: false,
       hrProfit: false, //分隔線
-      tax: false
+      stockTax: false,
+      moneyTax: false
     };
   }
 
@@ -43,7 +44,8 @@ export class AccountInfoView extends View {
       $(`div[name='employeeBonus']`).remove();
       $(`div[name='votingReward']`).remove();
 
-      $(`div[name='tax']`).remove();
+      $(`div[name='stockTax']`).remove();
+      $(`div[name='moneyTax']`).remove();
 
       this.resetDisplayList();
     }
@@ -164,17 +166,30 @@ export class AccountInfoView extends View {
     this.displayList.votingReward = displayObject;
   }
 
-  displayTax(tax) {
+  displayStockTax(stockTax) {
     const displayObject = this.createH2Info({
-      name: 'tax',
-      leftText: translation(['accountInfo', 'estimatedTax']),
-      rightText: `$ ${tax}`
+      name: 'stockTax',
+      leftText: translation(['accountInfo', 'estimatedStockTax']),
+      rightText: `$ ${stockTax}`
     });
 
-    $(`div[name='tax']`).remove();
+    $(`div[name='stockTax']`).remove();
     const afterObject = this.displayList.hrProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
     displayObject.insertAfter(afterObject);
-    this.displayList.tax = displayObject;
+    this.displayList.stockTax = displayObject;
+  }
+
+  displayMoneyTax(moneyTax) {
+    const displayObject = this.createH2Info({
+      name: 'moneyTax',
+      leftText: translation(['accountInfo', 'estimatedMoneyTax']),
+      rightText: `$ ${moneyTax}`
+    });
+
+    $(`div[name='moneyTax']`).remove();
+    const afterObject = this.displayList.hrProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.moneyTax = displayObject;
   }
 
 

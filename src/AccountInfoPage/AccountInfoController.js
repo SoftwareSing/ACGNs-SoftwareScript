@@ -112,7 +112,8 @@ export class AccountInfoController extends EventController {
     this.accountInfoView.displayEmployeeBonus(this.user.computeEmployeeBonus());
     this.accountInfoView.displayVotingReward(this.user.computeProductVotingRewards());
 
-    this.accountInfoView.displayTax(this.user.computeTax());
+    this.accountInfoView.displayStockTax(this.user.computeStockTax());
+    this.accountInfoView.displayMoneyTax(this.user.computeMoneyTax());
 
     //如果有在user資訊載好前就載入的其他資訊，會被丟進等待清單
     //以for迴圈完成清單內的任務
@@ -140,7 +141,7 @@ export class AccountInfoController extends EventController {
       //顯示資訊
       this.accountInfoView.displayHrLine();
       this.accountInfoView.displayManagersProfit(this.user.computeManagersProfit());
-      this.accountInfoView.displayTax(this.user.computeTax());
+      this.accountInfoView.displayMoneyTax(this.user.computeMoneyTax());
     }
     else {
       this.waitList.push({
@@ -166,7 +167,7 @@ export class AccountInfoController extends EventController {
       //顯示資訊
       this.accountInfoView.displayHrLine();
       this.accountInfoView.displayStocksProfit(this.user.computeProfit());
-      this.accountInfoView.displayTax(this.user.computeTax());
+      this.accountInfoView.displayMoneyTax(this.user.computeMoneyTax());
     }
     else {
       this.waitList.push({
@@ -194,7 +195,8 @@ export class AccountInfoController extends EventController {
       this.accountInfoView.displayCompanyNumber(this.user.computeCompanyNumber());
       this.accountInfoView.displayStocksAsset(this.user.computeAsset());
       this.accountInfoView.displayStocksProfit(this.user.computeProfit());
-      this.accountInfoView.displayTax(this.user.computeTax());
+      this.accountInfoView.displayStockTax(this.user.computeStockTax());
+      this.accountInfoView.displayMoneyTax(this.user.computeMoneyTax());
     }
     else {
       this.waitList.push({

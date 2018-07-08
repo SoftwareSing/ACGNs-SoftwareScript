@@ -3,6 +3,7 @@ import { debugConsole } from '../functions/debugConsole';
 import { getLocalCompanies } from '../functions/getLocalCompanies';
 import { earnPerShare } from '../functions/earnPerShare';
 import { effectiveStocks } from '../functions/effectiveStocks';
+import { computeTax } from '../functions/computeTax';
 
 /**
  * 用於存放AccountInfo頁面中的user資訊
@@ -371,48 +372,40 @@ export class User {
     return reward;
   }
 
-  computeTotalWealth() {
-    const totalWealth = this.money +
-      this.computeAsset() + this.computeProfit() +
-      this.computeManagersProfit() + this.computeEmployeeBonus() +
-      this.computeProductVotingRewards();
-    console.log(`---computeTotalWealth(): ${totalWealth}`);
 
-    return totalWealth;
+  computeStockTax() {
+    const stockTax = computeTax(this.computeTotalStockWealth());
+    console.log(`---computeStockTax(): ${stockTax}`);
+
+    return stockTax;
   }
-  computeTax() {
+
+  computeTotalStockWealth() {
+    const totalStockWealth = this.computeAsset();
+    console.log(`---computeTotalStockWealth(): ${totalStockWealth}`);
+
+    return totalStockWealth;
+  }
+
+  computeMoneyTax() {
+    const moneyTaxMagnification = 1.3;
+    const moneyTax = computeTax(this.computeTotalMoney() * moneyTaxMagnification);
+    console.log(`---computeMoneyTax(): ${moneyTax}`);
+
+    return moneyTax;
+  }
+
+  computeTotalMoney() {
+    const totalMoney = this.money + this.computeProfit() +
+      this.computeManagersProfit() + this.computeEmployeeBonus() + this.computeProductVotingRewards();
+    console.log(`---computeTotalMoney(): ${totalMoney}`);
+
+    return totalMoney;
+  }
+
+  computeTotalTax() {
     console.log(`---start computeTax()`);
-
-    const totalWealth = this.computeTotalWealth();
-
-    const taxRateTable = [
-      { asset: 10000, rate: 0.00, adjustment: 0 },
-      { asset: 100000, rate: 0.03, adjustment: 300 },
-      { asset: 500000, rate: 0.06, adjustment: 3300 },
-      { asset: 1000000, rate: 0.09, adjustment: 18300 },
-      { asset: 2000000, rate: 0.12, adjustment: 48300 },
-      { asset: 3000000, rate: 0.15, adjustment: 108300 },
-      { asset: 4000000, rate: 0.18, adjustment: 198300 },
-      { asset: 5000000, rate: 0.21, adjustment: 318300 },
-      { asset: 6000000, rate: 0.24, adjustment: 468300 },
-      { asset: 7000000, rate: 0.27, adjustment: 648300 },
-      { asset: 8000000, rate: 0.30, adjustment: 858300 },
-      { asset: 9000000, rate: 0.33, adjustment: 1098300 },
-      { asset: 10000000, rate: 0.36, adjustment: 1368300 },
-      { asset: 11000000, rate: 0.39, adjustment: 1668300 },
-      { asset: 12000000, rate: 0.42, adjustment: 1998300 },
-      { asset: 13000000, rate: 0.45, adjustment: 2358300 },
-      { asset: 14000000, rate: 0.48, adjustment: 2748300 },
-      { asset: 15000000, rate: 0.51, adjustment: 3168300 },
-      { asset: 16000000, rate: 0.54, adjustment: 3618300 },
-      { asset: 17000000, rate: 0.57, adjustment: 4098300 },
-      { asset: Infinity, rate: 0.60, adjustment: 4608300 }
-    ];
-    const { rate, adjustment } = taxRateTable.find((e) => {
-      return (totalWealth < e.asset);
-    });
-    const tax = Math.ceil(totalWealth * rate - adjustment);
-
+    const tax = this.computeMoneyTax() + this.computeStockTax();
     console.log(`---end computeTax(): ${tax}`);
 
     return tax;

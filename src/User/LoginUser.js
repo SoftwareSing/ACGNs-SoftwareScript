@@ -133,12 +133,19 @@ export class LoginUser extends User {
   }
 
   //Override
-  computeTotalWealth() {
-    const totalWealth = super.computeTotalWealth() +
-      this.computeBuyOrdersMoney() + this.computeSellOrdersAsset();
-    console.log(`---LoginUser.computeTotalWealth(): ${totalWealth}`);
+  computeTotalStockWealth() {
+    const totalStockWealth = super.computeTotalStockWealth() + this.computeSellOrdersAsset();
+    console.log(`---LoginUser.computeTotalStockWealth(): ${totalStockWealth}`);
 
-    return totalWealth;
+    return totalStockWealth;
+  }
+
+  //Override
+  computeTotalMoney() {
+    const totalMoney = super.computeTotalMoney() + this.computeBuyOrdersMoney();
+    console.log(`---LoginUser.computeTotalMoney(): ${totalMoney}`);
+
+    return totalMoney;
   }
 
   vipLevel() {
