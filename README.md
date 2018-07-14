@@ -45,7 +45,8 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 * 預估經理分紅
 * 預估員工分紅 (員工獎金 目前最高5%)
 * 預估推薦票獎勵 (包含系統獎金 與 員工1%獎勵)
-* 預估稅金 (以上方所有財產、預估獲益來預估下季稅金)
+* 預估現金稅金 (以上方預估獲益、買單、現金來預估下季現金稅)
+* 預估股票稅金 (以上方股票總值、賣單總值來預估下季股票稅)
 
 ![account-info](images/accountInfo.jpg)
 

@@ -40,7 +40,8 @@ const dict = {
       peRatioUser: '我的本益比'
     },
     accountInfo: {
-      estimatedTax: '預估稅金：',
+      estimatedStockTax: '預估股票稅金：',
+      estimatedMoneyTax: '預估現金稅金：',
       holdingStockCompaniesNumber: '持股公司總數：',
       stocksAsset: '股票總值：',
       usedInSellOrdersStocksAsset: '賣單股票總值：',
@@ -111,7 +112,8 @@ const dict = {
       peRatioUser: 'my P/E Ratio'
     },
     accountInfo: {
-      estimatedTax: 'Estimated tax：',
+      estimatedStockTax: 'Estimated stock tax：',
+      estimatedMoneyTax: 'Estimated money tax：',
       holdingStockCompaniesNumber: 'Holding stock companies number：',
       stocksAsset: 'Stocks asset：',
       usedInSellOrdersStocksAsset: 'Used in sell orders stocks asset：',
