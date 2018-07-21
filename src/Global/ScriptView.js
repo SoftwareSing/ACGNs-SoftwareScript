@@ -1,5 +1,5 @@
-import { View } from './View';
-import { translation } from './Language/language';
+import { View } from 'Global/View';
+import { translation } from 'Language/language';
 
 /**
  * 控制所有頁面都看的到的物件的View

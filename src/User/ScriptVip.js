@@ -1,4 +1,4 @@
-import { dbUserOwnedProducts } from '../require';
+import { dbUserOwnedProducts } from 'require';
 
 export class ScriptVip {
   /**

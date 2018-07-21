@@ -1,0 +1,10 @@
+{
+  "editor.tabSize": 2,
+  "files.eol": "\n",
+  "[python]": {
+    "editor.tabSize": 4
+  },
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": true,
+  "javascript.preferences.importModuleSpecifier": "non-relative"
+}

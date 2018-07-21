@@ -1,7 +1,7 @@
-import { EventController } from '../Global/EventController';
-import { LogRecorder } from '../BigLog/LogRecorder';
-import { BigLogView } from '../BigLog/BigLogView';
-import { Companies } from '../Company/Companies';
+import { EventController } from 'Global/EventController';
+import { LogRecorder } from 'BigLog/LogRecorder';
+import { BigLogView } from 'BigLog/BigLogView';
+import { Companies } from 'Company/Companies';
 
 /**
  * CompanyDetail的Controller

@@ -1,9 +1,9 @@
-import { dbDirectors, dbVips, dbCompanies, dbEmployees, getInitialVoteTicketCount, getCurrentSeason } from '../require';
-import { debugConsole } from '../functions/debugConsole';
-import { getLocalCompanies } from '../functions/getLocalCompanies';
-import { earnPerShare } from '../functions/earnPerShare';
-import { effectiveStocks } from '../functions/effectiveStocks';
-import { computeTax } from '../functions/computeTax';
+import { dbDirectors, dbVips, dbCompanies, dbEmployees, getInitialVoteTicketCount, getCurrentSeason } from 'require';
+import { debugConsole } from 'functions/debugConsole';
+import { getLocalCompanies } from 'functions/getLocalCompanies';
+import { earnPerShare } from 'functions/earnPerShare';
+import { effectiveStocks } from 'functions/effectiveStocks';
+import { computeTax } from 'functions/computeTax';
 
 /**
  * 用於存放AccountInfo頁面中的user資訊

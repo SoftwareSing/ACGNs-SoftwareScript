@@ -1,4 +1,4 @@
-import { View } from '../Global/View';
+import { View } from 'Global/View';
 
 export class AboutView extends View {
   constructor() {

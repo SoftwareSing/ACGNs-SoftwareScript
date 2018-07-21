@@ -1,6 +1,6 @@
-import { EventController } from '../Global/EventController';
-import { Companies } from '../Company/Companies';
-import { CompanyListView } from './CompanyListView';
+import { EventController } from 'Global/EventController';
+import { Companies } from 'Company/Companies';
+import { CompanyListView } from 'CompanyListPage/CompanyListView';
 
 /**
  * CompanyList的Controller

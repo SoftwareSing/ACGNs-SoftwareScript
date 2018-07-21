@@ -1,6 +1,6 @@
-import { View } from '../Global/View';
-import { ScriptAd } from '../Global/ScriptAd';
-import { alertDialog } from '../require';
+import { View } from 'Global/View';
+import { ScriptAd } from 'Global/ScriptAd';
+import { alertDialog } from 'require';
 
 /**
  * ScriptVip頁面的View

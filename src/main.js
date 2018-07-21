@@ -16,8 +16,8 @@
 //優化UI，優化效能，優化小錯誤更新錯誤版本號
 
 
-import { translation } from './Language/language';
-import { MainController } from './Global/MainController';
+import { translation } from 'Language/language';
+import { MainController } from 'Global/MainController';
 
 
 //這邊記一下每個storage的格式

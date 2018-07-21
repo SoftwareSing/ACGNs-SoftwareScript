@@ -1,15 +1,15 @@
-import { LoginUser } from '../User/LoginUser';
-import { ScriptView } from './ScriptView';
-import { CloudUpdater } from './CloudUpdater';
-import { CompanyListController } from '../CompanyListPage/CompanyListController';
-import { CompanyDetailController } from '../CompanyDetailPage/CompanyDetailController';
-import { AccountInfoController } from '../AccountInfoPage/AccountInfoController';
-import { ScriptVipController } from '../ScriptVipPage/ScriptVipController';
-import { ScriptAd } from './ScriptAd';
-import { getLocalCompanies } from '../functions/getLocalCompanies';
-import { translation } from '../Language/language';
-import { AboutController } from '../AboutPage/AboutController';
-import { DisconnectReminderController } from '../DisconnectReminder/DisconnectReminderController';
+import { LoginUser } from 'User/LoginUser';
+import { ScriptView } from 'Global/ScriptView';
+import { CloudUpdater } from 'Global/CloudUpdater';
+import { CompanyListController } from 'CompanyListPage/CompanyListController';
+import { CompanyDetailController } from 'CompanyDetailPage/CompanyDetailController';
+import { AccountInfoController } from 'AccountInfoPage/AccountInfoController';
+import { ScriptVipController } from 'ScriptVipPage/ScriptVipController';
+import { ScriptAd } from 'Global/ScriptAd';
+import { getLocalCompanies } from 'functions/getLocalCompanies';
+import { translation } from 'Language/language';
+import { AboutController } from 'AboutPage/AboutController';
+import { DisconnectReminderController } from 'DisconnectReminder/DisconnectReminderController';
 
 export class MainController {
   constructor() {

@@ -1,7 +1,7 @@
-import { EventController } from '../Global/EventController';
-import { stripscript } from '../functions/stripscript';
-import { ScriptVipView } from './ScriptVipView';
-import { SearchTables } from './SearchTables';
+import { EventController } from 'Global/EventController';
+import { stripscript } from 'functions/stripscript';
+import { ScriptVipView } from 'ScriptVipPage/ScriptVipView';
+import { SearchTables } from 'ScriptVipPage/SearchTables';
 
 /**
  * ScriptVip頁面的Controller

@@ -1,12 +1,12 @@
-import { EventController } from '../Global/EventController';
-import { LogRecorder } from '../BigLog/LogRecorder';
-import { BigLogView } from '../BigLog/BigLogView';
-import { translation } from '../Language/language';
-import { getLocalCompanies } from '../functions/getLocalCompanies';
-import { earnPerShare } from '../functions/earnPerShare';
-import { effectiveStocks } from '../functions/effectiveStocks';
-import { User } from '../User/User';
-import { AccountInfoView } from './AccountInfoView';
+import { EventController } from 'Global/EventController';
+import { LogRecorder } from 'BigLog/LogRecorder';
+import { BigLogView } from 'BigLog/BigLogView';
+import { translation } from 'Language/language';
+import { getLocalCompanies } from 'functions/getLocalCompanies';
+import { earnPerShare } from 'functions/earnPerShare';
+import { effectiveStocks } from 'functions/effectiveStocks';
+import { User } from 'User/User';
+import { AccountInfoView } from 'AccountInfoPage/AccountInfoView';
 
 /**
  * AccountInfo的Controller

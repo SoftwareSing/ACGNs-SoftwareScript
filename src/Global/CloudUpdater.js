@@ -1,5 +1,5 @@
-import { debugConsole } from '../functions/debugConsole';
-import { ScriptAd } from './ScriptAd';
+import { debugConsole } from 'functions/debugConsole';
+import { ScriptAd } from 'Global/ScriptAd';
 
 /**
  * 用來連線雲端以更新資料

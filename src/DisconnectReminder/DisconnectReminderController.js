@@ -1,6 +1,6 @@
-import { EventController } from '../Global/EventController';
-import { AccessedRecorder } from './AccessedRecorder';
-import { DisconnectReminderView } from './DisconnectReminderView';
+import { EventController } from 'Global/EventController';
+import { AccessedRecorder } from 'DisconnectReminder/AccessedRecorder';
+import { DisconnectReminderView } from 'DisconnectReminder/DisconnectReminderView';
 
 export class DisconnectReminderController extends EventController {
   constructor(loginUser) {

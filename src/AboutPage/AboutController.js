@@ -1,5 +1,5 @@
-import { EventController } from '../Global/EventController';
-import { AboutView } from './AboutView';
+import { EventController } from 'Global/EventController';
+import { AboutView } from 'AboutPage/AboutView';
 
 export class AboutController extends EventController {
   /**

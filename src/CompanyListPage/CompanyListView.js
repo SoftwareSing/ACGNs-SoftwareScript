@@ -1,10 +1,10 @@
-import { View } from '../Global/View';
-import { getLocalCompanies } from '../functions/getLocalCompanies';
-import { translation } from '../Language/language';
-import { earnPerShare } from '../functions/earnPerShare';
-import { effectiveStocks } from '../functions/effectiveStocks';
-import { Company } from '../Company/Company';
-import { getCurrentUserOwnedStockAmount } from '../require';
+import { View } from 'Global/View';
+import { getLocalCompanies } from 'functions/getLocalCompanies';
+import { translation } from 'Language/language';
+import { earnPerShare } from 'functions/earnPerShare';
+import { effectiveStocks } from 'functions/effectiveStocks';
+import { Company } from 'Company/Company';
+import { getCurrentUserOwnedStockAmount } from 'require';
 
 /**
  * CompanyList的View

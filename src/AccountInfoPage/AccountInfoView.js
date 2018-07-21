@@ -1,5 +1,5 @@
-import { View } from '../Global/View';
-import { translation } from '../Language/language';
+import { View } from 'Global/View';
+import { translation } from 'Language/language';
 
 /**
  * AccountInfo的View

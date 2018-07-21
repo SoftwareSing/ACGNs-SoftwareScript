@@ -1,7 +1,7 @@
-import { getLocalCompanies } from '../functions/getLocalCompanies';
-import { alertDialog } from '../require';
-import { debugConsole } from '../functions/debugConsole';
-import { stripscript } from '../functions/stripscript';
+import { getLocalCompanies } from 'functions/getLocalCompanies';
+import { alertDialog } from 'require';
+import { debugConsole } from 'functions/debugConsole';
+import { stripscript } from 'functions/stripscript';
 
 /**
  * 操縱搜尋表的物件

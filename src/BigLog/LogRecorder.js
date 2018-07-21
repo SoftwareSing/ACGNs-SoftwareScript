@@ -1,4 +1,4 @@
-import { dbLog } from '../require';
+import { dbLog } from 'require';
 
 /**
  * 用於紀錄所有log

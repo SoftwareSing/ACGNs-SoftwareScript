@@ -1,6 +1,6 @@
-import { View } from '../Global/View';
-import { translation } from '../Language/language';
-import { formatDateTimeText } from '../require';
+import { View } from 'Global/View';
+import { translation } from 'Language/language';
+import { formatDateTimeText } from 'require';
 
 /**
  * 大量紀錄 的View

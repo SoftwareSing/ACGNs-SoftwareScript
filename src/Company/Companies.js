@@ -1,8 +1,8 @@
-import { dbCompanies, dbEmployees } from '../require';
-import { Company } from './Company';
-import { getLocalCompanies } from '../functions/getLocalCompanies';
-import { earnPerShare } from '../functions/earnPerShare';
-import { effectiveStocks } from '../functions/effectiveStocks';
+import { dbCompanies, dbEmployees } from 'require';
+import { Company } from 'Company/Company';
+import { getLocalCompanies } from 'functions/getLocalCompanies';
+import { earnPerShare } from 'functions/earnPerShare';
+import { effectiveStocks } from 'functions/effectiveStocks';
 
 /**
  * Company的集合，會創建多個company放在裡面

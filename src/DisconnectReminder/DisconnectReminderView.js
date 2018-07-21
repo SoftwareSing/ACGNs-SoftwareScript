@@ -1,6 +1,6 @@
-import { View } from '../Global/View';
-import { alertDialog } from '../require';
-import { translation } from '../Language/language';
+import { View } from 'Global/View';
+import { alertDialog } from 'require';
+import { translation } from 'Language/language';
 
 export class DisconnectReminderView extends View {
   constructor() {

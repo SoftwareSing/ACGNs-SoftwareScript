@@ -1,7 +1,7 @@
-import { User } from './User';
-import { ScriptVip } from './ScriptVip';
-import { dbDirectors, dbOrders } from '../require';
-import { getLocalCompanies } from '../functions/getLocalCompanies';
+import { User } from 'User/User';
+import { ScriptVip } from 'User/ScriptVip';
+import { dbDirectors, dbOrders } from 'require';
+import { getLocalCompanies } from 'functions/getLocalCompanies';
 
 /**
  * 目前登入中的使用者
