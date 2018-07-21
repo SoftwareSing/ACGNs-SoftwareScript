@@ -1,5 +1,6 @@
 import re
 from os import walk
+from version import getVersion
 
 outputFile = open("ACGNs-SoftwareScript.user.js", "w", encoding = 'utf8')
 outputFile.write("/* 本檔由 MergeFile.py 自動產生, 欲修改code請至src資料夾 */" + "\n")
@@ -49,6 +50,8 @@ def readJsFile(jsFile):
                 requireFile(line)
             elif (re.search("eslint-enable", line)):
                 print("//skip eslint-enable")
+            elif (re.search("// @version", line)):
+                writeIntoFile("// @version      " + getVersion() + "\n")
             else:
                 writeIntoFile(line)
 
