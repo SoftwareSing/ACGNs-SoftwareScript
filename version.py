@@ -11,3 +11,4 @@ minorVersion = 14
 bugFixVersion = 0
 
 #------ 由此開始寫 version 變化 ------
+bugFixVersion += 1 # 簡化 關於 頁面的內容
