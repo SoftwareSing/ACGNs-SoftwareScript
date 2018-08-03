@@ -111,6 +111,9 @@ export class AccountInfoController extends EventController {
     this.accountInfoView.displayManagersProfit(this.user.computeManagersProfit());
     this.accountInfoView.displayEmployeeBonus(this.user.computeEmployeeBonus());
     this.accountInfoView.displayVotingReward(this.user.computeProductVotingRewards());
+    if (this.user.userId === this.loginUser.userId) {
+      this.accountInfoView.displayProductRebate(this.user.computeProductRebate());
+    }
 
     this.accountInfoView.displayStockTax(this.user.computeStockTax());
     this.accountInfoView.displayMoneyTax(this.user.computeMoneyTax());

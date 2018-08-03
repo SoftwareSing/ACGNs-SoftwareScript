@@ -50,6 +50,7 @@ const dict = {
       estimatedManagerProfit: '預估經理分紅：',
       estimatedEmployeeBonus: '預估員工分紅：',
       estimatedProductVotingRewards: '預估推薦票獎勵：',
+      estimatedProductRebate: '預估產品消費回饋金：',
 
       holdStocksTable: '持股資訊總表',
       holdStocks: '持有股數',
@@ -122,6 +123,7 @@ const dict = {
       estimatedManagerProfit: 'Estimated manager profit：',
       estimatedEmployeeBonus: 'Estimated employee profit：',
       estimatedProductVotingRewards: 'Estimated Product Voting Rewards：',
+      estimatedProductRebate: 'estimated Product Rebate：',
 
       holdStocksTable: 'Hold stocks info table',
       holdStocks: 'Hold stock number',

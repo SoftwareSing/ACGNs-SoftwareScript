@@ -12,3 +12,4 @@ bugFixVersion = 0
 
 #------ 由此開始寫 version 變化 ------
 bugFixVersion += 1 # 簡化 關於 頁面的內容
+minorVersion += 1 # 針對登入中的使用者增加 預估產品消費回饋金

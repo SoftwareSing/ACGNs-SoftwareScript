@@ -11,7 +11,7 @@ export const { dbEmployees } = require('./db/dbEmployees.js');
 export const { dbVips } = require('./db/dbVips.js');
 export const { dbDirectors } = require('./db/dbDirectors.js');
 export const { dbOrders } = require('./db/dbOrders.js');
-export const { dbUserOwnedProducts } = require('./db/dbUserOwnedProducts.js');
+export const { dbUserOwnedProducts, getSpentProductTradeQuota } = require('./db/dbUserOwnedProducts.js');
 export const { dbLog } = require('./db/dbLog.js');
 
 /***************import****************/

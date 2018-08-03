@@ -1,7 +1,9 @@
 import { User } from 'User/User';
 import { ScriptVip } from 'User/ScriptVip';
-import { dbDirectors, dbOrders } from 'require';
+import { dbDirectors, dbOrders, getSpentProductTradeQuota } from 'require';
 import { getLocalCompanies } from 'functions/getLocalCompanies';
+import { List } from 'functions/List';
+import { computeRebate } from 'functions/computeRebate';
 
 /**
  * 目前登入中的使用者
@@ -12,6 +14,7 @@ export class LoginUser extends User {
     console.log(`create LoginUser: ${id}`);
     super(id);
     this.orders = [];
+    this.productCosts = [];
     this.scriptVip = new ScriptVip(this);
 
     this.directorsCache = [];
@@ -38,6 +41,28 @@ export class LoginUser extends User {
         this.changeLoginUser();
       }, 1000);
     }
+  }
+
+  updateProductCosts(companyId) {
+    console.log(`---start updateProductCosts()`);
+
+    const totalCost = getSpentProductTradeQuota({ userId: this.userId, companyId });
+    List.updateOrInsert(this.productCosts, (productCost) => {
+      return productCost.companyId === companyId;
+    }, { companyId, totalCost });
+
+    console.log(`---end updateProductCosts(): totalCost = ${totalCost}`);
+  }
+
+  computeProductRebate() {
+    console.log(`---start computeProductRebate()`);
+    const productRebate = this.productCosts.reduce((productRebate, { totalCost }) => {
+      return productRebate + computeRebate(totalCost);
+    }, 0);
+
+    console.log(`---end computeProductRebate(): ${productRebate}`);
+
+    return productRebate;
   }
 
   updateFullHoldStocks() {
@@ -142,7 +167,7 @@ export class LoginUser extends User {
 
   //Override
   computeTotalMoney() {
-    const totalMoney = super.computeTotalMoney() + this.computeBuyOrdersMoney();
+    const totalMoney = super.computeTotalMoney() + this.computeBuyOrdersMoney() + this.computeProductRebate();
     console.log(`---LoginUser.computeTotalMoney(): ${totalMoney}`);
 
     return totalMoney;

@@ -89,6 +89,7 @@ export class CompanyDetailController extends EventController {
 
   useUserOwnedProductsInfo() {
     this.loginUser.updateProducts();
+    this.loginUser.updateProductCosts(FlowRouter.getParam('companyId'));
   }
 
   useLogInfo() {

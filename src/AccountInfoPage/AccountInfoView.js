@@ -22,6 +22,7 @@ export class AccountInfoView extends View {
       managersProfit: false,
       employeeBonus: false,
       votingReward: false,
+      productRebate: false,
       hrProfit: false, //分隔線
       stockTax: false,
       moneyTax: false
@@ -43,6 +44,7 @@ export class AccountInfoView extends View {
       $(`div[name='managersProfit']`).remove();
       $(`div[name='employeeBonus']`).remove();
       $(`div[name='votingReward']`).remove();
+      $(`div[name='productRebate']`).remove();
 
       $(`div[name='stockTax']`).remove();
       $(`div[name='moneyTax']`).remove();
@@ -164,6 +166,19 @@ export class AccountInfoView extends View {
       this.displayList.stocksProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
     displayObject.insertAfter(afterObject);
     this.displayList.votingReward = displayObject;
+  }
+  displayProductRebate(productRebate) {
+    const displayObject = this.createH2Info({
+      name: 'productRebate',
+      leftText: translation(['accountInfo', 'estimatedProductRebate']),
+      rightText: `$ ${productRebate}`
+    });
+
+    $(`div[name='productRebate']`).remove();
+    const afterObject = this.displayList.votingReward || this.displayList.employeeBonus || this.displayList.managersProfit ||
+      this.displayList.stocksProfit || this.displayList.hrStocks || $(`h1[class='card-title']`)[0];
+    displayObject.insertAfter(afterObject);
+    this.displayList.productRebate = displayObject;
   }
 
   displayStockTax(stockTax) {
