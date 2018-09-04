@@ -61,8 +61,6 @@ typings/
 .next
 
 
-/__pycache__
-
 ACGNs-SoftwareScript.user.js
 SoftwareScript-afterBabel.js
 testFunction.js
