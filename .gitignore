@@ -64,5 +64,5 @@ typings/
 /__pycache__
 
 ACGNs-SoftwareScript.user.js
-SoftwareScript-after babel.js
+SoftwareScript-afterBabel.js
 testFunction.js

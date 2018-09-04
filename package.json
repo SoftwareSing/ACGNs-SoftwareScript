@@ -1,7 +1,14 @@
 {
   "name": "softwarescript",
   "version": "1.0.0",
+  "scripts": {
+    "mergeFile": "MergeFile.py",
+    "babel": "babel ACGNs-SoftwareScript.user.js --out-file SoftwareScript-afterBabel.js",
+    "output": "npm run mergeFile && npm run babel"
+  },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "eslint": "^5.5.0"
   }
 }
