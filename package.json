@@ -2,7 +2,7 @@
   "name": "softwarescript",
   "version": "1.0.0",
   "scripts": {
-    "mergeFile": "MergeFile.py",
+    "mergeFile": "node mergeFile.js",
     "babel": "babel ACGNs-SoftwareScript.user.js --out-file SoftwareScript-afterBabel.js",
     "output": "npm run mergeFile && npm run babel"
   },

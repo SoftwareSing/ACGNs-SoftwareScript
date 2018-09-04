@@ -17,9 +17,10 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 ## 想寫更多功能?
 你可以將這個project fork回去寫更多功能
 
+* 在這個project的資料夾下執行 `npm install`
 * 在 [src](/src) 資料夾裡撰寫code
-* 記得讓 main.js 或 其他檔案 有import你新增的檔案
-* 以 python3 執行 [MergeFile.py](/MergeFile.py)，一個合併好的檔案就會輸出到 [ACGNs-SoftwareScript.user.js](/ACGNs-SoftwareScript.user.js)
+* 記得讓 [main.js](/src/main.js) 或 其他檔案 有import你新增的檔案
+* 執行 `npm run output` ，一個合併好的檔案會輸出到 [ACGNs-SoftwareScript.user.js](/ACGNs-SoftwareScript.user.js) ，另一個經過babel轉譯的檔案會在 [SoftwareScript-afterBabel.js](/SoftwareScript-afterBabel.js)
 
 ## 目前的功能
 ### 更豐富的卡面訊息
