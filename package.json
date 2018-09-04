@@ -1,0 +1,7 @@
+{
+  "name": "softwarescript",
+  "version": "1.0.0",
+  "devDependencies": {
+    "eslint": "^5.5.0"
+  }
+}
