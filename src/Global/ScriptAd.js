@@ -40,19 +40,25 @@ export class ScriptAd {
   }
 
   displayScriptAd() {
+    this.removeScriptAd(); // 先清空再加入
+
     const msg = $(this.createAdMsg(false));
     const locationPoint = $(`a[class='text-danger float-left'][href='https://github.com/mrbigmouth/acgn-stock/issues']`);
-    const maxWidth = locationPoint.parent().width() - 260;
+    const originHeight = locationPoint.parent().height();
     const afterObject = locationPoint[0];
     msg.insertAfter(afterObject);
 
-    let msgWidth = 0;
-    for (let i = 0; i < msg.length; i += 1) {
-      msgWidth += $(`a[name='scriptAd'][demo='false'][id='${i}'`).width();
-    }
-    if (maxWidth < msgWidth) {
+    this.checkAdCanDisplayOrNeedRemove(originHeight, locationPoint);
+    setTimeout(() => {
+      this.checkAdCanDisplayOrNeedRemove(originHeight, locationPoint);
+    }, 2000); // 2秒後再次檢查, 確認是否被其他外掛影響
+  }
+
+  checkAdCanDisplayOrNeedRemove(originHeight, locationPoint) {
+    const height = locationPoint.parent().height();
+    if (height > originHeight) {
       console.log(`ScriptAd: Not enough length`);
-      console.log(`max width: ${maxWidth} / msg width: ${msgWidth}`);
+      console.log(`origin height: ${originHeight} / now height: ${height}`);
       this.removeScriptAd();
     }
   }
