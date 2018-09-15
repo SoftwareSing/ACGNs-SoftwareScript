@@ -56,7 +56,7 @@ export class LoginUser extends User {
         });
         //從舊資料中獲取vip等級資訊，避免將vip資訊洗掉
         const vipLevel = (oldC !== undefined) ? oldC.vip : null;
-        this.holdStocks.push({companyId: c.companyId, stocks: c.stocks, vip: vipLevel});
+        this.holdStocks.push({ companyId: c.companyId, stocks: c.stocks, vip: vipLevel });
       }
 
       this.saveToSessionstorage();

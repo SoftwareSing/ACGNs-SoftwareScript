@@ -464,7 +464,7 @@ export class ScriptVipView extends View {
               customSetting: ``,
               callback: (newRule) => {
                 if (newRule) {
-                  this.controller.changeSearchTableColumn(tableName, {name: c.columnName, newName: newName}, newRule);
+                  this.controller.changeSearchTableColumn(tableName, { name: c.columnName, newName: newName }, newRule);
                   this.displaySearchTableColumns(tableName);
                 }
               }

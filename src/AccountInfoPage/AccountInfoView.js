@@ -200,7 +200,7 @@ export class AccountInfoView extends View {
     const tmpInto = $(`div[class='col-12 border-grid'][name='holdStocksTable']`)[0];
     Blaze.renderWithData(
       Template.panelFolder,
-      {name: 'holdStocksTable', title: `${translation(['accountInfo', 'holdStocksTable'])}`},
+      { name: 'holdStocksTable', title: `${translation(['accountInfo', 'holdStocksTable'])}` },
       tmpInto
     );
   }
@@ -220,7 +220,7 @@ export class AccountInfoView extends View {
       name: 'holdStocksTable',
       tHead: tHead,
       tBody: tBody,
-      customSetting: {tBody: `style='min-width: 75px; max-width: 390px;'`},
+      customSetting: { tBody: `style='min-width: 75px; max-width: 390px;'` },
       textOnly: true
     });
     intoObject.append(displayObject);

@@ -110,7 +110,7 @@ export class User {
       }
       else {
         isChange = true;
-        this.holdStocks.push({companyId: c.companyId, stocks: c.stocks, vip: null});
+        this.holdStocks.push({ companyId: c.companyId, stocks: c.stocks, vip: null });
       }
     }
 
@@ -139,7 +139,7 @@ export class User {
       }
       else {
         isChange = true;
-        this.holdStocks.push({companyId: serverVip.companyId, stocks: 0, vip: serverVip.level});
+        this.holdStocks.push({ companyId: serverVip.companyId, stocks: 0, vip: serverVip.level });
       }
     }
 
@@ -161,7 +161,7 @@ export class User {
         return (x.companyId === c._id);
       }) === undefined) {
         isChange = true;
-        this.managers.push({companyId: c._id});
+        this.managers.push({ companyId: c._id });
       }
     }
 

@@ -126,10 +126,10 @@ export class SearchTables {
    */
   addTable(newTableName) {
     const tableName = stripscript(newTableName);
-    const newTable = {'tableName': tableName,
+    const newTable = { 'tableName': tableName,
       'filter': null,
       'sort': null,
-      'column': []};
+      'column': [] };
     const i = this.tables.findIndex((t) => {
       return (t.tableName === tableName);
     });
@@ -192,10 +192,10 @@ export class SearchTables {
     if (this.tables[i].column.findIndex((col) => {
       return (col.columnName === columnName);
     }) === -1) {
-      this.tables[i].column.push({'columnName': stripscript(columnName), 'rule': rule});
+      this.tables[i].column.push({ 'columnName': stripscript(columnName), 'rule': rule });
     }
     else {
-      this.changeTableColumn(tableName, {name: columnName, newName: columnName}, rule);
+      this.changeTableColumn(tableName, { name: columnName, newName: columnName }, rule);
     }
   }
 

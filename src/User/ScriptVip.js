@@ -53,8 +53,8 @@ export class ScriptVip {
     }
 
     const vipLevelTable = [
-      {level: 0, point: 390},
-      {level: 1, point: Infinity}
+      { level: 0, point: 390 },
+      { level: 1, point: Infinity }
     ];
     const { level } = vipLevelTable.find((v) => {
       return (point < v.point);
@@ -66,7 +66,7 @@ export class ScriptVip {
   updateProducts() {
     this.loadFromLocalstorage();
 
-    const serverUserOwnedProducts = dbUserOwnedProducts.find({ userId: this.user.userId}).fetch();
+    const serverUserOwnedProducts = dbUserOwnedProducts.find({ userId: this.user.userId }).fetch();
     let isChange = false;
     for (const p of serverUserOwnedProducts) {
       const i = this.products.findIndex((x) => {

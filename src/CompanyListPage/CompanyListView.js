@@ -115,7 +115,7 @@ export class CompanyListView extends View {
 
           const holdC = this.loginUser.holdStocks.find((x) => {
             return (x.companyId === company.companyId);
-          }) || {vip: null};
+          }) || { vip: null };
           const userProfit = Math.round(earnPerShare(company) * effectiveStocks(stockAmount, holdC.vip));
           userProfitRow.find('p:eq(1)').html(`$ ${userProfit}`);
           showRow(userProfitRow);

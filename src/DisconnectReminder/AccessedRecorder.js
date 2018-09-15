@@ -18,7 +18,7 @@ export class AccessedRecorder {
       return a - b; //由小至大
     });
 
-    return {count: this.records.length, firstTime: this.records[0]};
+    return { count: this.records.length, firstTime: this.records[0] };
   }
 
   getWarningInfo() {
@@ -27,13 +27,13 @@ export class AccessedRecorder {
     const warningNumber = (this.number - 5) > 5 ? this.number - 5 : this.number - 1;
     if (warningNumber < 3) {
       //只能操作不到3次的動作不提醒
-      return {shouldWarning: false, count: count, firstTime: firstTime};
+      return { shouldWarning: false, count: count, firstTime: firstTime };
     }
 
     if (count >= warningNumber) {
       shouldWarning = true;
     }
 
-    return {shouldWarning: shouldWarning, count: count, firstTime: firstTime};
+    return { shouldWarning: shouldWarning, count: count, firstTime: firstTime };
   }
 }

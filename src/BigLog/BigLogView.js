@@ -39,7 +39,7 @@ export class BigLogView extends View {
     const tmpInto = $(`div[class='col-12 border-grid'][name=${this.name}]`)[0];
     Blaze.renderWithData(
       Template.panelFolder,
-      {name: this.name, title: `${translation(['script', 'bigLog'])}`},
+      { name: this.name, title: `${translation(['script', 'bigLog'])}` },
       tmpInto
     );
   }

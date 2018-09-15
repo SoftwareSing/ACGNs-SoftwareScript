@@ -14,7 +14,7 @@ export class Companies {
     const page = FlowRouter.getRouteName();
     if (page === 'companyDetail') {
       const detailId = FlowRouter.getParam('companyId');
-      serverCompanies = dbCompanies.find({ _id: detailId}).fetch();
+      serverCompanies = dbCompanies.find({ _id: detailId }).fetch();
     }
     else {
       serverCompanies = dbCompanies.find().fetch();

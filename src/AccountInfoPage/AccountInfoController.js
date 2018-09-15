@@ -271,7 +271,7 @@ export class AccountInfoController extends EventController {
           holdStocks[i].stocks += (order.amount - order.done);
         }
         else {
-          holdStocks.push({companyId: order.companyId, stocks: (order.amount - order.done), vip: null});
+          holdStocks.push({ companyId: order.companyId, stocks: (order.amount - order.done), vip: null });
         }
       }
     }
@@ -318,6 +318,6 @@ export class AccountInfoController extends EventController {
       tBody.push(row);
     }
 
-    return {tHead: tHead, tBody: tBody};
+    return { tHead: tHead, tBody: tBody };
   }
 }

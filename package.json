@@ -2,6 +2,8 @@
   "name": "softwarescript",
   "version": "1.0.0",
   "scripts": {
+    "lint": "./node_modules/.bin/eslint .",
+    "lint-autofix": "./node_modules/.bin/eslint --fix .",
     "mergeFile": "node mergeFile.js",
     "babel": "babel ACGNs-SoftwareScript.user.js --out-file SoftwareScript-afterBabel.js",
     "output": "npm run mergeFile && npm run babel"
