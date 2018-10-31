@@ -20,3 +20,7 @@ let bugFixVersion = 0; // eslint-disable-line prefer-const
 // ------ 由此開始寫 version 變化 ------
 bugFixVersion += 1; // 簡化 關於 頁面的內容
 bugFixVersion += 1; // 更精準的判斷廣告是否正常顯示
+
+// 修正 大量紀錄 無法使用的問題
+minorVersion += 1;
+bugFixVersion = 0;
