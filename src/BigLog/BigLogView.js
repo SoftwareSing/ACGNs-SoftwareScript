@@ -50,7 +50,7 @@ export class BigLogView extends View {
    * @return {void}
    */
   displayBigLog(localLog) {
-    const intoObject = ($(`a[data-toggle-panel-folder=${this.name}]`)
+    const intoObject = ($(`a[data-key=${FlowRouter.getRouteName()}_${this.name}]`)
       .closest(`div[class='col-12']`)
       .next(`div[class='col-12']`)
       .first());

@@ -61,15 +61,15 @@ export class EventController {
 
   /**
    * 資料夾監聽器，監聽到點擊後呼叫callback
-   * @param {String} panelFolderName 資料夾的名稱
+   * @param {String} panelFolderKey 資料夾的key
    * @param {Function} callback callback
    * @return {void}
    */
-  panelFolderListener(panelFolderName, callback) {
+  panelFolderListener(panelFolderKey, callback) {
     Template.panelFolder.events({
-      'click [data-toggle-panel-folder]'(event, templateInstance) {
-        const { name } = templateInstance.data;
-        if (name === panelFolderName) {
+      'click [data-action="togglePanelFolder"]'(event, templateInstance) {
+        const currentTargetKey = templateInstance.$(event.currentTarget).attr('data-key');
+        if (currentTargetKey === panelFolderKey) {
           setTimeout(() => {
             callback();
           }, 0);
