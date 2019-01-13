@@ -24,3 +24,8 @@ bugFixVersion += 1; // 更精準的判斷廣告是否正常顯示
 // 修正 大量紀錄 無法使用的問題
 minorVersion += 1;
 bugFixVersion = 0;
+
+// 修正 大量紀錄、資股資訊總表 無法使用的問題
+// 修正 斷線提醒器 噴錯的問題
+minorVersion += 1;
+bugFixVersion = 0;
