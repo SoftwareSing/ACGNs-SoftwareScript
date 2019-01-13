@@ -428,7 +428,7 @@ export class DisconnectReminderController extends EventController {
     //this.subscribe('arenaLog'
     this.arenaLog = new AccessedRecorder('arenaLog');
     const reminder = this.createReminder(this.arenaLog);
-    this.templateListener(Template.arenaLogList, 'Template.arenaLogList', reminder);
+    this.templateListener(Template.arenaInfoLogList, 'Template.arenaInfoLogList', reminder);
   }
 
   fscMembersReminder() {
