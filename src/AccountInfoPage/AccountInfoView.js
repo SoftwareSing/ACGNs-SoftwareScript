@@ -212,7 +212,7 @@ export class AccountInfoView extends View {
     const tHead = tableInfo.tHead || [];
     const tBody = tableInfo.tBody || [];
 
-    const intoObject = ($(`a[data-toggle-panel-folder='holdStocksTable']`)
+    const intoObject = ($(`a[data-key='accountInfo_holdStocksTable']`)
       .closest(`div[class='col-12']`)
       .next(`div[class='col-12']`)
       .first());

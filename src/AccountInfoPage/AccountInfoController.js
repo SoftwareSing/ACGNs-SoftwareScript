@@ -51,14 +51,14 @@ export class AccountInfoController extends EventController {
       this.showHoldStocksTableFolder();
       this.bigLogView.showBigLogFolder();
     });
-    this.panelFolderListener('holdStocksTable', () => {
-      const state = $(`a[data-toggle-panel-folder='holdStocksTable']`).find(`i[class='fa fa-folder-open']`);
+    this.panelFolderListener(`accountInfo_holdStocksTable`, () => {
+      const state = $(`a[data-key='accountInfo_holdStocksTable']`).find(`i[class='fa fa-folder-open']`);
       if (state.length > 0) {
         this.accountInfoView.displayHoldStocksTable(this.holdStocksTableInfo());
       }
     });
-    this.panelFolderListener('accountBigLog', () => {
-      const state = $(`a[data-toggle-panel-folder='accountBigLog']`).find(`i[class='fa fa-folder-open']`);
+    this.panelFolderListener(`accountInfo_accountBigLog`, () => {
+      const state = $(`a[data-key='accountInfo_accountBigLog']`).find(`i[class='fa fa-folder-open']`);
       if (state.length > 0) {
         const userId = FlowRouter.getParam('userId');
         let localLog = this.logRecorder.filter((x) => {

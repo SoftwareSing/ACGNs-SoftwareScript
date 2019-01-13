@@ -35,8 +35,8 @@ export class CompanyDetailController extends EventController {
     Template.companyDetailTable.onRendered(() => {
       this.bigLogView.showBigLogFolder();
     });
-    this.panelFolderListener('companyBigLog', () => {
-      const state = $(`a[data-toggle-panel-folder='companyBigLog']`).find(`i[class='fa fa-folder-open']`);
+    this.panelFolderListener('companyDetail_companyBigLog', () => {
+      const state = $(`a[data-key='companyDetail_companyBigLog']`).find(`i[class='fa fa-folder-open']`);
       if (state.length > 0) {
         const detailId = FlowRouter.getParam('companyId');
         let localLog = this.logRecorder.find('companyId', detailId);
