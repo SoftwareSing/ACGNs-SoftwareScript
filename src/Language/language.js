@@ -19,6 +19,11 @@ const dict = {
       updateScript: '更新外掛',
       vip: '外掛VIP',
       about: '關於',
+      disconnectReminder: '斷線提醒器',
+      trunOnDisconnectReminder: '啟用 斷線提醒器',
+      trunOffDisconnectReminder: '關閉 斷線提醒器',
+      trunOnDisconnectReminderInfo: '您啟用了 斷線提醒器，將在重新載入網頁後生效',
+      trunOffDisconnectReminderInfo: '您關閉了 斷線提醒器，將在重新載入網頁後生效',
       showMostStockholdingCompany: '列出最多持股公司',
 
       bigLog: '大量紀錄',
@@ -28,7 +33,7 @@ const dict = {
         count = count || '多';
         stopTime = stopTime || '數';
 
-        return `您已訪問 ${dbName} 達 ${count} 次！建議休息 ${stopTime} 秒再繼續`;
+        return `您已訪問 ${dbName} 達 ${count} 次！建議休息 ${stopTime} 秒再繼續，以免被伺服器強制斷線`;
       }
     },
     companyList: {
@@ -91,6 +96,11 @@ const dict = {
       updateScript: 'update Script',
       vip: 'script VIP',
       about: 'about',
+      disconnectReminder: 'DisconnectReminder',
+      trunOnDisconnectReminder: 'trun on DisconnectReminder',
+      trunOffDisconnectReminder: 'trun off DisconnectReminder',
+      trunOnDisconnectReminderInfo: 'You turned on the DisconnectReminder, it will take effect after reloading the page',
+      trunOffDisconnectReminderInfo: 'You turned off the DisconnectReminder, it will take effect after reloading the page',
       showMostStockholdingCompany: 'show most stocks company',
 
       bigLog: 'Big log',

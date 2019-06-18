@@ -1,5 +1,6 @@
 import { View } from 'Global/View';
 import { translation } from 'Language/language';
+import { alertDialog } from 'require';
 
 /**
  * 控制所有頁面都看的到的物件的View
@@ -57,6 +58,22 @@ export class ScriptView extends View {
       },
       beforeDiv
     );
+
+    let disconnectReminderSwitch = JSON.parse(window.localStorage.getItem('SoftwareScript.disconnectReminderSwitch'));
+    this.displayDropDownMenuOption(
+      {
+        name: 'disconnectReminderSwitch',
+        text: translation(['script', disconnectReminderSwitch ? 'trunOffDisconnectReminder' : 'trunOnDisconnectReminder']),
+        href: '#'
+      },
+      beforeDiv
+    );
+    $(`a[name='disconnectReminderSwitch']`)[0].addEventListener('click', () => {
+      this.controller.switchDisconnectReminder(! disconnectReminderSwitch);
+      disconnectReminderSwitch = JSON.parse(window.localStorage.getItem('SoftwareScript.disconnectReminderSwitch'));
+      $(`a[name='disconnectReminderSwitch']`)[0].text = translation(['script', disconnectReminderSwitch ? 'trunOffDisconnectReminder' : 'trunOnDisconnectReminder']);
+    });
+
     this.displayDropDownMenuOption(
       {
         name: 'scriptVipPage',
@@ -100,5 +117,12 @@ export class ScriptView extends View {
         beforeDiv
       );
     }
+  }
+
+  displaySwitchDisconnectReminderInfo(disconnectReminderSwitch) {
+    alertDialog.alert({
+      title: translation(['script', 'name']),
+      message: translation(['script', disconnectReminderSwitch ? 'trunOnDisconnectReminderInfo' : 'trunOffDisconnectReminderInfo'])
+    });
   }
 }
