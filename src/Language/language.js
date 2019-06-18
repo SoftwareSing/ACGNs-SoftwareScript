@@ -19,6 +19,10 @@ const dict = {
       updateScript: '更新外掛',
       vip: '外掛VIP',
       about: '關於',
+      trunOnDisconnectReminder: '啟用 斷線提醒器',
+      trunOffDisconnectReminder: '關閉 斷線提醒器',
+      trunOnDisconnectReminderInfo: '您啟用了 斷線提醒器，將在重新載入網頁後生效',
+      trunOffDisconnectReminderInfo: '您關閉了 斷線提醒器，將在重新載入網頁後生效',
       showMostStockholdingCompany: '列出最多持股公司',
 
       bigLog: '大量紀錄',
@@ -91,6 +95,10 @@ const dict = {
       updateScript: 'update Script',
       vip: 'script VIP',
       about: 'about',
+      trunOnDisconnectReminder: 'trun on DisconnectReminder',
+      trunOffDisconnectReminder: 'trun off DisconnectReminder',
+      trunOnDisconnectReminderInfo: 'You turned on the DisconnectReminder, it will take effect after reloading the page',
+      trunOffDisconnectReminderInfo: 'You turned off the DisconnectReminder, it will take effect after reloading the page',
       showMostStockholdingCompany: 'show most stocks company',
 
       bigLog: 'Big log',

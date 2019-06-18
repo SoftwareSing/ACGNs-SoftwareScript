@@ -109,4 +109,9 @@ export class MainController {
 
     console.log(`end showMostStockholdingCompany()`);
   }
+
+  switchDisconnectReminder(disconnectReminderSwitch) {
+    window.localStorage.setItem('SoftwareScript.disconnectReminderSwitch', JSON.stringify(disconnectReminderSwitch));
+    this.scriptView.displaySwitchDisconnectReminderInfo(disconnectReminderSwitch);
+  }
 }

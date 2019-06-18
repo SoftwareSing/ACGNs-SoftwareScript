@@ -5,8 +5,17 @@ import { DisconnectReminderView } from 'DisconnectReminder/DisconnectReminderVie
 export class DisconnectReminderController extends EventController {
   constructor(loginUser) {
     super('DisconnectReminderController', loginUser);
-    this.disconnectReminderView = new DisconnectReminderView();
 
+    const disconnectReminderSwitch = JSON.parse(window.localStorage.getItem('SoftwareScript.disconnectReminderSwitch'));
+    if (! disconnectReminderSwitch) {
+      return;
+    }
+
+    this.disconnectReminderView = new DisconnectReminderView();
+    this.turnOnAllReminder();
+  }
+
+  turnOnAllReminder() {
     // this.accountOwnStocksReminder();
     this.companyProductCenterInfoReminder();
     this.companyMarketingProductsReminder();

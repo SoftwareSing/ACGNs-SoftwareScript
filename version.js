@@ -33,3 +33,7 @@ bugFixVersion = 0;
 // 修正 大量紀錄 公司名稱無法顯示的問題
 minorVersion += 1;
 bugFixVersion = 0;
+
+// 加入 斷線提醒器 的開關
+minorVersion += 1;
+bugFixVersion = 0;
