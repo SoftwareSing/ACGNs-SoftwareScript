@@ -10,7 +10,7 @@ export class DisconnectReminderView extends View {
   displayWarningDialog(dbName, count, stopTime) {
     const info = translation(['script', 'disconnectWarningInfo'])(dbName, count, stopTime);
     alertDialog.alert({
-      title: translation(['script', 'name']),
+      title: `${translation(['script', 'name'])} - ${translation(['script', 'disconnectReminder'])}`,
       message: info
     });
   }
