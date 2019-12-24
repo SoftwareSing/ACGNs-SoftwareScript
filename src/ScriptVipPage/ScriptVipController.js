@@ -18,7 +18,6 @@ export class ScriptVipController extends EventController {
 
     Template.softwareScriptVip.onRendered(() => {
       this.scriptVipView.displayScriptVipProducts(this.loginUser);
-      this.scriptVipView.displayScriptAdInfo(this.loginUser);
       this.scriptVipView.displaySearchTables(this.loginUser);
     });
   }

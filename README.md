@@ -91,8 +91,3 @@ A script helps you play [acgn-stock.com](https://acgn-stock.com).
 (功能要求有外掛VIP資格才可使用)
 
 ![data-search](images/dataSearch.jpg)
-
-### 廣告
-置底廣告
-
-![ad](images/ad.jpg)
