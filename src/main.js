@@ -165,7 +165,6 @@ function checkScriptUpdate() {
 function startScript() {
   const main = new MainController();
   main.checkCloudUpdate();
-  main.showScriptAd();
 }
 
 

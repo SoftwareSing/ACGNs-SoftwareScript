@@ -5,7 +5,6 @@ import { CompanyListController } from 'CompanyListPage/CompanyListController';
 import { CompanyDetailController } from 'CompanyDetailPage/CompanyDetailController';
 import { AccountInfoController } from 'AccountInfoPage/AccountInfoController';
 import { ScriptVipController } from 'ScriptVipPage/ScriptVipController';
-import { ScriptAd } from 'Global/ScriptAd';
 import { getLocalCompanies } from 'functions/getLocalCompanies';
 import { translation } from 'Language/language';
 import { AboutController } from 'AboutPage/AboutController';
@@ -72,14 +71,7 @@ export class MainController {
   checkCloudUpdate() {
     const cloudUpdater = new CloudUpdater(this.serverType);
     cloudUpdater.checkCompaniesUpdate();
-    cloudUpdater.checkScriptAdUpdate();
     cloudUpdater.checkScriptVipProductsUpdate();
-  }
-
-  showScriptAd() {
-    const scriptAd = new ScriptAd();
-    scriptAd.removeScriptAd();
-    scriptAd.displayScriptAd();
   }
 
   showMostStockholdingCompany() {

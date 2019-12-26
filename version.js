@@ -40,3 +40,7 @@ bugFixVersion = 0;
 
 // 修改 斷線提醒氣 的提醒語句
 bugFixVersion += 1;
+
+// 移除 底部廣告
+minorVersion += 1;
+bugFixVersion = 0;

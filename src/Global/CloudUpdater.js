@@ -1,5 +1,4 @@
 import { debugConsole } from 'functions/debugConsole';
-import { ScriptAd } from 'Global/ScriptAd';
 
 /**
  * 用來連線雲端以更新資料
@@ -99,29 +98,6 @@ export class CloudUpdater {
     };
     const localCompaniesUpdateTime = JSON.parse(window.localStorage.getItem('localCompaniesUpdateTime')) || 'null';
     this.checkUpdateTime(timeUrl, localCompaniesUpdateTime, updater);
-  }
-
-  checkScriptAdUpdate() {
-    const timeUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/updateInfo.json';
-    const dataUrl = 'https://acgnstock-data.firebaseio.com/ACGNstock-normal/scriptAD/AD.json';
-
-    const updater = (cloudTime) => {
-      const cloud = this.getWebData(dataUrl);
-      cloud((cloudData) => {
-        const inputData = cloudData || [];
-        window.localStorage.setItem('localScriptAd', JSON.stringify(inputData));
-        const inputTime = cloudTime || 'null';
-        window.localStorage.setItem('localScriptAdUpdateTime', JSON.stringify(inputTime));
-
-        const scriptAd = new ScriptAd();
-        scriptAd.removeScriptAd();
-        scriptAd.displayScriptAd();
-
-        console.log(`scriptAd update complete`);
-      });
-    };
-    const localScriptAdUpdateTime = JSON.parse(window.localStorage.getItem('localScriptAdUpdateTime')) || 'null';
-    this.checkUpdateTime(timeUrl, localScriptAdUpdateTime, updater);
   }
 
   checkScriptVipProductsUpdate() {

@@ -1,5 +1,4 @@
 import { View } from 'Global/View';
-import { ScriptAd } from 'Global/ScriptAd';
 import { alertDialog } from 'require';
 
 /**
@@ -14,7 +13,6 @@ export class ScriptVipView extends View {
     super('ScriptVipView');
 
     this.controller = controller;
-    this.scriptAd = new ScriptAd();
 
     const tmpVip = new Blaze.Template('Template.softwareScriptVip', () => {
       // eslint-disable-next-line new-cap
@@ -29,8 +27,6 @@ export class ScriptVipView extends View {
             <div class='col-12'>
               <hr>
               <h2 name='becomeVip'>成為VIP</h2>
-              <hr>
-              <h2 name='scriptAd'>外掛廣告</h2>
               <hr>
               <h2 name='searchTables'>資料搜尋</h2>
               <hr>
@@ -60,7 +56,6 @@ export class ScriptVipView extends View {
       <p>您目前的VIP狀態: 等級 ${userVIP}</p>
       <p>VIP權限: </P>
       <ul name='vipCanDo'>
-        <li>關閉外掛廣告</li>
         <li>使用資料搜尋功能</li>
       </ul>
       <p>
@@ -96,49 +91,6 @@ export class ScriptVipView extends View {
     tableObject.insertAfter($(`div[name='scriptVipProducts'][id='productList']`)[0]);
 
     console.log(`end displayScriptVipProducts()`);
-  }
-
-  /**
-   * 顯示外掛AD資訊
-   * @param {LoginUser} loginUser 登入中的使用者
-   * @return {void}
-   */
-  displayScriptAdInfo(loginUser) {
-    console.log(`start displayScriptAdInfo()`);
-
-    const localScriptAdUpdateTime = JSON.parse(window.localStorage.getItem('localScriptAdUpdateTime')) || 'null';
-    const msg = this.scriptAd.createAdMsg(true);
-    const info = $(`
-      <p>
-        目前的廣告更新時間: ${localScriptAdUpdateTime} <br />
-        目前的廣告內容: <br />
-        ${msg}
-      </p>
-      <p>
-        <button class='btn btn-info btn-sm' name='openAd'>開啟外掛廣告</button>
-        <button class='btn btn-danger btn-sm' name='closeAd'>關閉外掛廣告</button>
-      </p>
-    `);
-    info.insertAfter($(`h2[name='scriptAd']`)[0]);
-
-    if (loginUser.vipLevel() < 1) {
-      $(`button[name='closeAd']`)[0].disabled = true;
-    }
-    else {
-      $(`button[name='closeAd']`)[0].addEventListener('click', () => {
-        window.localStorage.setItem('localDisplayScriptAd', JSON.stringify(false));
-        this.scriptAd.removeScriptAd();
-      });
-    }
-
-    $(`button[name='openAd']`)[0].addEventListener('click', () => {
-      window.localStorage.setItem('localDisplayScriptAd', JSON.stringify(true));
-      if ($(`a[name='scriptAd'][demo='false']`).length < 1) {
-        this.scriptAd.displayScriptAd();
-      }
-    });
-
-    console.log(`end displayScriptAdInfo()`);
   }
 
   /**
